@@ -1,0 +1,2385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BALANCE CONSULTING — Platform Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="icon" id="favicon-link" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%231A56DB%22/%3E%3Ctext x=%2250%22 y=%2266%22 font-family=%22Arial%22 font-weight=%22800%22 font-size=%2238%22 fill=%22white%22 text-anchor=%22middle%22%3EBC%3C/text%3E%3C/svg%3E"/>
+<meta name="theme-color" content="#1A56DB"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="BC Admin"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#04080F;--bg2:#080F12;--card:#0D1517;--card2:#111A1E;
+  --border:#1A2A30;--border2:#253C44;
+  --text:#CAE9F5;--w:#FFFFFF;--muted:#4A7C8E;
+  --acc:#1A56DB;--acc2:#1344C0;--acc3:#6B9FFF;--blue-light:#3B9EFF;
+  --green:#10B981;--gold:#F59E0B;--gold2:#FCD34D;
+  --red:#EF4444;--blue:#3B82F6;--cyan:#06B6D4;
+  --purple:#8B5CF6;--orange:#F97316;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow-x:hidden;}
+/* SIDEBAR */
+#sidebar{width:220px;min-height:100vh;background:linear-gradient(180deg,#04091A,#060C1E 60%,#050A18);border-right:1px solid #1A2D50;flex-shrink:0;display:flex;flex-direction:column;}
+.sb-logo{padding:20px 16px 14px;border-bottom:1px solid var(--border);}
+.sb-logo-title{font-size:13px;font-weight:700;color:var(--w);}
+.sb-logo-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.sb-badge{display:inline-block;background:var(--purple);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-top:4px;}
+.sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.sb-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:12px 8px 4px;}
+.nb{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:8px;font-size:12px;font-family:'Inter',sans-serif;text-align:left;transition:all .15s;}
+.nb:hover{background:var(--card);color:var(--text);}
+.nb.active{background:linear-gradient(90deg,var(--acc)22,var(--acc)08,transparent);color:#fff;font-weight:700;border-left:3px solid var(--acc);padding-left:7px;}
+.nb .ni{font-size:15px;flex-shrink:0;width:20px;text-align:center;}
+.nb .cnt{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;}
+.sb-footer{padding:12px 16px;border-top:1px solid var(--border);}
+.sb-user{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.sb-user strong{color:var(--text);display:block;font-size:12px;}
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;min-width:0;}
+#topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;}
+#topbar input{flex:1;max-width:320px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;}
+#topbar input:focus{outline:none;border-color:var(--acc);}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+#content{flex:1;overflow-y:auto;padding:0;;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.pg{display:none;padding:24px;}
+.pg.active{display:block;}
+/* CARDS & LAYOUT */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr);}.g3{grid-template-columns:1fr 1fr;}}
+@media(max-width:768px){#sidebar{display:none!important;} #main{width:100%;} .g4{grid-template-columns:1fr 1fr;} .g2,.g3{grid-template-columns:1fr;} .pg{padding:14px 12px;}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.card+.card{margin-top:0;}
+.ct{font-size:12px;font-weight:700;color:var(--acc3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;}
+/* KPIs */
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--kc,var(--acc)),transparent);}
+.kl{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.kv{font-size:22px;font-weight:700;color:var(--w);font-family:'Space Mono',monospace;}
+.ks{font-size:10px;color:var(--muted);margin-top:3px;}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--acc2);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;transition:all .15s;}
+.btn:hover{background:var(--acc);transform:translateY(-1px);}
+.btsm{padding:5px 10px;font-size:11px;border-radius:6px;}
+.btgh{background:var(--card2);color:var(--text);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;}
+.btgh:hover{border-color:var(--acc);color:var(--acc3);}
+.btg{background:var(--green)22;color:var(--green);border:1px solid var(--green)44;}
+.btg:hover{background:var(--green)33;}
+.btr{background:var(--red)22;color:var(--red);border:1px solid var(--red)44;}
+.btp{background:var(--purple)22;color:#C4B5FD;border:1px solid var(--purple)44;}
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:var(--bg2);color:var(--acc3);padding:9px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tbl tr:hover td{background:var(--card2);}
+/* BADGES */
+.b{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;}
+.bg{background:var(--green)20;color:var(--green);border:1px solid var(--green)40;}
+.br{background:var(--red)20;color:var(--red);border:1px solid var(--red)40;}
+.bo{background:var(--gold)20;color:var(--gold2);border:1px solid var(--gold)40;}
+.bc{background:var(--cyan)20;color:var(--acc3);border:1px solid var(--cyan)40;}
+.bp{background:var(--purple)20;color:#C4B5FD;border:1px solid var(--purple)40;}
+/* FORM */
+.f{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.f label{font-size:11px;font-weight:600;color:var(--muted);}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--acc);}
+.sep{height:1px;background:var(--border);margin:12px 0;}
+/* MODAL */
+#modalOverlay{display:none;position:fixed;inset:0;background:#00000088;z-index:500;align-items:center;justify-content:center;}
+#modalOverlay.open{display:flex;}
+#modal{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:24px;max-width:560px;width:90%;max-height:90vh;overflow-y:auto;}
+#modalTitle{font-size:15px;font-weight:700;color:var(--w);margin-bottom:16px;}
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--w);z-index:900;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;}
+#toast.show{opacity:1;transform:translateY(0);}
+/* STATUS COLORS */
+.app-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .2s;}
+.app-card:hover{border-color:var(--acc);}
+/* CHART MINI */
+.sparkline{height:40px;display:flex;align-items:flex-end;gap:3px;}
+.spark-bar{background:var(--acc);border-radius:2px 2px 0 0;min-width:6px;transition:height .5s;}
+/* SEQUENCE TIMELINE */
+.seq{display:flex;gap:0;margin:12px 0;position:relative;}
+.seq::before{content:'';position:absolute;top:16px;left:0;right:0;height:2px;background:var(--border);}
+.seq-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;}
+.seq-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:14px;z-index:1;}
+.seq-dot.active{border-color:var(--acc);background:var(--acc)22;}
+.seq-dot.done{border-color:var(--green);background:var(--green)22;}
+.seq-label{font-size:9px;color:var(--muted);text-align:center;}
+/* SECTION HEADER */
+.rh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.st{font-size:18px;font-weight:700;color:var(--w);}
+.ss{font-size:12px;color:var(--muted);margin-top:2px;}
+/* LOGIN */
+#loginScr{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:800;background-image:radial-gradient(ellipse 70% 50% at 50% 0%,#1A56DB10,transparent);}
+.lbox{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:32px;width:360px;}
+.ltitle{font-size:18px;font-weight:700;color:var(--w);margin-bottom:4px;}
+.lsub{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.lbtn{width:100%;padding:12px;background:linear-gradient(135deg,#1A56DB,#3B9EFF);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;transition:all .2s;}
+.lerr{font-size:12px;color:var(--red);margin-top:8px;min-height:18px;}
+/* APP ICON */
+.app-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+/* ALERT BANNER */
+.alert-banner{border-radius:8px;padding:11px 14px;margin-bottom:10px;font-size:12px;line-height:1.7;}
+.alert-red{background:var(--red)12;border:1px solid var(--red)33;color:var(--red);}
+.alert-gold{background:var(--gold)12;border:1px solid var(--gold)33;color:var(--gold2);}
+.alert-green{background:var(--green)12;border:1px solid var(--green)33;color:var(--green);}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScr">
+  <div class="lbox">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:28px">🏢</div>
+      <div class="ltitle">BALANCE CONSULTING</div>
+      <div class="lsub">Platform Admin · Tour de contrôle</div>
+    </div>
+    <div class="f"><label>Identifiant</label><input id="adm_u" placeholder="admin" autocomplete="username"/></div>
+    <div class="f"><label>Mot de passe</label><input id="adm_p" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="lbtn" onclick="doLogin()">Connexion</button>
+    <div class="lerr" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar" style="display:none">
+  <div class="sb-logo"><div id="sidebar-logo" style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#1A56DB,#3B9EFF);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;flex-shrink:0;margin-right:6px;overflow:hidden;box-shadow:0 4px 12px #1A56DB40;"></div>
+    <div class="sb-logo-title">BALANCE CONSULTING</div>
+    <div class="sb-logo-sub">Platform Admin</div>
+    <span class="sb-badge">TOUR DE CONTRÔLE</span>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Vue globale</div>
+    <button class="nb active" id="nb-dash" onclick="goTo('dash')"><span class="ni">📊</span>Dashboard</button>
+
+    <div class="sb-section">Gestion</div>
+    <button class="nb" id="nb-apps" onclick="goTo('apps')"><span class="ni">🚀</span>Applications<span id="cnt-apps" class="cnt" style="display:none"></span></button>
+    <button class="nb" id="nb-clients" onclick="goTo('clients')"><span class="ni">👥</span>Clients</button>
+    <button class="nb" id="nb-licences" onclick="goTo('licences')"><span class="ni">🔑</span>Licences<span id="cnt-lic" class="cnt" style="display:none"></span></button>
+
+    <div class="sb-section">Finances</div>
+    <button class="nb" id="nb-payments" onclick="goTo('payments')"><span class="ni">💰</span>Paiements</button>
+    <button class="nb" id="nb-facturation" onclick="goTo('facturation')"><span class="ni">🧾</span>Facturation</button>
+
+    <div class="sb-section">Communication</div>
+    <button class="nb" id="nb-emails" onclick="goTo('emails')"><span class="ni">📧</span>Emails<span id="cnt-email" class="cnt" style="display:none"></span></button>
+    <button class="nb" id="nb-logs" onclick="goTo('logs')"><span class="ni">📋</span>Activité</button>
+
+    <div class="sb-section">Système</div>
+    <button class="nb" id="nb-users" onclick="goTo('users')"><span class="ni">🔒</span>Utilisateurs</button>
+    <button class="nb" id="nb-config" onclick="goTo('config')"><span class="ni">⚙️</span>Configuration</button>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-user"><strong id="sb-username">Admin</strong>BALANCE CONSULTING</div>
+    <button class="btgh btsm" style="width:100%" onclick="doLogout()">Déconnexion</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <input id="globalSearch" placeholder="🔍  Rechercher un client, une app, une licence..." oninput="globalSearch(this.value)"/>
+    <div class="tb-right">
+      <button class="btn btsm btg" onclick="syncAll()">🔄 Sync</button>
+      <span id="syncStatus" style="font-size:11px;color:var(--muted)">—</span>
+      <span id="tb-date" style="font-size:11px;color:var(--muted)"></span>
+    </div>
+  </div>
+
+  <!-- PAGES -->
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div class="pg active" id="pg-dash"></div>
+
+    <!-- APPLICATIONS -->
+    <div class="pg" id="pg-apps"></div>
+
+    <!-- CLIENTS -->
+    <div class="pg" id="pg-clients"></div>
+
+    <!-- LICENCES -->
+    <div class="pg" id="pg-licences"></div>
+
+    <!-- PAIEMENTS -->
+    <div class="pg" id="pg-payments"></div>
+
+    <!-- FACTURATION -->
+    <div class="pg" id="pg-facturation"></div>
+
+    <!-- EMAILS -->
+    <div class="pg" id="pg-emails"></div>
+
+    <!-- LOGS -->
+    <div class="pg" id="pg-logs"></div>
+
+    <!-- CONFIG -->
+    <div class="pg" id="pg-users"></div>
+    <div class="pg" id="pg-config"></div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div id="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div id="modalTitle">—</div>
+      <button onclick="closeModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1">×</button>
+    </div>
+    <div id="mBody"></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+
+<script>
+
+const ROLES = {
+  superadmin: { label:'Super Admin', color:'var(--gold2)', access:'Accès complet' },
+  admin:      { label:'Admin',       color:'var(--acc3)', access:'Clients, licences, paiements' },
+  viewer:     { label:'Lecteur',     color:'var(--muted)', access:'Consultation uniquement' },
+};
+function getUsers(){ return S.g('admin_users') || [
+  { id:'1', nom:'Admin', email:'admin', role:'superadmin', actif:true, password:btoa('BC2026Admin!'), created_at:'2026-01-01' }
+];}
+function saveUsers(d){ S.s('admin_users', d); _write('admin_users', d); }
+
+function rUsers(){
+  const users = getUsers();
+  const userRows = users.map(u => {
+    const role = ROLES[u.role] || ROLES.viewer;
+    return '<tr>'+
+      '<td style="font-weight:600;color:var(--w)">'+esc(u.nom)+'</td>'+
+      '<td style="font-size:11px;color:var(--muted)">'+esc(u.email)+'</td>'+
+      '<td><span class="b bc" style="color:'+role.color+'">'+role.label+'</span></td>'+
+      '<td style="font-size:11px;color:var(--muted)">'+role.access+'</td>'+
+      '<td><span class="b '+(u.actif?'bg':'br')+'">'+(u.actif?'Actif':'Inactif')+'</span></td>'+
+      '<td><div style="display:flex;gap:4px">'+
+        '<button class="btgh btsm" onclick="openUserForm(&quot;'+u.id+'&quot;)">&#9998;</button>'+
+        (u.id!=='1'?'<button class="btgh btsm" onclick="toggleUser(&quot;'+u.id+'&quot;)">'+(u.actif?'&#9208;':'&#9654;')+'</button>':'')+
+      '</div></td></tr>';
+  }).join('');
+  const roleRows = Object.entries(ROLES).map(function(entry){
+    var k=entry[0], r=entry[1];
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">'+
+    '<span class="b bc" style="color:'+r.color+';min-width:100px">'+r.label+'</span>'+
+    '<span style="font-size:12px;color:var(--text)">'+r.access+'</span></div>';
+  }).join('');
+  document.getElementById('pg-users').innerHTML =
+    '<div class="rh"><div><div class="st">Utilisateurs</div>'+
+    '<div class="ss">Gestion des accès à balance-admin</div></div>'+
+    '<button class="btn" onclick="openUserForm(null)">+ Nouvel utilisateur</button></div>'+
+    '<div class="card"><table class="tbl">'+
+    '<thead><tr><th>Nom</th><th>Identifiant</th><th>Rôle</th><th>Accès</th><th>Statut</th><th>Actions</th></tr></thead>'+
+    '<tbody>'+userRows+'</tbody></table></div>'+
+    '<div class="card" style="margin-top:14px"><div class="ct">Niveaux d\'accès</div>'+roleRows+'</div>';
+}
+
+function openUserForm(id){
+  const users = getUsers();
+  const u = id ? users.find(x=>x.id===id) : null;
+  const roleOpts = Object.entries(ROLES).map(function(entry){
+    var k=entry[0], r=entry[1];
+    return '<option value="'+k+'" '+(u&&u.role===k?'selected':'')+'>'+r.label+' - '+r.access+'</option>';
+  }).join('');
+  openModal(u?'Modifier '+u.nom:'Nouvel utilisateur',
+    '<div class="f"><label>Nom complet *</label><input id="uf_nom" value="'+(u?esc(u.nom):'')+'" placeholder="Ex: Kouassi Jean"/></div>'+
+    '<div class="f"><label>Identifiant *</label><input id="uf_email" value="'+(u?esc(u.email):'')+'" placeholder="jean ou jean@..."/></div>'+
+    '<div class="f"><label>Mot de passe '+(id?'(vide = inchangé)':'*')+'</label>'+
+    '<input id="uf_pass" type="password" placeholder=""/></div>'+
+    '<div class="f"><label>Rôle</label><select id="uf_role">'+roleOpts+'</select></div>'+
+    '<button class="btn btg" style="width:100%" onclick="saveUser(&quot;'+(id||'')+'&quot;)">Sauvegarder</button>');
+}
+
+function saveUser(id){
+  var nom   = (document.getElementById('uf_nom')?.value||'').trim();
+  var email = (document.getElementById('uf_email')?.value||'').trim();
+  var pass  = document.getElementById('uf_pass')?.value||'';
+  var role  = document.getElementById('uf_role')?.value||'viewer';
+  if(!nom||!email){showToast('Nom et identifiant obligatoires',false);return;}
+  var users = getUsers();
+  if(id){
+    var i = users.findIndex(u=>u.id===id);
+    if(i>=0){ users[i].nom=nom; users[i].email=email; users[i].role=role; if(pass) users[i].password=btoa(pass); }
+  } else {
+    if(users.find(u=>u.email===email)){showToast('Identifiant déjà utilisé',false);return;}
+    if(!pass){showToast('Mot de passe obligatoire',false);return;}
+    users.push({id:uid(),nom:nom,email:email,role:role,actif:true,password:btoa(pass),created_at:TODAY});
+  }
+  saveUsers(users);
+  closeModal();showToast('Utilisateur sauvegardé');rUsers();
+}
+
+function toggleUser(id){
+  var users=getUsers(), i=users.findIndex(u=>u.id===id);
+  if(i>=0){ users[i].actif=!users[i].actif; saveUsers(users); rUsers(); }
+}
+
+'use strict';
+// ════════════════════════════════════════════════════════════════
+// BALANCE CONSULTING PLATFORM ADMIN v3.0
+// Architecture Option B — Google Sheets comme source de vérité
+// Données JAMAIS dans le navigateur (sauf auth + config)
+// ════════════════════════════════════════════════════════════════
+
+// ── STORE (localStorage uniquement pour auth + config) ──────────
+// ═══════════════════════════════════════════════════
+// CONFIGURATION SERVEUR — À remplir UNE SEULE FOIS
+// Même URL sur TOUS les appareils automatiquement
+// ═══════════════════════════════════════════════════
+// SERVER_URL et ADMIN_KEY sont dans les variables d'environnement Netlify
+// Elles ne doivent PAS être ici pour des raisons de sécurité
+// Le proxy /.netlify/functions/api les utilise côté serveur
+const SERVER_URL  = '';
+const ADMIN_KEY   = '';
+
+// Storage local — UNIQUEMENT pour auth session
+const S = {
+  g: k => { try { return JSON.parse(localStorage.getItem('bca_'+k)||'null'); } catch(e) { return null; } },
+  s: (k,v) => localStorage.setItem('bca_'+k, JSON.stringify(v)),
+  d: k => localStorage.removeItem('bca_'+k)
+};
+
+// ── UTILS ────────────────────────────────────────────────────────
+const TODAY = new Date().toISOString().slice(0,10);
+function fmt(n){ return new Intl.NumberFormat('fr-FR').format(+n||0)+' FCFA'; }
+function fmtD(d){ if(!d)return'—'; try{ return new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){return d;} }
+function uid(){ return Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase(); }
+function daysLeft(exp){ if(!exp||exp==='DEV')return 9999; return Math.ceil((new Date(exp)-Date.now())/86400000); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── CACHE MÉMOIRE (Option B) ─────────────────────────────────────
+// Les données viennent de Google Sheets, stockées en mémoire session
+// Perdu au rechargement = voulu (rechargement = re-fetch depuis Sheets)
+const CACHE = {};
+
+// Apps par défaut si serveur non configuré (démo locale)
+const DEFAULT_APPS = [
+  {id:'studiopro',nom:'StudioPro',emoji:'🎬',desc:'Gestion audiovisuelle',couleur:'#6D28D9',actif:true,tarifs:{MOIS:15000,TRIM:40000,ANNU:150000}},
+  {id:'comptapro',nom:'ComptaPro',emoji:'📊',desc:'Comptabilité OHADA',couleur:'#0096B7',actif:false,tarifs:{MOIS:20000,TRIM:55000,ANNU:200000}},
+  {id:'immopro',nom:'ImmoPro',emoji:'🏠',desc:'Gestion immobilière',couleur:'#10B981',actif:false,tarifs:{MOIS:18000,TRIM:48000,ANNU:180000}},
+  {id:'rhpro',nom:'RHPro',emoji:'👔',desc:'RH & Paie',couleur:'#F59E0B',actif:false,tarifs:{MOIS:25000,TRIM:65000,ANNU:240000}},
+  {id:'facturapro',nom:'FacturaPro',emoji:'🧾',desc:'Facturation simple',couleur:'#EF4444',actif:false,tarifs:{MOIS:8000,TRIM:20000,ANNU:75000}},
+];
+
+// ── GETTERS (lisent CACHE — chargé depuis l'API) ──────────────────
+function getApps()    { return CACHE.apps      || DEFAULT_APPS; }
+function getClients() { return CACHE.clients   || []; }
+function getLicences(){ return CACHE.licences  || []; }
+function getPayments(){ return CACHE.payments  || []; }
+function getEmailLog(){ return CACHE.email_log || []; }
+// pay_links et config admin restent en localStorage (config locale)
+function getPayLinks(appId){
+  const all = S.g('pay_links') || {};
+  if(appId && all[appId]) return all[appId];
+  // Fallback : liens globaux si pas de liens spécifiques pour cette app
+  return all['_global'] || {wave:{MOIS:'',TRIM:'',ANNU:''},om:{MOIS:'',TRIM:'',ANNU:''}};
+}
+function getAllPayLinks(){ return S.g('pay_links') || {}; }
+
+function getCompanyInfo(){
+  return S.g('company_info') || {
+    nom:'BALANCE CONSULTING',
+    slogan:'Experts comptables & Conseil aux entreprises',
+    email:'contact@balanceconsulting.ci',
+    tel:'+225 0700776975',
+    whatsapp:'+2250700776975',
+    adresse:'Abidjan, Côte d\'Ivoire',
+    rccm:'CI-ABJ-XXXX-B-XXXXX',
+    ncc:'XXXXXXXXXXXXXXX',
+    logo:'',
+    couleur_principale:'#00B4D8',
+  };
+}
+
+// ── SETTERS (écrivent CACHE + API, jamais localStorage) ──────────
+// ── OPÉRATIONS PAR LIGNE (multi-appareils safe) ──────────────────
+// Chaque opération modifie UNE ligne dans Sheets
+// Aucun appareil ne peut écraser les données d'un autre
+
+async function _addRow(module, row){
+  if(CACHE[module]) CACHE[module].unshift(row);
+  showSync('syncing');
+  try{
+    const r = await apiCall('addAdminRow', {module, row});
+    if(r && r.error){ showSync('err'); showToast('❌ '+r.error, false); return; }
+    showSync('ok');
+  }catch(e){ showSync('err'); showToast('❌ Écriture impossible : '+e.message, false); console.error('_addRow',module,e); }
+}
+
+async function _updateRow(module, idField, idValue, data){
+  if(CACHE[module]){
+    const i = CACHE[module].findIndex(r=>String(r[idField])===String(idValue));
+    if(i>=0) CACHE[module][i] = {...CACHE[module][i], ...data};
+  }
+  showSync('syncing');
+  try{
+    const r = await apiCall('updateAdminRow', {module, idField, idValue, data});
+    if(r && r.error){ showSync('err'); showToast('❌ '+r.error, false); return; }
+    showSync('ok');
+  }catch(e){ showSync('err'); showToast('❌ Modification impossible : '+e.message, false); console.error('_updateRow',module,e); }
+}
+
+async function _deleteRow(module, idField, idValue){
+  if(CACHE[module]){
+    CACHE[module] = CACHE[module].filter(r=>String(r[idField])!==String(idValue));
+  }
+  showSync('syncing');
+  try{
+    const r = await apiCall('deleteAdminRow', {module, idField, idValue});
+    if(r && r.error){ showSync('err'); showToast('❌ '+r.error, false); return; }
+    showSync('ok');
+  }catch(e){ showSync('err'); showToast('❌ Suppression impossible : '+e.message, false); console.error('_deleteRow',module,e); }
+}
+
+// Helpers pour chaque module
+const addApp      = r => _addRow('apps', r);
+const updateApp   = (id,d) => _updateRow('apps','id',id,d);
+const addClient   = r => _addRow('clients', r);
+const updateClient= (nom,d) => _updateRow('clients','nom',nom,d);
+const addLicence  = r => _addRow('licences', r);
+const updateLicence=(id,d) => _updateRow('licences','id',id,d);
+const deleteLicenceRow=(id) => _deleteRow('licences','id',id);
+const addPayment  = r => _addRow('payments', r);
+
+// Compatibilité — gardés pour les cas où on recharge tout depuis serveur
+function saveApps(d)     { CACHE.apps=d; }
+function saveClients(d)  { CACHE.clients=d; }
+function saveLicences(d) { CACHE.licences=d; }
+function savePayments(d) { CACHE.payments=d; }
+
+function addEmailLog(entry){
+  const l = (CACHE.email_log||[]);
+  l.unshift({...entry, id:uid(), ts:new Date().toISOString()});
+  CACHE.email_log = l.slice(0,500);
+  if(getApiUrl()) apiCall('addAdminRow', {module:'email_log', row: l[0]}).catch(()=>{});
+}
+
+// ── API ──────────────────────────────────────────────────────────
+// URL et clé par défaut — à remplir avant de déployer
+// Ces valeurs sont utilisées sur tous les appareils automatiquement
+const DEFAULT_SERVER_URL = ''; // Coller ici l'URL Apps Script
+const DEFAULT_ADMIN_KEY  = ''; // Coller ici la clé admin
+
+function getApiUrl(){
+  return S.g('server_url') || DEFAULT_SERVER_URL || '';
+}
+function getAdminKey(){
+  return S.g('admin_key') || DEFAULT_ADMIN_KEY || '';
+}
+
+async function apiCall(action, params={}){
+  // Passe par le proxy Netlify pour éviter les erreurs CORS
+  // Le proxy transmet la requête à Google Apps Script côté serveur
+  const proxyUrl = '/api/proxy';
+  const body = { action, admin_key: getAdminKey(), ...params };
+  const r = await fetch(proxyUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const txt = await r.text();
+  try {
+    const d = JSON.parse(txt);
+    if(d.error) throw new Error(d.error);
+    return d;
+  } catch(e) { if(e.message!==txt) throw e; return {raw:txt}; }
+}
+
+// Indicateur de synchronisation
+function showSync(state){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  if(state==='syncing') { el.textContent='🔄 Sync...'; el.style.color='var(--muted)'; }
+  else if(state==='ok') { el.textContent='✅ '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); el.style.color='var(--green)'; }
+  else if(state==='err') { el.textContent='⚠️ Hors ligne'; el.style.color='var(--gold)'; }
+  else if(state==='loading') { el.textContent='⏳ Chargement...'; el.style.color='var(--muted)'; }
+}
+
+// Chargement complet depuis l'API
+async function loadAllData(){
+  showSync('loading');
+  try{
+    const d = await apiCall('adminDash');
+    if(d.error){
+      showSync('err');
+      showToast('❌ ' + d.error, false);
+      return false;
+    }
+    // Charger toutes les données dans le CACHE
+    CACHE.apps      = d.apps      || CACHE.apps      || [];
+    CACHE.clients   = d.clients   || CACHE.clients   || [];
+    CACHE.licences  = d.licences  || CACHE.licences  || [];
+    CACHE.payments  = d.payments  || CACHE.payments  || [];
+    CACHE.email_log = d.email_log || CACHE.email_log || [];
+    showSync('ok');
+    return true;
+  }catch(e){
+    showSync('err');
+    showToast('❌ Connexion impossible : ' + e.message, false);
+    return false;
+  }
+}
+
+// ── TOAST & MODAL ────────────────────────────────────────────────
+let _toastTimer;
+function showToast(msg, ok=true){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderColor = ok ? 'var(--green)' : 'var(--red)';
+  el.style.color = ok ? 'var(--green)' : 'var(--red)';
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(()=>el.classList.remove('show'), 3000);
+}
+function openModal(title, html){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('mBody').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+
+// ── AUTH ─────────────────────────────────────────────────────────
+function doLogin(){
+  var u=document.getElementById('adm_u').value.trim();
+  var p=document.getElementById('adm_p').value;
+  var err=document.getElementById('loginErr');
+  var users=getUsers();
+  var found=users.find(function(x){return x.email===u||x.nom.toLowerCase()===u.toLowerCase();});
+  var ok=false, displayName=u, role='superadmin';
+  if(found&&found.actif){ try{ if(btoa(p)===found.password){ok=true;displayName=found.nom;role=found.role;} }catch(e){} }
+  if(!ok&&u==='admin'&&p==='BC2026Admin!'){ok=true;displayName='Admin';role='superadmin';}
+  if(ok){
+    S.s('auth',{user:found?found.email:u,displayName:displayName,role:role,expires:Date.now()+8*3600000});
+    document.getElementById('sb-username').textContent=displayName;
+    showApp();
+  } else {
+    err.textContent='Identifiants incorrects';
+    setTimeout(function(){err.textContent='';},3000);
+  }
+}
+
+async function doLogout(){
+  S.d('auth');
+  // Vider le cache mémoire
+  Object.keys(CACHE).forEach(k => delete CACHE[k]);
+  location.reload();
+}
+
+function checkAuth(){
+  const auth = S.g('auth');
+  return auth && auth.expires > Date.now();
+}
+
+async function showApp(){
+  document.getElementById('loginScr').style.display = 'none';
+  document.getElementById('sidebar').style.display = 'flex';
+  document.getElementById('main').style.display = 'flex';
+  document.getElementById('tb-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  // Charger toutes les données depuis Google Sheets au démarrage
+  if(getApiUrl()){
+    await loadAllData();
+  }
+  goTo('dash');
+}
+
+// ── ROUTER ───────────────────────────────────────────────────────
+const PAGES = {
+  dash:rDash, apps:rApps, clients:rClients,
+  licences:rLicences, payments:rPayments,
+  facturation:rFacturation, emails:rEmails,
+  logs:rLogs, users:rUsers, config:rConfig
+};
+
+function goTo(p){
+  document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('active',b.id==='nb-'+p));
+  document.querySelectorAll('.pg').forEach(pg=>pg.classList.toggle('active',pg.id==='pg-'+p));
+  PAGES[p]?.();
+}
+
+function applyCompanyBrand(){
+  var ci=getCompanyInfo();
+  var abbr=(ci.nom||'BC').replace(/[^A-Za-z]/g,' ').trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'BC';
+  var col=ci.couleur_principale||'#1A56DB';
+  var colEnc=col.replace('#','%23');
+  var sbL=document.getElementById('sidebar-logo');
+  if(sbL){ if(ci.logo_url){ sbL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain"/>'; } else { sbL.textContent=abbr; sbL.style.background='linear-gradient(135deg,'+col+','+col+'99)'; } }
+  var lgL=document.getElementById('login-logo');
+  if(lgL){ if(ci.logo_url){ lgL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain"/>'; } else { lgL.textContent=abbr; } }
+  document.documentElement.style.setProperty('--acc',col);
+  document.title=(ci.nom||'BALANCE CONSULTING')+' — Platform';
+  var fs=abbr.length===1?52:38;
+  var svgF='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22'+colEnc+'%22/%3E%3Ctext x=%2250%22 y=%2266%22 font-family=%22Arial%22 font-weight=%22800%22 font-size=%22'+fs+'%22 fill=%22white%22 text-anchor=%22middle%22%3E'+abbr+'%3C/text%3E%3C/svg%3E';
+  var fav=document.getElementById('favicon-link');
+  if(fav) fav.href=svgF;
+}
+
+async function syncAll(){
+  const loaded = await loadAllData();
+  const cur = document.querySelector('.nb.active')?.id.replace('nb-','')||'dash';
+  PAGES[cur]?.();
+  if(loaded) showToast('✅ Données synchronisées depuis le serveur');
+  else showToast('❌ Synchronisation échouée — vérifiez la connexion', false);
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────
+function rDash(){
+  const apps=getApps().filter(a=>a.actif), clients=getClients(), lics=getLicences(), pays=getPayments();
+  const actifs=lics.filter(l=>l.active&&daysLeft(l.expiration)>0);
+  const expSoon=lics.filter(l=>l.active&&daysLeft(l.expiration)<=30&&daysLeft(l.expiration)>0);
+  const expired=lics.filter(l=>l.active&&daysLeft(l.expiration)<=0);
+  const caTotal=pays.filter(p=>p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+  const caMois=pays.filter(p=>p.statut==='success'&&p.date?.startsWith(TODAY.slice(0,7))).reduce((s,p)=>s+(+p.montant||0),0);
+  const cntLic=document.getElementById('cnt-lic');
+  if(cntLic){cntLic.style.display=expSoon.length?'inline':'none';cntLic.textContent=expSoon.length;}
+  const cntEmail=document.getElementById('cnt-email');
+  if(cntEmail){cntEmail.style.display=(expSoon.length+expired.length)?'inline':'none';cntEmail.textContent=expSoon.length+expired.length;}
+  document.getElementById('pg-dash').innerHTML=`
+  <div class="rh">
+    <div><div class="st">Dashboard Platform</div>
+    <div class="ss">${new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btgh btsm" onclick="syncAll()">🔄 Actualiser</button>
+      <button class="btn btsm" onclick="goTo('clients')">+ Client</button>
+    </div>
+  </div>
+  ${!getApiUrl()?`<div style="background:var(--gold)10;border:1px solid var(--gold)30;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--gold2)">
+    ⚙️ Serveur non configuré — aller dans <strong>Config</strong> pour connecter votre Apps Script.
+  </div>`:''}
+  ${expired.length?`<div style="background:var(--red)10;border:1px solid var(--red)30;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--red);display:flex;justify-content:space-between;align-items:center">
+    <span>🚨 <strong>${expired.length} licence(s) expirée(s)</strong></span>
+    <button class="btn btsm" style="background:var(--red);color:#fff" onclick="sendBulkRenewal('expired')">📧 Relancer tous</button>
+  </div>`:''}
+  ${expSoon.length?`<div style="background:var(--gold)10;border:1px solid var(--gold)30;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--gold2);display:flex;justify-content:space-between;align-items:center">
+    <span>⚠️ <strong>${expSoon.length} licence(s)</strong> expirent dans &lt;30j</span>
+    <button class="btn btsm" style="background:var(--gold);color:#000" onclick="sendBulkRenewal('soon')">📧 Relancer</button>
+  </div>`:''}
+  <div class="g4" style="margin-bottom:18px">
+    <div class="kpi" style="--kc:var(--acc)"><div class="kl">Apps actives</div><div class="kv">${apps.length}</div><div class="ks">${getApps().length} disponibles</div></div>
+    <div class="kpi" style="--kc:var(--purple)"><div class="kl">Clients</div><div class="kv">${clients.length}</div><div class="ks">${actifs.length} licences actives</div></div>
+    <div class="kpi" style="--kc:var(--gold)"><div class="kl">CA ce mois</div><div class="kv" style="font-size:15px">${fmt(caMois)}</div><div class="ks">Total : ${fmt(caTotal)}</div></div>
+    <div class="kpi" style="--kc:${expSoon.length||expired.length?'var(--red)':'var(--green)'}"><div class="kl">À renouveler</div><div class="kv" style="color:${expSoon.length||expired.length?'var(--red)':'var(--green)'}">${expSoon.length+expired.length}</div><div class="ks">${expired.length} exp. · ${expSoon.length} bientôt</div></div>
+  </div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="ct" style="margin:0">Applications actives</div>
+        <button class="btgh btsm" onclick="goTo('apps')">Gérer →</button>
+      </div>
+      ${apps.length===0?'<div style="color:var(--muted);text-align:center;padding:20px">Aucune app activée</div>':
+      apps.map(app=>{
+        const appLics=lics.filter(l=>l.app_id===app.id&&l.active);
+        const appCA=pays.filter(p=>p.app_id===app.id&&p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+        return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div class="app-icon" style="background:${app.couleur}22;border:1px solid ${app.couleur}44"><span style="color:${app.couleur}">${app.emoji}</span></div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--w)">${app.nom}</div>
+          <div style="font-size:11px;color:var(--muted)">${appLics.length} client(s) · ${fmt(appCA)}</div></div>
+          <span class="b bg" style="font-size:9px">ACTIF</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="ct" style="margin:0">Renouvellements urgents</div>
+        <button class="btgh btsm" onclick="goTo('licences')">Voir tout →</button>
+      </div>
+      ${[...expired,...expSoon].slice(0,6).map(l=>{
+        const d=daysLeft(l.expiration);
+        const col=d<=0?'var(--red)':d<=7?'var(--red)':d<=15?'var(--gold)':'var(--text)';
+        const app=getApps().find(a=>a.id===l.app_id);
+        return`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+          <div><div style="font-size:12px;font-weight:600;color:var(--w)">${esc(l.client)}</div>
+          <div style="font-size:10px;color:var(--muted)">${app?.emoji||'📦'} ${app?.nom||l.app_id} · ${l.type}</div></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:700;color:${col}">${d<=0?'Exp.':d+'j'}</span>
+            <button class="btn btsm" style="background:var(--gold);color:#000;font-size:10px;padding:3px 8px"
+              onclick="openRenewModal('${l.id}','${esc(l.client)}','${l.app_id}','${l.type}','${l.expiration}')">📧</button>
+          </div>
+        </div>`;
+      }).join('')||'<div style="color:var(--green);text-align:center;padding:20px">✅ Tout est à jour</div>'}
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="ct" style="margin:0">💰 Derniers paiements</div>
+      <button class="btgh btsm" onclick="goTo('payments')">Voir tout →</button>
+    </div>
+    ${pays.length===0?'<div style="color:var(--muted);text-align:center;padding:20px">Aucun paiement — connectez le serveur</div>':
+    `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Client</th><th>App</th><th>Montant</th><th>Moyen</th><th>Date</th><th>Statut</th></tr></thead>
+    <tbody>${pays.slice(0,6).map(p=>{
+      const app=getApps().find(a=>a.id===p.app_id);
+      const mi=p.moyen==='Wave'?'🌊':p.moyen==='Orange Money'?'🟠':'💳';
+      return`<tr><td style="font-weight:600;color:var(--w)">${esc(p.client)}</td>
+        <td>${app?.emoji||'📦'} ${app?.nom||p.app_id||'—'}</td>
+        <td style="font-family:'Space Mono',monospace;color:var(--gold)">${fmt(p.montant)}</td>
+        <td>${mi} ${p.moyen||'—'}</td>
+        <td style="color:var(--muted);font-size:11px">${fmtD(p.date)}</td>
+        <td><span class="b ${p.statut==='success'?'bg':p.statut==='pending'?'bo':'br'}">${p.statut==='success'?'✅':p.statut==='pending'?'⏳':'❌'}</span></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`}
+  </div>`;
+}
+
+// ── APPLICATIONS ─────────────────────────────────────────────────
+function rApps(){
+  const apps=getApps(), lics=getLicences(), pays=getPayments();
+  document.getElementById('pg-apps').innerHTML=`
+  <div class="rh">
+    <div><div class="st">Applications</div><div class="ss">Gérez votre catalogue SaaS</div></div>
+    <button class="btn" onclick="openAppForm(null)">+ Nouvelle app</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
+    ${apps.map(app=>{
+      const al=lics.filter(l=>l.app_id===app.id&&l.active&&daysLeft(l.expiration)>0);
+      const ac=pays.filter(p=>p.app_id===app.id&&p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+      const xs=lics.filter(l=>l.app_id===app.id&&l.active&&daysLeft(l.expiration)<=30&&daysLeft(l.expiration)>0);
+      return`<div class="app-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="app-icon" style="background:${app.couleur}22;border:1px solid ${app.couleur}44"><span style="color:${app.couleur};font-size:22px">${app.emoji}</span></div>
+            <div><div style="font-size:14px;font-weight:700;color:var(--w)">${app.nom}</div>
+            <div style="font-size:11px;color:var(--muted)">${app.desc}</div></div>
+          </div>
+          <span class="b ${app.actif?'bg':'br'}">${app.actif?'Actif':'Inactif'}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="text-align:center;background:var(--bg2);border-radius:7px;padding:8px">
+            <div style="font-size:16px;font-weight:700;color:var(--w)">${al.length}</div>
+            <div style="font-size:9px;color:var(--muted)">CLIENTS</div>
+          </div>
+          <div style="text-align:center;background:var(--bg2);border-radius:7px;padding:8px">
+            <div style="font-size:11px;font-weight:700;color:var(--gold)">${fmt(ac).replace(' FCFA','')}</div>
+            <div style="font-size:9px;color:var(--muted)">CA TOTAL</div>
+          </div>
+          <div style="text-align:center;background:var(--bg2);border-radius:7px;padding:8px">
+            <div style="font-size:16px;font-weight:700;color:${xs.length?'var(--gold)':'var(--green)'}">${xs.length}</div>
+            <div style="font-size:9px;color:var(--muted)">ALERTES</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Mensuel: ${fmt(app.tarifs?.MOIS)} · Annuel: ${fmt(app.tarifs?.ANNU)}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btsm" style="flex:1;background:${app.couleur}" onclick="toggleApp('${app.id}')">${app.actif?'⏸ Désactiver':'▶ Activer'}</button>
+          <button class="btgh btsm" onclick="openAppForm('${app.id}')">✏</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+async function toggleApp(id){
+  const app=getApps().find(a=>a.id===id);
+  if(!app)return;
+  const newActif = !app.actif;
+  await updateApp(id, {actif: newActif});
+  showToast(app.nom+' '+(newActif?'activée':'désactivée'));
+  rApps();
+}
+
+function openAppForm(id){
+  const apps=getApps();
+  const app=id?apps.find(a=>a.id===id):null;
+  openModal(app?'Modifier '+app.nom:'Nouvelle application',`
+    <div class="g2">
+      <div class="f"><label>Emoji</label><input id="af_emoji" value="${app?.emoji||'🚀'}" style="font-size:24px;text-align:center"/></div>
+      <div class="f"><label>Identifiant</label><input id="af_id" value="${app?.id||''}" placeholder="monapp" ${id?'readonly':''}/></div>
+    </div>
+    <div class="f"><label>Nom</label><input id="af_nom" value="${app?.nom||''}" placeholder="Ex: StudioPro"/></div>
+    <div class="f"><label>Description</label><input id="af_desc" value="${app?.desc||''}" placeholder="Ex: Gestion audiovisuelle"/></div>
+    <div class="f"><label>Couleur</label><input id="af_col" type="color" value="${app?.couleur||'#6D28D9'}"/></div>
+    <div class="sep"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--acc3);margin-bottom:8px">TARIFS (FCFA)</div>
+    <div class="g3">
+      <div class="f"><label>Mensuel</label><input id="af_mois" type="number" value="${app?.tarifs?.MOIS||15000}"/></div>
+      <div class="f"><label>Trimestriel</label><input id="af_trim" type="number" value="${app?.tarifs?.TRIM||40000}"/></div>
+      <div class="f"><label>Annuel</label><input id="af_annu" type="number" value="${app?.tarifs?.ANNU||150000}"/></div>
+    </div>
+    <button class="btn btg" style="width:100%;margin-top:4px" onclick="saveApp('${id||''}')">💾 Sauvegarder</button>`);
+}
+
+async function saveApp(id){
+  const newApp={
+    id:id||document.getElementById('af_id').value.trim().toLowerCase().replace(/\s+/g,'_'),
+    nom:document.getElementById('af_nom').value.trim(),
+    emoji:document.getElementById('af_emoji').value.trim(),
+    desc:document.getElementById('af_desc').value.trim(),
+    couleur:document.getElementById('af_col').value,
+    actif:true,
+    tarifs:{
+      MOIS:+document.getElementById('af_mois').value||15000,
+      TRIM:+document.getElementById('af_trim').value||40000,
+      ANNU:+document.getElementById('af_annu').value||150000,
+    }
+  };
+  if(!newApp.id||!newApp.nom){showToast('ID et nom obligatoires',false);return;}
+  if(id){
+    await updateApp(id, newApp);
+  } else {
+    if(getApps().find(a=>a.id===newApp.id)){showToast('ID déjà utilisé',false);return;}
+    await addApp(newApp);
+  }
+  closeModal();showToast('Application sauvegardée ✓');rApps();
+}
+
+// ── CLIENTS ──────────────────────────────────────────────────────
+function rClients(){
+  const clients=getClients();
+  document.getElementById('pg-clients').innerHTML=`
+  <div class="rh">
+    <div><div class="st">Clients</div><div class="ss">${clients.length} client(s)</div></div>
+    <button class="btn" onclick="openClientForm(null)">+ Nouveau client</button>
+  </div>
+  <div style="margin-bottom:14px">
+    <input placeholder="Rechercher..." style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;width:300px" oninput="filterClients(this.value)"/>
+  </div>
+  <div id="clientsList">${renderClientsList(clients)}</div>`;
+}
+
+function renderClientsList(clients){
+  if(!clients.length)return'<div style="text-align:center;color:var(--muted);padding:40px">Aucun client. <button class="btn btsm" onclick="openClientForm(null)">+ Créer</button></div>';
+  const lics=getLicences(), pays=getPayments(), apps=getApps();
+  return`<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>Client</th><th>Contact</th><th>Apps</th><th>CA total</th><th>Inscription</th><th>Actions</th></tr></thead>
+    <tbody>${clients.map(c=>{
+      const cL=lics.filter(l=>l.client===c.nom&&l.active);
+      const cCA=pays.filter(p=>p.client===c.nom&&p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+      const badges=cL.map(l=>{const app=apps.find(a=>a.id===l.app_id);const d=daysLeft(l.expiration);return`<span class="b ${d>30?'bg':d>0?'bo':'br'}" style="font-size:9px;margin-right:3px">${app?.emoji||'📦'}</span>`;}).join('');
+      return`<tr>
+        <td><div style="font-weight:700;color:var(--w)">${esc(c.nom)}</div><div style="font-size:10px;color:var(--muted)">${c.secteur||'—'}</div></td>
+        <td style="font-size:11px">${c.email?'✉ '+esc(c.email)+'<br>':''}${c.tel?'📞 '+esc(c.tel):''}</td>
+        <td>${badges||'<span style="color:var(--muted)">Aucune</span>'}</td>
+        <td style="font-family:'Space Mono',monospace;color:var(--gold)">${fmt(cCA)}</td>
+        <td style="font-size:11px;color:var(--muted)">${fmtD(c.date_inscription)}</td>
+        <td><div style="display:flex;gap:4px">
+          <button class="btn btsm" onclick="openClient360('${esc(c.nom)}')">360°</button>
+          <button class="btgh btsm" onclick="openClientForm('${esc(c.nom)}')">✏</button>
+          <button class="btn btsm btg" onclick="openAddLicence('${esc(c.nom)}')">+ Lic.</button>
+        </div></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+function filterClients(q){
+  const clients=getClients().filter(c=>!q||(c.nom||'').toLowerCase().includes(q.toLowerCase())||(c.email||'').toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('clientsList').innerHTML=renderClientsList(clients);
+}
+
+function openClientForm(nom){
+  const c=nom?getClients().find(x=>x.nom===nom):null;
+  openModal(c?'Modifier '+c.nom:'Nouveau client',`
+    <div class="f"><label>Nom entreprise *</label><input id="cf_nom" value="${c?.nom||''}" placeholder="Ex: STUDIO 3D"/></div>
+    <div class="g2">
+      <div class="f"><label>Email</label><input id="cf_email" type="email" value="${c?.email||''}" placeholder="contact@..."/></div>
+      <div class="f"><label>Téléphone</label><input id="cf_tel" value="${c?.tel||''}" placeholder="+225 ..."/></div>
+    </div>
+    <div class="g2">
+      <div class="f"><label>Secteur</label><input id="cf_secteur" value="${c?.secteur||''}" placeholder="Ex: Audiovisuel"/></div>
+      <div class="f"><label>Ville</label><input id="cf_ville" value="${c?.ville||''}" placeholder="Ex: Abidjan"/></div>
+    </div>
+    <div class="f"><label>Notes</label><textarea id="cf_notes" rows="2">${c?.notes||''}</textarea></div>
+    <button class="btn btg" style="width:100%" onclick="saveClient('${nom||''}')">💾 Sauvegarder</button>`);
+}
+
+async function saveClient(oldNom){
+  const nom=document.getElementById('cf_nom').value.trim();
+  if(!nom){showToast('Nom obligatoire',false);return;}
+  const entry={
+    nom,
+    email:document.getElementById('cf_email').value.trim(),
+    tel:document.getElementById('cf_tel').value.trim(),
+    secteur:document.getElementById('cf_secteur').value.trim(),
+    ville:document.getElementById('cf_ville').value.trim(),
+    notes:document.getElementById('cf_notes').value.trim(),
+    date_inscription:oldNom?getClients().find(c=>c.nom===oldNom)?.date_inscription:TODAY,
+    actif:true
+  };
+  if(oldNom){
+    await updateClient(oldNom, entry);
+  } else {
+    if(getClients().find(c=>c.nom===nom)){showToast('Client déjà existant',false);return;}
+    await addClient(entry);
+  }
+  closeModal();showToast('Client sauvegardé ✓');rClients();
+}
+
+function openClient360(nom){
+  const client=getClients().find(c=>c.nom===nom)||{nom};
+  const lics=getLicences().filter(l=>l.client===nom);
+  const pays=getPayments().filter(p=>p.client===nom);
+  const apps=getApps();
+  const caTotal=pays.filter(p=>p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+  openModal('360° — '+nom,`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+      <div style="width:44px;height:44px;border-radius:50%;background:var(--acc)22;border:2px solid var(--acc)44;display:flex;align-items:center;justify-content:center;font-size:20px">🏢</div>
+      <div><div style="font-size:16px;font-weight:700;color:var(--w)">${esc(nom)}</div>
+      <div style="font-size:12px;color:var(--muted)">${client.secteur||'—'} · ${client.email||'—'}</div></div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-family:'Space Mono',monospace;font-weight:700;color:var(--gold)">${fmt(caTotal)}</div>
+        <div style="font-size:10px;color:var(--muted)">CA total</div>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--acc3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Abonnements</div>
+    ${lics.length===0?'<div style="color:var(--muted);text-align:center;padding:15px">Aucune licence</div>':
+    lics.map(l=>{
+      const app=apps.find(a=>a.id===l.app_id);
+      const d=daysLeft(l.expiration);
+      return`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg2);border-radius:8px;margin-bottom:6px">
+        <span style="font-size:20px">${app?.emoji||'📦'}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--w)">${app?.nom||l.app_id}</div>
+        <div style="font-size:11px;color:var(--muted)">${l.type} · ${l.domaine||'—'}</div></div>
+        <div style="text-align:right">
+          <span class="b ${d>30?'bg':d>0?'bo':'br'}">${d>0?d+'j':'Expirée'}</span>
+          ${d<=30&&d>0?`<button class="btn btsm" style="display:block;margin-top:4px;font-size:10px" onclick="closeModal();openRenewModal('${l.id}','${esc(nom)}','${l.app_id}','${l.type}','${l.expiration}')">📧 Relancer</button>`:''}
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="font-size:11px;font-weight:700;color:var(--acc3);text-transform:uppercase;letter-spacing:1px;margin:14px 0 10px">Derniers paiements</div>
+    ${pays.slice(0,4).map(p=>{
+      const app=apps.find(a=>a.id===p.app_id);
+      const mi=p.moyen==='Wave'?'🌊':p.moyen==='Orange Money'?'🟠':'💳';
+      return`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <div>${mi} ${app?.emoji||'📦'} <span style="color:var(--muted)">${fmtD(p.date)}</span></div>
+        <div style="font-family:'Space Mono',monospace;color:var(--gold)">${fmt(p.montant)}</div>
+      </div>`;
+    }).join('')||'<div style="color:var(--muted);text-align:center;padding:10px">Aucun paiement</div>'}
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btsm" style="flex:1" onclick="closeModal();openAddLicence('${esc(nom)}')">+ Licence</button>
+      <button class="btn btsm btg" style="flex:1" onclick="closeModal();openAddPayment('${esc(nom)}')">+ Paiement</button>
+      <button class="btgh btsm" onclick="closeModal();openClientForm('${esc(nom)}')">✏ Modifier</button>
+    </div>`);
+}
+
+// ── LICENCES ─────────────────────────────────────────────────────
+function rLicences(){
+  const lics=getLicences(), apps=getApps();
+  document.getElementById('pg-licences').innerHTML=`
+  <div class="rh">
+    <div><div class="st">Licences</div><div class="ss">${lics.length} licence(s) · ${lics.filter(l=>l.active&&daysLeft(l.expiration)>0).length} actives</div></div>
+    <button class="btn" onclick="openAddLicence(null)">+ Nouvelle licence</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <select id="licFilterApp" onchange="filterLicences()" style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-size:12px">
+      <option value="">Toutes les apps</option>
+      ${apps.map(a=>`<option value="${a.id}">${a.emoji} ${a.nom}</option>`).join('')}
+    </select>
+    <select id="licFilterStatus" onchange="filterLicences()" style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-size:12px">
+      <option value="">Tous les statuts</option>
+      <option value="active">Actives</option>
+      <option value="expiring">Expirent bientôt</option>
+      <option value="expired">Expirées</option>
+    </select>
+  </div>
+  <div id="licTable">${renderLicTable(lics)}</div>`;
+}
+
+function renderLicTable(lics){
+  const apps=getApps();
+  if(!lics.length)return'<div style="text-align:center;color:var(--muted);padding:40px">Aucune licence</div>';
+  return`<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>Client</th><th>Application</th><th>Clé</th><th>Type</th><th>Domaine</th><th>Expiration</th><th>Auto-renew</th><th>Actions</th></tr></thead>
+    <tbody>${lics.map(l=>{
+      const d=daysLeft(l.expiration);
+      const app=apps.find(a=>a.id===l.app_id);
+      return`<tr>
+        <td style="font-weight:600;color:var(--w)">${esc(l.client)}</td>
+        <td>${app?`${app.emoji} ${app.nom}`:'—'}</td>
+        <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--acc3)">${l.cle||'—'}</td>
+        <td><span class="b bc">${l.type}</span></td>
+        <td style="font-size:11px;color:var(--muted)">${l.domaine||'—'}</td>
+        <td><span class="b ${d>30?'bg':d>0?'bo':'br'}">${l.expiration==='DEV'?'Illimitée':d>0?fmtD(l.expiration):'Expirée'}</span></td>
+        <td><span class="b ${l.auto_renew?'bg':'br'}">${l.auto_renew?'✅':'Non'}</span></td>
+        <td><div style="display:flex;gap:4px">
+          ${d<=30&&d>0?`<button class="btn btsm" style="background:var(--gold);color:#000;font-size:10px" onclick="openRenewModal('${l.id}','${esc(l.client)}','${l.app_id}','${l.type}','${l.expiration}')">📧</button>`:''}
+          <button class="btgh btsm" onclick="toggleLicActive('${l.id}')">${l.active?'⏸':'▶'}</button>
+          <button class="btgh btsm" onclick="deleteLic('${l.id}')">✕</button>
+        </div></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+function filterLicences(){
+  const appF=document.getElementById('licFilterApp')?.value;
+  const stF=document.getElementById('licFilterStatus')?.value;
+  let lics=getLicences();
+  if(appF)lics=lics.filter(l=>l.app_id===appF);
+  if(stF==='active')lics=lics.filter(l=>l.active&&daysLeft(l.expiration)>30);
+  if(stF==='expiring')lics=lics.filter(l=>l.active&&daysLeft(l.expiration)<=30&&daysLeft(l.expiration)>0);
+  if(stF==='expired')lics=lics.filter(l=>daysLeft(l.expiration)<=0);
+  document.getElementById('licTable').innerHTML=renderLicTable(lics);
+}
+
+function openAddLicence(clientNom){
+  const apps=getApps().filter(a=>a.actif), clients=getClients();
+  openModal('+ Nouvelle licence',`
+    <div class="g2">
+      <div class="f"><label>Client *</label>
+        <select id="lf_client">
+          <option value="">— Choisir —</option>
+          ${clients.map(c=>`<option value="${esc(c.nom)}" ${c.nom===clientNom?'selected':''}>${esc(c.nom)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="f"><label>Application *</label>
+        <select id="lf_app" onchange="previewLicTarif()">
+          <option value="">— Choisir —</option>
+          ${apps.map(a=>`<option value="${a.id}">${a.emoji} ${a.nom}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="f"><label>Type</label>
+        <select id="lf_type" onchange="previewLicTarif()">
+          <option value="MOIS">Mensuel</option>
+          <option value="TRIM">Trimestriel</option>
+          <option value="ANNU" selected>Annuel</option>
+          <option value="DEV">Dev / Illimité</option>
+        </select>
+      </div>
+      <div class="f"><label>Domaine Netlify</label><input id="lf_domaine" placeholder="client.netlify.app"/></div>
+    </div>
+    <div class="f"><label>Renouvellement automatique</label>
+      <select id="lf_auto">
+        <option value="1">✅ Activé (email auto + webhook)</option>
+        <option value="0">Manuel</option>
+      </select>
+    </div>
+    <div id="lf_preview" style="background:var(--bg2);border-radius:8px;padding:11px;font-size:12px;color:var(--muted);margin-bottom:10px">
+      Sélectionner un type pour voir le tarif
+    </div>
+    <button class="btn btg" style="width:100%" onclick="saveLicence()">🔑 Créer la licence</button>`);
+  document.getElementById('lf_type').onchange=previewLicTarif;
+  document.getElementById('lf_app').onchange=previewLicTarif;
+}
+
+function previewLicTarif(){
+  const appId=document.getElementById('lf_app')?.value;
+  const type=document.getElementById('lf_type')?.value;
+  const app=getApps().find(a=>a.id===appId);
+  const el=document.getElementById('lf_preview');
+  if(!el)return;
+  if(!app||!type){el.innerHTML='Sélectionner une app et un type';return;}
+  const montant=app.tarifs?.[type]||0;
+  const duree=type==='MOIS'?'30 jours':type==='TRIM'?'90 jours':type==='ANNU'?'365 jours':'Illimitée';
+  const expDate=type==='DEV'?'Illimitée':new Date(Date.now()+(type==='MOIS'?30:type==='TRIM'?90:365)*86400000).toLocaleDateString('fr-FR');
+  el.innerHTML=`<strong style="color:var(--acc3)">${app.emoji} ${app.nom}</strong> · ${type} · <strong style="color:var(--gold)">${fmt(montant)}</strong><br>Expire le : <strong style="color:var(--w)">${expDate}</strong>`;
+}
+
+async function saveLicence(){
+  const client=document.getElementById('lf_client')?.value;
+  const appId=document.getElementById('lf_app')?.value;
+  const type=document.getElementById('lf_type')?.value;
+  const domaine=document.getElementById('lf_domaine')?.value.trim();
+  const auto=document.getElementById('lf_auto')?.value==='1';
+  if(!client||!appId){showToast('Client et app obligatoires',false);return;}
+  const app=getApps().find(a=>a.id===appId);
+  const days=type==='MOIS'?30:type==='TRIM'?90:type==='ANNU'?365:0;
+  const cle=[type,client.slice(0,4).toUpperCase(),uid().slice(0,4)].join('-');
+  const expiration=type==='DEV'?'DEV':new Date(Date.now()+days*86400000).toISOString().slice(0,10);
+  const newLic={id:uid(),client,app_id:appId,cle,type,domaine,expiration,active:true,auto_renew:auto,created_at:TODAY,montant_initial:app?.tarifs?.[type]||0};
+  await addLicence(newLic);
+  closeModal();showToast('Licence créée : '+cle+' ✓');rLicences();
+}
+
+async function toggleLicActive(id){
+  const lic=getLicences().find(l=>l.id===id);
+  if(!lic)return;
+  const newActive=!lic.active;
+  await updateLicence(id, {active:newActive});
+  showToast(newActive?'Licence activée':'Licence suspendue');rLicences();
+}
+async function deleteLic(id){
+  if(!confirm('Supprimer cette licence ?'))return;
+  await deleteLicenceRow(id);
+  showToast('Licence supprimée');rLicences();
+}
+
+// ── PAIEMENTS ────────────────────────────────────────────────────
+function rPayments(){
+  const pays=getPayments();
+  const total=pays.filter(p=>p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+  const caMois=pays.filter(p=>p.statut==='success'&&p.date?.startsWith(TODAY.slice(0,7))).reduce((s,p)=>s+(+p.montant||0),0);
+  const wave=pays.filter(p=>p.moyen==='Wave'&&p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+  const om=pays.filter(p=>p.moyen==='Orange Money'&&p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+  document.getElementById('pg-payments').innerHTML=`
+  <div class="rh">
+    <div><div class="st">Paiements</div><div class="ss">Wave CI · Orange Money · Virement</div></div>
+    <button class="btn" onclick="openAddPayment(null)">+ Enregistrer</button>
+  </div>
+  <div class="g4" style="margin-bottom:18px">
+    <div class="kpi" style="--kc:var(--green)"><div class="kl">Total reçu</div><div class="kv" style="font-size:15px">${fmt(total)}</div></div>
+    <div class="kpi" style="--kc:var(--gold)"><div class="kl">Ce mois</div><div class="kv" style="font-size:15px">${fmt(caMois)}</div></div>
+    <div class="kpi" style="--kc:#1DA462"><div class="kl">🌊 Wave</div><div class="kv" style="font-size:15px">${fmt(wave)}</div></div>
+    <div class="kpi" style="--kc:#FF6900"><div class="kl">🟠 Orange Money</div><div class="kv" style="font-size:15px">${fmt(om)}</div></div>
+  </div>
+  <div class="card">
+    <div style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Date</th><th>Client</th><th>App</th><th>Montant</th><th>Moyen</th><th>Réf.</th><th>Type</th><th>Statut</th></tr></thead>
+      <tbody>${pays.map(p=>{
+        const app=getApps().find(a=>a.id===p.app_id);
+        const mi=p.moyen==='Wave'?'🌊':p.moyen==='Orange Money'?'🟠':'💳';
+        return`<tr>
+          <td style="color:var(--muted);font-size:11px">${fmtD(p.date)}</td>
+          <td style="font-weight:600;color:var(--w)">${esc(p.client)}</td>
+          <td>${app?app.emoji+' '+app.nom:'—'}</td>
+          <td style="font-family:'Space Mono',monospace;color:var(--gold)">${fmt(p.montant)}</td>
+          <td>${mi} ${p.moyen||'—'}</td>
+          <td style="font-size:10px;color:var(--muted);font-family:monospace">${p.reference||'—'}</td>
+          <td><span class="b bc">${p.type_lic||'—'}</span></td>
+          <td><span class="b ${p.statut==='success'?'bg':p.statut==='pending'?'bo':'br'}">${p.statut==='success'?'✅':p.statut==='pending'?'⏳':'❌'}</span></td>
+        </tr>`;
+      }).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px">Aucun paiement</td></tr>'}
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+function openAddPayment(clientNom){
+  const clients=getClients(), apps=getApps().filter(a=>a.actif);
+  openModal('+ Enregistrer un paiement',`
+    <div class="g2">
+      <div class="f"><label>Client *</label>
+        <select id="pf_client" onchange="updatePayTarif()">
+          <option value="">— Choisir —</option>
+          ${clients.map(c=>`<option value="${esc(c.nom)}" ${c.nom===clientNom?'selected':''}>${esc(c.nom)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="f"><label>Application *</label>
+        <select id="pf_app" onchange="updatePayTarif()">
+          <option value="">— Choisir —</option>
+          ${apps.map(a=>`<option value="${a.id}">${a.emoji} ${a.nom}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="f"><label>Type licence</label>
+        <select id="pf_type" onchange="updatePayTarif()">
+          <option value="MOIS">Mensuel</option>
+          <option value="TRIM">Trimestriel</option>
+          <option value="ANNU" selected>Annuel</option>
+        </select>
+      </div>
+      <div class="f"><label>Montant (FCFA) *</label><input id="pf_montant" type="number" placeholder="150000"/></div>
+    </div>
+    <div class="g2">
+      <div class="f"><label>Moyen de paiement</label>
+        <select id="pf_moyen">
+          <option value="Wave">🌊 Wave CI</option>
+          <option value="Orange Money">🟠 Orange Money CI</option>
+          <option value="Virement">🏦 Virement</option>
+          <option value="Espèces">💵 Espèces</option>
+        </select>
+      </div>
+      <div class="f"><label>Date</label><input id="pf_date" type="date" value="${TODAY}"/></div>
+    </div>
+    <div class="f"><label>Référence (optionnel)</label><input id="pf_ref" placeholder="Ex: Wave-TXN-XXXXXX"/></div>
+    <div style="background:var(--green)10;border:1px solid var(--green)30;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--green)">
+      ✅ Ce paiement renouvellera automatiquement la licence et enverra un email de confirmation.
+    </div>
+    <button class="btn btg" style="width:100%" onclick="savePayment()">💾 Enregistrer + Renouveler</button>
+    <div id="pfMsg" style="margin-top:8px;font-size:12px;text-align:center"></div>`);
+  updatePayTarif();
+}
+
+function updatePayTarif(){
+  const appId=document.getElementById('pf_app')?.value;
+  const type=document.getElementById('pf_type')?.value;
+  const app=getApps().find(a=>a.id===appId);
+  const el=document.getElementById('pf_montant');
+  if(app&&type&&el&&!el.value) el.value=app.tarifs?.[type]||'';
+}
+
+async function savePayment(){
+  const client=document.getElementById('pf_client')?.value;
+  const appId=document.getElementById('pf_app')?.value;
+  const type=document.getElementById('pf_type')?.value;
+  const montant=+document.getElementById('pf_montant')?.value;
+  const moyen=document.getElementById('pf_moyen')?.value;
+  const date=document.getElementById('pf_date')?.value||TODAY;
+  const ref=document.getElementById('pf_ref')?.value||'MAN-'+uid();
+  if(!client||!montant){showToast('Client et montant obligatoires',false);return;}
+  // Ajouter le paiement (UNE ligne)
+  const pay={id:uid(),client,app_id:appId,montant,moyen,type_lic:type,date,reference:ref,statut:'success',source:'manual'};
+  await addPayment(pay);
+  // Renouveler la licence (modifier UNE ligne)
+  const lic=getLicences().find(l=>l.client===client&&l.app_id===appId&&l.active);
+  if(lic){
+    const days=type==='MOIS'?30:type==='TRIM'?90:365;
+    const curExp=new Date(lic.expiration);
+    const base=curExp>new Date()?curExp:new Date();
+    const newExp=new Date(base.getTime()+days*86400000).toISOString().slice(0,10);
+    await updateLicence(lic.id, {expiration:newExp, type});
+  }
+  addEmailLog({type:'PAYMENT_CONFIRM',client,app_id:appId,montant,moyen,statut:'sent'});
+  closeModal();showToast('Paiement enregistré + licence renouvelée ✓');rPayments();
+}
+
+// ── RENOUVELLEMENT ────────────────────────────────────────────────
+function openRenewModal(licId,client,appId,type,expiration){
+  const app=getApps().find(a=>a.id===appId);
+  const links=getPayLinks(appId); // Liens spécifiques à cette app
+  const d=daysLeft(expiration);
+  const montant=app?.tarifs?.[type]||0;
+  const waveLink=links.wave?.[type]||'';
+  const omLink=links.om?.[type]||'';
+  openModal('📧 Relance — '+client,`
+    <div style="background:var(--bg2);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.9">
+      ${app?`${app.emoji} <strong style="color:var(--w)">${app.nom}</strong> · `:''}
+      <strong style="${d<=0?'color:var(--red)':d<=7?'color:var(--red)':'color:var(--gold)'}">${d<=0?'⚠️ Expirée':'Expire dans '+d+' j'}</strong>
+      · <strong style="color:var(--gold)">${fmt(montant)}</strong>
+    </div>
+    ${waveLink?`<a href="${waveLink}" target="_blank" style="display:block;background:#1DA462;color:#fff;text-align:center;padding:12px;border-radius:8px;text-decoration:none;font-weight:700;margin-bottom:8px">🌊 Payer par Wave — ${fmt(montant)}</a>`:'<div style="color:var(--muted);font-size:12px;margin-bottom:8px">⚠️ Lien Wave non configuré</div>'}
+    ${omLink?`<a href="${omLink}" target="_blank" style="display:block;background:#FF6900;color:#fff;text-align:center;padding:12px;border-radius:8px;text-decoration:none;font-weight:700;margin-bottom:8px">🟠 Payer par Orange Money — ${fmt(montant)}</a>`:''}
+    ${!waveLink&&!omLink?`<button class="btgh btsm" style="width:100%;margin-bottom:12px" onclick="closeModal();goTo('config')">⚙️ Configurer les liens de paiement</button>`:''}
+    <div class="sep"></div>
+    <button class="btn btg" style="width:100%;margin-top:10px" onclick="closeModal();openAddPayment('${client}')">+ Enregistrer paiement reçu</button>`);
+}
+
+function sendBulkRenewal(type){
+  const lics=getLicences();
+  const concerned=type==='expired'
+    ?lics.filter(l=>l.active&&daysLeft(l.expiration)<=0)
+    :lics.filter(l=>l.active&&daysLeft(l.expiration)<=30&&daysLeft(l.expiration)>0);
+  if(!concerned.length){showToast('Aucun client concerné',false);return;}
+  openModal('📧 Relances — '+concerned.length+' client(s)',`
+    <div style="margin-bottom:14px;font-size:13px">${concerned.length} email(s) de relance :</div>
+    ${concerned.map(l=>{
+      const app=getApps().find(a=>a.id===l.app_id);
+      const d=daysLeft(l.expiration);
+      return`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <div><strong>${esc(l.client)}</strong> · ${app?.emoji||''} ${app?.nom||l.app_id}</div>
+        <span class="b ${d<=0?'br':'bo'}">${d<=0?'Expirée':d+'j'}</span>
+      </div>`;
+    }).join('')}
+    <button class="btn btg" style="width:100%;margin-top:14px" onclick="confirmBulkSend(${JSON.stringify(concerned.map(l=>l.id))})">
+      📧 Envoyer ${concerned.length} relance(s) via Apps Script
+    </button>`);
+}
+
+async function confirmBulkSend(ids){
+  const lics=getLicences();
+  for(const id of ids){
+    const l=lics.find(x=>x.id===id);
+    if(!l)continue;
+    addEmailLog({type:'RENEWAL_REMINDER',client:l.client,app_id:l.app_id,statut:'sent'});
+    if(getApiUrl()){
+      try{ await apiCall('sendRenewalEmail',{data:{client:l.client,type:l.type,expiration:l.expiration,app_id:l.app_id}}); }
+      catch(e){ console.warn('Email error:',e.message); }
+    }
+  }
+  closeModal();showToast(ids.length+' relances envoyées ✓');
+}
+
+// ── FACTURATION ───────────────────────────────────────────────────
+function rFacturation(){
+  const clients=getClients(), lics=getLicences(), pays=getPayments(), apps=getApps();
+  document.getElementById('pg-facturation').innerHTML=`
+  <div class="rh">
+    <div><div class="st">Facturation</div><div class="ss">Rapports mensuels automatiques</div></div>
+    <button class="btn" onclick="sendMonthlyAll()">📧 Envoyer rapports</button>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="ct">Séquence renouvellement automatique</div>
+    <div style="display:flex;align-items:center;gap:0;padding:16px 0;overflow-x:auto">
+      ${['J-30','J-15','J-7','J-3','J0 Suspend','Paiement → ✅'].map((l,i)=>`
+        <div style="flex-shrink:0;text-align:center;min-width:80px">
+          <div style="width:36px;height:36px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:13px;
+            background:${i<3?'var(--acc)18':i===3?'var(--red)18':i===4?'var(--red)18':'var(--green)18'};
+            border:2px solid ${i<3?'var(--acc)44':i===3?'var(--red)44':i===4?'var(--red)44':'var(--green)44'};
+            color:${i<3?'var(--acc3)':i===3?'var(--red)':i===4?'var(--red)':'var(--green)'}">📧</div>
+          <div style="font-size:9px;color:var(--muted)">${l}</div>
+        </div>
+        ${i<5?'<div style="font-size:18px;color:var(--muted);flex-shrink:0;padding:0 2px;margin-bottom:20px">→</div>':''}`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Récapitulatif par client</div>
+    <table class="tbl"><thead><tr><th>Client</th><th>Apps actives</th><th>Prochain renouvellement</th><th>Estimation</th><th>Actions</th></tr></thead>
+    <tbody>${clients.map(c=>{
+      const cL=lics.filter(l=>l.client===c.nom&&l.active&&daysLeft(l.expiration)>0);
+      const nextPay=cL.reduce((min,l)=>daysLeft(l.expiration)<min?daysLeft(l.expiration):min,9999);
+      const estim=cL.reduce((s,l)=>{const app=apps.find(a=>a.id===l.app_id);return s+(app?.tarifs?.[l.type]||0);},0);
+      return`<tr>
+        <td style="font-weight:600;color:var(--w)">${esc(c.nom)}</td>
+        <td>${cL.map(l=>{const app=apps.find(a=>a.id===l.app_id);return app?.emoji||'📦';}).join(' ')||'—'}</td>
+        <td>${nextPay<9999?nextPay+' jours':'—'}</td>
+        <td style="font-family:'Space Mono',monospace;color:var(--gold)">${estim?fmt(estim):'—'}</td>
+        <td><button class="btn btsm" onclick="openClient360('${esc(c.nom)}')">Voir 360°</button></td>
+      </tr>`;
+    }).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px">Aucun client</td></tr>'}
+    </tbody></table>
+  </div>`;
+}
+
+async function sendMonthlyAll(){
+  if(getApiUrl()){
+    try{
+      await apiCall('sendMonthlyReports');
+      showToast('Rapports mensuels envoyés ✓');
+    }catch(e){ showToast('Erreur: '+e.message,false); }
+  } else {
+    showToast('Serveur non configuré',false);
+  }
+}
+
+// ── EMAILS ───────────────────────────────────────────────────────
+function rEmails(){
+  const logs=getEmailLog();
+  const labels={RENEWAL_REMINDER:'Relance renouvellement',PAYMENT_CONFIRM:'Confirmation paiement',MONTHLY_REPORT:'Rapport mensuel',BULK_RENEWAL:'Relance en masse'};
+  document.getElementById('pg-emails').innerHTML=`
+  <div class="rh">
+    <div><div class="st">Emails</div><div class="ss">${logs.length} email(s) envoyé(s)</div></div>
+    <button class="btn" onclick="sendBulkRenewal('soon')">📧 Relances auto</button>
+  </div>
+  <div class="card">
+    ${logs.length===0?'<div style="text-align:center;color:var(--muted);padding:40px">Aucun email — les emails apparaissent après chaque relance</div>':
+    `<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Client</th><th>App</th><th>Statut</th></tr></thead>
+    <tbody>${logs.slice(0,50).map(l=>{
+      const app=getApps().find(a=>a.id===l.app_id);
+      return`<tr>
+        <td style="color:var(--muted);font-size:11px">${l.ts?new Date(l.ts).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</td>
+        <td style="font-size:11px">${labels[l.type]||l.type}</td>
+        <td style="font-weight:600;color:var(--w)">${l.client||'—'}</td>
+        <td>${app?app.emoji+' '+app.nom:'—'}</td>
+        <td><span class="b ${l.statut==='sent'?'bg':'br'}">${l.statut==='sent'?'✅':'Erreur'}</span></td>
+      </tr>`;
+    }).join('')}</tbody></table>`}
+  </div>`;
+}
+
+// ── LOGS ─────────────────────────────────────────────────────────
+function rLogs(){
+  document.getElementById('pg-logs').innerHTML=`
+  <div class="rh"><div><div class="st">Journal d'activité</div></div>
+    <button class="btn btsm btg" onclick="syncAll()">🔄 Sync</button>
+  </div>
+  <div class="card">
+    <div style="text-align:center;color:var(--muted);padding:40px;line-height:2">
+      Les logs détaillés sont dans Google Sheets → onglet <strong style="color:var(--acc3)">audit_log</strong><br>
+      après configuration du Apps Script.<br><br>
+      <button class="btn btsm" onclick="goTo('config')">⚙️ Configurer le serveur</button>
+    </div>
+  </div>`;
+}
+
+// ── CONFIG ───────────────────────────────────────────────────────
+function rConfig(){
+  var ci=getCompanyInfo();
+  var srvUrl=S.g('server_url')||'';
+  var adminKey=S.g('admin_key')||'';
+  var appOpts=getApps().map(function(a){return '<option value="'+a.id+'">'+a.emoji+' '+a.nom+'</option>';}).join('');
+  document.getElementById('pg-config').innerHTML=
+    '<div class="rh"><div><div class="st">Configuration</div><div class="ss">Serveur · Profil · Paiements · Triggers</div></div></div>'+
+    '<div class="card" style="margin-bottom:14px"><div class="ct">&#128301; Connexion serveur Apps Script</div>'+
+    (SERVER_URL?'<div style="background:var(--green)10;border:1px solid var(--green)30;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--green)">&#9989; Serveur configuré dans le code — automatique sur tous les appareils</div>':
+    '<div style="background:var(--gold)10;border:1px solid var(--gold)30;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--gold2)">&#9888;&#65039; SERVER_URL vide dans le code HTML. Renseignez-la une fois pour tous les appareils.</div>')+
+    '<div class="f"><label>URL Apps Script (override local)</label><input id="cfg_srv" value="'+esc(srvUrl)+'" placeholder="https://script.google.com/macros/s/.../exec"/></div>'+
+    '<div class="f"><label>Clé admin (override local)</label><input id="cfg_key" type="password" value="'+esc(adminKey)+'" placeholder="Clé secrète"/></div>'+
+    '<div style="display:flex;gap:8px"><button class="btn btsm btg" style="flex:1" onclick="saveServerConfig()">Sauvegarder + Charger données</button>'+
+    '<button class="btgh btsm" onclick="testConnection()">&#128279; Tester connexion</button>'+
+    '<button class="btgh btsm" onclick="testWrite()">&#9997; Tester écriture</button></div>'+
+    '<div id="cfg_test_msg" style="font-size:12px;margin-top:8px"></div></div>'+
+    '<div class="card" style="margin-bottom:14px"><div class="ct">&#127970; Profil BALANCE CONSULTING</div>'+
+    '<div class="f"><label>Logo (URL image)</label><input id="ci_logo" value="'+esc(ci.logo_url||'')+'" placeholder="https://... (laisser vide = initiales)"/></div>'+
+    '<div class="g2"><div class="f"><label>Nom société</label><input id="ci_nom" value="'+esc(ci.nom||'BALANCE CONSULTING')+'"/></div>'+
+    '<div class="f"><label>Couleur principale</label><input id="ci_color" type="color" value="'+(ci.couleur_principale||'#1A56DB')+'"/></div></div>'+
+    '<div class="f"><label>Slogan</label><input id="ci_slogan" value="'+esc(ci.slogan||'')+'" placeholder="Experts comptables & Conseil"/></div>'+
+    '<div class="g2"><div class="f"><label>Email</label><input id="ci_email" type="email" value="'+esc(ci.email||'')+'" placeholder="contact@balanceconsulting.ci"/></div>'+
+    '<div class="f"><label>Téléphone</label><input id="ci_tel" value="'+esc(ci.tel||'')+'" placeholder="+225 0700776975"/></div></div>'+
+    '<div class="g2"><div class="f"><label>WhatsApp</label><input id="ci_wa" value="'+esc(ci.whatsapp||'')+'" placeholder="+2250700776975"/></div>'+
+    '<div class="f"><label>Adresse</label><input id="ci_addr" value="'+esc(ci.adresse||'')+'" placeholder="Abidjan, CI"/></div></div>'+
+    '<div class="g2"><div class="f"><label>RCCM</label><input id="ci_rccm" value="'+esc(ci.rccm||'')+'" placeholder="CI-ABJ-XXXX-B-XXXXX"/></div>'+
+    '<div class="f"><label>NCC / NIF</label><input id="ci_ncc" value="'+esc(ci.ncc||'')+'" placeholder="XXXXXXXXXXXXXXX"/></div></div>'+
+    '<button class="btn btg" style="width:100%" onclick="saveCompanyInfo()">Sauvegarder le profil</button></div>'+
+    '<div class="card" style="margin-bottom:14px"><div class="ct">Liens de paiement par application</div>'+
+    '<div class="f"><label>Application</label>'+
+    '<select id="paylink_app" onchange="loadPayLinksForApp()" style="background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px">'+
+    '<option value="_global">Toutes les apps (global)</option>'+appOpts+'</select></div>'+
+    '<div style="font-size:11px;font-weight:700;color:var(--acc3);margin-bottom:6px">Wave CI</div>'+
+    '<div class="g3"><div class="f"><label>Mensuel</label><input id="wl_mois" placeholder="https://pay.wave.com/..."/></div>'+
+    '<div class="f"><label>Trimestriel</label><input id="wl_trim" placeholder="https://pay.wave.com/..."/></div>'+
+    '<div class="f"><label>Annuel</label><input id="wl_annu" placeholder="https://pay.wave.com/..."/></div></div>'+
+    '<div style="font-size:11px;font-weight:700;color:var(--gold);margin:8px 0 6px">Orange Money CI</div>'+
+    '<div class="g3"><div class="f"><label>Mensuel</label><input id="ol_mois" placeholder="https://..."/></div>'+
+    '<div class="f"><label>Trimestriel</label><input id="ol_trim" placeholder="https://..."/></div>'+
+    '<div class="f"><label>Annuel</label><input id="ol_annu" placeholder="https://..."/></div></div>'+
+    '<button class="btn btg" style="width:100%;margin-top:8px" onclick="savePayLinks()">Sauvegarder les liens</button></div>'+
+    '<div class="card"><div class="ct">Triggers automatiques</div>'+
+    '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.8">Exécuter <strong>une seule fois</strong> dans Apps Script pour activer les relances J-30/J-7/J-3.</div>'+
+    '<button class="btn btg" onclick="setupTriggers()">Activer les triggers</button></div>';
+  setTimeout(loadPayLinksForApp, 50);
+}
+
+function loadGsCodePreview(){
+  const el = document.getElementById('gsCodeArea');
+  if(!el) return;
+  // Le code est embarqué dans la page via le textarea
+  el.value = el.getAttribute('data-gs') || '// Charger apps-script-v3.js pour voir le code complet';
+}
+
+function loadGsCode(){
+  const el = document.getElementById('gsCodeArea');
+  navigator.clipboard?.writeText(el?.value||'').then(()=>showToast('Code copié ✓'));
+}
+
+function saveServerConfig(){
+  const url = document.getElementById('cfg_srv')?.value.trim()||'';
+  const key = document.getElementById('cfg_key')?.value.trim()||'';
+  S.s('server_url', url);
+  S.s('admin_key', key);
+  showToast('Configuration sauvegardée ✓');
+  // Recharger les données depuis le nouveau serveur
+  if(url) loadAllData().then(ok => {
+    if(ok){ showToast('Données chargées depuis le serveur ✓'); goTo('dash'); }
+    else showToast('Serveur configuré mais pas encore de données', false);
+  });
+}
+
+async function testWrite(){
+  const msg = document.getElementById('cfg_test_msg');
+  if(msg) msg.innerHTML = '<span style="color:var(--muted)">🔄 Test écriture...</span>';
+  try{
+    // Tester addAdminRow avec une ligne de test
+    const testRow = {id:'__TEST__', nom:'__TEST__', ts: new Date().toISOString()};
+    const r1 = await apiCall('addAdminRow', {module:'audit_log', row:{ts:new Date().toISOString(),user:'test',action:'TEST_WRITE',module:'test',detail:'test depuis balance-admin'}});
+    if(r1 && r1.error){ if(msg) msg.innerHTML = '<span style="color:var(--red)">❌ Écriture refusée : '+r1.error+'</span>'; return; }
+    if(msg) msg.innerHTML = '<span style="color:var(--green)">✅ Écriture OK — les données se synchronisent bien</span>';
+  }catch(e){
+    if(msg) msg.innerHTML = '<span style="color:var(--red)">❌ Écriture impossible : '+e.message+'</span>';
+  }
+}
+
+async function testConnection(){
+  const msg=document.getElementById('cfg_test_msg');
+  if(msg)msg.innerHTML='<span style="color:var(--muted)">🔄 Test...</span>';
+  try{
+    const d=await apiCall('ping');
+    if(msg)msg.innerHTML='<span style="color:var(--green)">✅ Connexion OK — '+JSON.stringify(d)+'</span>';
+  }catch(e){
+    if(msg)msg.innerHTML='<span style="color:var(--red)">❌ '+e.message+'</span>';
+  }
+}
+
+function savePayLinks(){
+  const appId = document.getElementById('paylink_app')?.value || '_global';
+  const all = getAllPayLinks();
+  all[appId] = {
+    wave:{
+      MOIS:document.getElementById('wl_mois')?.value||'',
+      TRIM:document.getElementById('wl_trim')?.value||'',
+      ANNU:document.getElementById('wl_annu')?.value||''
+    },
+    om:{
+      MOIS:document.getElementById('ol_mois')?.value||'',
+      TRIM:document.getElementById('ol_trim')?.value||'',
+      ANNU:document.getElementById('ol_annu')?.value||''
+    },
+  };
+  S.s('pay_links', all);
+  showToast('Liens sauvegardés pour '+(appId==='_global'?'toutes les apps':appId)+' ✓');
+}
+
+function loadPayLinksForApp(){
+  const appId = document.getElementById('paylink_app')?.value || '_global';
+  const links = getPayLinks(appId==='_global'?null:appId);
+  const setV = (id,v) => { const el=document.getElementById(id); if(el) el.value=v||''; };
+  setV('wl_mois', links.wave?.MOIS); setV('wl_trim', links.wave?.TRIM); setV('wl_annu', links.wave?.ANNU);
+  setV('ol_mois', links.om?.MOIS);   setV('ol_trim', links.om?.TRIM);   setV('ol_annu', links.om?.ANNU);
+}
+
+function saveCompanyInfo(){
+  const info = {
+    nom:         document.getElementById('ci_nom')?.value.trim()||'BALANCE CONSULTING',
+    slogan:      document.getElementById('ci_slogan')?.value.trim()||'',
+    email:       document.getElementById('ci_email')?.value.trim()||'',
+    tel:         document.getElementById('ci_tel')?.value.trim()||'',
+    whatsapp:    document.getElementById('ci_wa')?.value.trim()||'',
+    adresse:     document.getElementById('ci_addr')?.value.trim()||'',
+    rccm:        document.getElementById('ci_rccm')?.value.trim()||'',
+    ncc:         document.getElementById('ci_ncc')?.value.trim()||'',
+    couleur_principale: document.getElementById('ci_color')?.value||'#00B4D8',
+  };
+  S.s('company_info', info);
+  showToast('Profil BALANCE CONSULTING sauvegardé ✓');
+}
+
+async function setupTriggers(){
+  if(!getApiUrl()){showToast('Serveur non configuré',false);return;}
+  try{
+    await apiCall('setupTriggers');
+    showToast('✅ Triggers activés — relances auto J-30/J-7/J-3 + rapport mensuel');
+  }catch(e){showToast('Erreur: '+e.message,false);}
+}
+
+// ── GLOBAL SEARCH ────────────────────────────────────────────────
+function globalSearch(q){
+  if(!q||q.length<2)return;
+  const apps=getApps();
+  const r=[];
+  getClients().filter(c=>(c.nom||'').toLowerCase().includes(q.toLowerCase()))
+    .forEach(c=>r.push({label:c.nom,action:`openClient360('${esc(c.nom)}')`}));
+  getLicences().filter(l=>l.client?.toLowerCase().includes(q.toLowerCase())||l.cle?.toLowerCase().includes(q.toLowerCase()))
+    .forEach(l=>{const app=apps.find(a=>a.id===l.app_id);r.push({label:l.client+' · '+app?.nom,action:`goTo('licences')`});});
+  if(r.length>0){ try{ eval(r[0].action); }catch(e){} }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+(function init(){
+  if(checkAuth()){
+    const auth=S.g('auth');
+    document.getElementById('sb-username').textContent=auth?.user||'Admin';
+    showApp();
+  }
+})();
+
+</script>
+<script id="gsSource" type="text/plain">// ══════════════════════════════════════════════════════════════════
+// BALANCE CONSULTING PLATFORM — Apps Script v3.0
+// Tour de contrôle multi-applications
+// ══════════════════════════════════════════════════════════════════
+// INSTALLATION :
+// 1. Aller sur script.google.com → Nouveau projet
+// 2. Coller ce code (remplacer tout le contenu)
+// 3. Sauvegarder → Déployer → Application Web
+//    • Exécuter en tant que : Moi
+//    • Qui a accès : Tout le monde
+// 4. Copier l'URL → Coller dans balance-admin Config
+// 5. Exécuter setupTriggers() UNE seule fois
+// 6. Configurer les Script Properties (voir bas du fichier)
+// ══════════════════════════════════════════════════════════════════
+
+const SS = SpreadsheetApp.getActiveSpreadsheet();
+const PROPS = PropertiesService.getScriptProperties();
+
+// Clé admin (depuis Script Properties — ne jamais mettre en dur)
+function getAdminKey() { return PROPS.getProperty('ADMIN_KEY') || ''; }
+
+// ── ONGLETS GOOGLE SHEETS ────────────────────────────────────────
+const SCHEMAS = {
+  apps:     ['id','nom','emoji','desc','couleur','actif','tarif_mois','tarif_trim','tarif_annu'],
+  clients:  ['nom','email','tel','secteur','ville','date_inscription','actif','notes'],
+  licences: ['id','client','app_id','cle','type','domaine','expiration','active','auto_renew','created_at','montant_initial'],
+  payments: ['id','client','app_id','montant','moyen','reference','statut','type_lic','date','source','processed_at'],
+  email_log:['id','ts','type','client','app_id','statut','detail'],
+  audit_log:['ts','user','action','module','detail'],
+  sessions: ['token','user','expires','ip'],
+};
+
+function getSheet(name) {
+  let sh = SS.getSheetByName(name);
+  if (!sh) {
+    sh = SS.insertSheet(name);
+    const cols = SCHEMAS[name];
+    if (cols) {
+      sh.getRange(1, 1, 1, cols.length).setValues([cols])
+        .setFontWeight('bold').setBackground('#0D1517').setFontColor('#90E0EF');
+      sh.setFrozenRows(1);
+    }
+  }
+  return sh;
+}
+
+function sheetToObjects(name) {
+  const sh = getSheet(name);
+  if (sh.getLastRow() <= 1) return [];
+  const cols = SCHEMAS[name];
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, cols.length).getValues();
+  return rows
+    .filter(r => r[0] !== '' && r[0] !== null)
+    .map(row => {
+      const obj = {};
+      cols.forEach((col, i) => {
+        const v = row[i];
+        obj[col] = (v instanceof Date) ? v.toISOString().slice(0, 10)
+          : (v === true || v === 'TRUE') ? true
+          : (v === false || v === 'FALSE') ? false
+          : v;
+      });
+      return obj;
+    });
+}
+
+function appendRow(sheetName, data) {
+  const sh = getSheet(sheetName);
+  const cols = SCHEMAS[sheetName];
+  const row = cols.map(col => {
+    const v = data[col];
+    return (v === undefined || v === null) ? '' : v;
+  });
+  sh.appendRow(row);
+  const lastRow = sh.getLastRow();
+  sh.getRange(lastRow, 1, 1, cols.length)
+    .setBackground(lastRow % 2 === 0 ? '#080F12' : '#0D1517')
+    .setFontColor('#CAE9F5');
+}
+
+function updateRow(sheetName, matchCol, matchVal, data) {
+  const sh = getSheet(sheetName);
+  const cols = SCHEMAS[sheetName];
+  const colIdx = cols.indexOf(matchCol);
+  if (colIdx < 0) return false;
+  const rows = sh.getLastRow() > 1
+    ? sh.getRange(2, 1, sh.getLastRow() - 1, cols.length).getValues()
+    : [];
+  for (let i = 0; i < rows.length; i++) {
+    if (String(rows[i][colIdx]) === String(matchVal)) {
+      Object.entries(data).forEach(([k, v]) => {
+        const ci = cols.indexOf(k);
+        if (ci >= 0) sh.getRange(i + 2, ci + 1).setValue(v);
+      });
+      return true;
+    }
+  }
+  return false;
+}
+
+// ── RÉPONSES HTTP ────────────────────────────────────────────────
+function out(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function err(msg) { return out({ error: msg }); }
+
+// ── ROUTING ──────────────────────────────────────────────────────
+function doGet(e) {
+  const p = e.parameter || {};
+  const a = p.action || '';
+  const k = p.admin_key || p.token || '';
+
+  // Routes publiques
+  if (a === 'ping') return out({ pong: true, ts: new Date().toISOString() });
+  if (a === 'checkLic') return out(checkLicence(p.key, p.domain));
+  if (a === 'checkSession') return out(checkSession(k));
+
+  // Routes admin protégées
+  if (!verifyAdmin(k)) return err('Accès refusé');
+  if (a === 'adminDash') return out(adminDash());
+  if (a === 'getApps') return out({ apps: sheetToObjects('apps') });
+  if (a === 'getClients') return out({ clients: sheetToObjects('clients') });
+  if (a === 'getLicences') return out({ licences: sheetToObjects('licences') });
+  if (a === 'getPayments') return out({ payments: sheetToObjects('payments') });
+  if (a === 'getEmailLog') return out({ logs: sheetToObjects('email_log') });
+
+  return err('Action inconnue: ' + a);
+}
+
+function doPost(e) {
+  let body = {};
+  try { body = JSON.parse(e.postData.contents || '{}'); } catch (ex) {}
+  const a = body.action || '';
+  const k = body.admin_key || body.token || '';
+
+  // Routes publiques — pas d'auth requise
+  if (a === 'ping') return out({ pong: true, ts: new Date().toISOString() });
+
+  // Webhook paiement — pas besoin d'auth (vient de Wave/OM)
+  if (a === 'webhook_payment' || a === 'processWebhookPayment') {
+    processWebhook(body.payload || body, body.source || 'unknown');
+    return out({ received: true });
+  }
+
+  // Auth routes
+  if (a === 'login') return out(login(body.username, body.password));
+  if (a === 'verify2fa') return out(verify2fa(body.username, body.code));
+
+  // Routes admin
+  if (!verifyAdmin(k)) return err('Accès refusé');
+  if (a === 'saveApp')      { saveApp(body.data); return out({ ok: true }); }
+  if (a === 'saveClient')   { saveClient(body.data); return out({ ok: true }); }
+  if (a === 'saveLicence')  { return out(saveLicence(body.data)); }
+  if (a === 'recordPayment'){ return out(recordPayment(body.data)); }
+  if (a === 'renewLicence') { return out(renewLicence(body.client, body.app_id, body.type)); }
+  if (a === 'toggleLic')    { toggleLicActive(body.id, body.active); return out({ ok: true }); }
+  if (a === 'sendRenewalEmail') { return out(sendRenewalEmail(body.data)); }
+  if (a === 'sendMonthlyReports') { sendMonthlyReports(); return out({ ok: true }); }
+  if (a === 'revokeSession'){ revokeSession(k); return out({ ok: true }); }
+  if (a === 'setupTriggers'){ setupTriggers(); return out({ ok: true }); }
+  if (a === 'addAuditLog')  { addAuditLog(body.entry || {}); return out({ ok: true }); }
+  if (a === 'saveAdminData') { saveAdminModule(body.module, body.data); return out({ ok: true }); }
+  if (a === 'loadAdminData') { return out({ data: loadAdminModule(body.module) }); }
+  if (a === 'saveModule')   { saveModuleData(body.module, body.data); return out({ ok: true }); }
+  if (a === 'loadModule')   { return out({ data: loadModuleData(body.module) }); }
+  if (a === 'saveAll')      { saveAllData(body.data); return out({ ok: true }); }
+  if (a === 'loadAll')      { return out(loadAllData()); }
+
+  return err('Action inconnue: ' + a);
+}
+
+// ── AUTH ADMIN ───────────────────────────────────────────────────
+function verifyAdmin(key) {
+  if (!key) return false;
+  return key === getAdminKey();
+}
+
+function login(username, password) {
+  const expected_u = PROPS.getProperty('ADMIN_USERNAME') || 'admin';
+  const expected_p = PROPS.getProperty('ADMIN_PASSWORD') || 'BC2026Admin!';
+  if (username !== expected_u || password !== expected_p) {
+    return { error: 'Identifiants incorrects' };
+  }
+  const token = Utilities.getUuid();
+  const expires = new Date(Date.now() + 8 * 3600000).toISOString();
+  appendRow('sessions', { token, user: username, expires, ip: '' });
+  return { ok: true, token, expires, user: { username, fullName: 'Admin BALANCE', role: 'superadmin' } };
+}
+
+function checkSession(token) {
+  if (!token) return { valid: false };
+  const sessions = sheetToObjects('sessions');
+  const s = sessions.find(x => x.token === token);
+  if (!s) return { valid: false };
+  if (new Date(s.expires) < new Date()) return { valid: false, reason: 'expired' };
+  return { valid: true, user: { username: s.user } };
+}
+
+function revokeSession(token) {
+  const sh = getSheet('sessions');
+  const rows = sh.getLastRow() > 1
+    ? sh.getRange(2, 1, sh.getLastRow() - 1, 4).getValues()
+    : [];
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i][0] === token) { sh.deleteRow(i + 2); return; }
+  }
+}
+
+function verify2fa(username, code) {
+  // Implémentation TOTP optionnelle
+  return { ok: true, token: Utilities.getUuid() };
+}
+
+// ── LICENCE CHECK (appelé par l'app cliente) ─────────────────────
+function checkLicence(key, domain) {
+  if (!key) return { valid: false, reason: 'no_key' };
+
+  // Clé DEV spéciale
+  if (key === 'DEV-DEMO-2026-STPR') {
+    return { valid: true, type: 'DEV', exp: 0, days: 9999 };
+  }
+
+  const licences = sheetToObjects('licences');
+  const lic = licences.find(l => l.cle === key);
+  if (!lic) return { valid: false, reason: 'not_found' };
+  if (!lic.active) return { valid: false, reason: 'inactive' };
+
+  // Vérification domaine
+  if (lic.domaine && lic.domaine !== '*' && domain) {
+    if (!domain.includes(lic.domaine) && !lic.domaine.includes(domain)) {
+      return { valid: false, reason: 'domain_mismatch', expected: lic.domaine };
+    }
+  }
+
+  if (lic.expiration === 'DEV') return { valid: true, type: 'DEV', days: 9999 };
+
+  const daysLeft = Math.ceil((new Date(lic.expiration) - Date.now()) / 86400000);
+  if (daysLeft <= 0) return { valid: false, reason: 'expired', type: lic.type };
+
+  return {
+    valid: true, type: lic.type, days: daysLeft,
+    expiration: lic.expiration, client: lic.client, app_id: lic.app_id
+  };
+}
+
+// ── DASHBOARD ADMIN ──────────────────────────────────────────────
+function adminDash() {
+  const apps     = sheetToObjects('apps');
+  const clients  = sheetToObjects('clients');
+  const licences = sheetToObjects('licences');
+  const payments = sheetToObjects('payments');
+  const emailLog = sheetToObjects('email_log').slice(0, 20);
+
+  // Enrichir licences avec info app
+  const enrichedLics = licences.map(l => {
+    const app = apps.find(a => a.id === l.app_id) || {};
+    return { ...l, app_nom: app.nom || l.app_id, app_emoji: app.emoji || '📦' };
+  });
+
+  return {
+    apps, clients,
+    licences: enrichedLics,
+    payments: payments.slice(0, 50),
+    email_log: emailLog,
+    stats: {
+      total_clients: clients.length,
+      total_actifs: licences.filter(l => l.active).length,
+      ca_total: payments.filter(p => p.statut === 'success').reduce((s, p) => s + (+p.montant || 0), 0),
+      ca_mois: payments.filter(p => p.statut === 'success' && p.date && p.date.startsWith(new Date().toISOString().slice(0, 7))).reduce((s, p) => s + (+p.montant || 0), 0),
+    }
+  };
+}
+
+// ── APPS ─────────────────────────────────────────────────────────
+function saveApp(data) {
+  const exists = updateRow('apps', 'id', data.id, {
+    nom: data.nom, emoji: data.emoji, desc: data.desc,
+    couleur: data.couleur, actif: data.actif ? 'TRUE' : 'FALSE',
+    tarif_mois: data.tarifs?.MOIS || 0,
+    tarif_trim: data.tarifs?.TRIM || 0,
+    tarif_annu: data.tarifs?.ANNU || 0,
+  });
+  if (!exists) {
+    appendRow('apps', {
+      id: data.id, nom: data.nom, emoji: data.emoji, desc: data.desc,
+      couleur: data.couleur, actif: data.actif ? 'TRUE' : 'FALSE',
+      tarif_mois: data.tarifs?.MOIS || 0,
+      tarif_trim: data.tarifs?.TRIM || 0,
+      tarif_annu: data.tarifs?.ANNU || 0,
+    });
+  }
+}
+
+// ── CLIENTS ──────────────────────────────────────────────────────
+function saveClient(data) {
+  const exists = updateRow('clients', 'nom', data.nom, data);
+  if (!exists) appendRow('clients', data);
+}
+
+// ── LICENCES ─────────────────────────────────────────────────────
+function saveLicence(data) {
+  if (!data.id) data.id = Utilities.getUuid().slice(0, 8).toUpperCase();
+  if (!data.cle) {
+    data.cle = [data.type, data.client.slice(0, 4).toUpperCase(), data.id.slice(0, 4)].join('-');
+  }
+  appendRow('licences', {
+    id: data.id, client: data.client, app_id: data.app_id,
+    cle: data.cle, type: data.type, domaine: data.domaine || '',
+    expiration: data.expiration, active: 'TRUE',
+    auto_renew: data.auto_renew ? 'TRUE' : 'FALSE',
+    created_at: new Date().toISOString().slice(0, 10),
+    montant_initial: data.montant_initial || 0,
+  });
+  return { ok: true, cle: data.cle };
+}
+
+function renewLicence(client, appId, type) {
+  const days = type === 'MOIS' ? 30 : type === 'TRIM' ? 90 : 365;
+  const licences = sheetToObjects('licences');
+  const lic = licences.find(l => l.client === client && l.app_id === appId && l.active);
+  if (!lic) return { ok: false, error: 'Licence non trouvée' };
+
+  const currentExp = new Date(lic.expiration);
+  const base = currentExp > new Date() ? currentExp : new Date();
+  const newExp = new Date(base.getTime() + days * 86400000).toISOString().slice(0, 10);
+
+  updateRow('licences', 'id', lic.id, { expiration: newExp, type });
+  return { ok: true, new_expiration: newExp };
+}
+
+function toggleLicActive(id, active) {
+  updateRow('licences', 'id', id, { active: active ? 'TRUE' : 'FALSE' });
+}
+
+// ── PAIEMENTS ────────────────────────────────────────────────────
+function recordPayment(data) {
+  if (!data.id) data.id = Utilities.getUuid().slice(0, 8).toUpperCase();
+  data.processed_at = new Date().toISOString();
+  if (!data.statut) data.statut = 'success';
+  appendRow('payments', data);
+
+  if (data.statut === 'success') {
+    renewLicence(data.client, data.app_id, data.type_lic);
+    sendPaymentConfirmEmail(data);
+    addAuditLog({ user: 'system', action: 'PAYMENT_RECORDED', module: 'payments', detail: data.client + ' · ' + data.montant + ' FCFA · ' + data.moyen });
+  }
+  return { ok: true, id: data.id };
+}
+
+// ── WEBHOOK WAVE / ORANGE MONEY ──────────────────────────────────
+function processWebhook(payload, source) {
+  try {
+    let client = '', montant = 0, reference = '', type_lic = '', app_id = '';
+
+    if (source === 'wave' || payload.type?.includes('payment') || payload.wave_transfer_id) {
+      const meta = payload.metadata || payload.custom_data || {};
+      client    = meta.client || meta.client_nom || '';
+      montant   = +(payload.amount || payload.net_amount || 0);
+      reference = payload.id || payload.wave_transfer_id || '';
+      type_lic  = meta.type_lic || detectTypeLic(montant);
+      app_id    = meta.app_id || 'studiopro';
+    } else if (source === 'orange_money' || payload.transactionId) {
+      client    = payload.customerMsisdn || payload.clientName || '';
+      montant   = +(payload.amount || 0);
+      reference = payload.transactionId || '';
+      type_lic  = detectTypeLic(montant);
+      app_id    = payload.app_id || 'studiopro';
+    }
+
+    if (!montant) {
+      Logger.log('Webhook rejeté — montant 0 : ' + JSON.stringify(payload).slice(0, 200));
+      return;
+    }
+
+    // Si pas de client dans metadata, chercher par domaine
+    if (!client && payload.domain) {
+      const lics = sheetToObjects('licences');
+      const lic = lics.find(l => l.domaine && payload.domain.includes(l.domaine));
+      if (lic) client = lic.client;
+    }
+
+    recordPayment({
+      client: client || 'Inconnu',
+      app_id, montant, type_lic,
+      moyen: source === 'wave' ? 'Wave' : 'Orange Money',
+      reference, statut: 'success',
+      date: new Date().toISOString().slice(0, 10),
+      source,
+    });
+
+    Logger.log('Webhook traité : ' + client + ' · ' + montant + ' FCFA · ' + source);
+  } catch (e) {
+    Logger.log('Erreur webhook : ' + e.message);
+  }
+}
+
+function detectTypeLic(montant) {
+  const m = +montant;
+  const tMois = +(PROPS.getProperty('TARIF_MOIS') || 15000);
+  const tTrim = +(PROPS.getProperty('TARIF_TRIM') || 40000);
+  if (m <= tMois * 1.1) return 'MOIS';
+  if (m <= tTrim * 1.1) return 'TRIM';
+  return 'ANNU';
+}
+
+// ── EMAILS MAILAPP ───────────────────────────────────────────────
+function getClientEmail(clientNom) {
+  const clients = sheetToObjects('clients');
+  const c = clients.find(x => x.nom === clientNom);
+  return c?.email || '';
+}
+
+function getPayLinks() {
+  return {
+    wave: {
+      MOIS: PROPS.getProperty('WAVE_LINK_MOIS') || '',
+      TRIM: PROPS.getProperty('WAVE_LINK_TRIM') || '',
+      ANNU: PROPS.getProperty('WAVE_LINK_ANNU') || '',
+    },
+    om: {
+      MOIS: PROPS.getProperty('OM_LINK_MOIS') || '',
+      TRIM: PROPS.getProperty('OM_LINK_TRIM') || '',
+      ANNU: PROPS.getProperty('OM_LINK_ANNU') || '',
+    }
+  };
+}
+
+function sendRenewalEmail(data) {
+  const { client, type, expiration, app_id } = data;
+  const email = getClientEmail(client);
+  if (!email) return { ok: false, error: 'Email client non trouvé pour : ' + client };
+
+  const apps = sheetToObjects('apps');
+  const app = apps.find(a => a.id === app_id) || {};
+  const links = getPayLinks();
+  const daysLeft = Math.ceil((new Date(expiration) - Date.now()) / 86400000);
+  const tarifs = { MOIS: +(PROPS.getProperty('TARIF_MOIS') || app.tarif_mois || 15000), TRIM: +(PROPS.getProperty('TARIF_TRIM') || app.tarif_trim || 40000), ANNU: +(PROPS.getProperty('TARIF_ANNU') || app.tarif_annu || 150000) };
+  const montant = tarifs[type] || 0;
+  const duree = type === 'MOIS' ? '1 mois' : type === 'TRIM' ? '3 mois' : '1 an';
+  const fmt = n => new Intl.NumberFormat('fr-FR').format(+n) + ' FCFA';
+  const waveLink = links.wave[type] || '';
+  const omLink = links.om[type] || '';
+
+  const urgencyColor = daysLeft <= 3 ? '#EF4444' : daysLeft <= 7 ? '#F97316' : '#F59E0B';
+  const urgencyText = daysLeft <= 0 ? '⛔ EXPIRÉE' : daysLeft <= 3 ? '🚨 CRITIQUE — ' + daysLeft + ' j' : daysLeft <= 7 ? '⚠️ URGENT — ' + daysLeft + ' j' : '⚠️ ' + daysLeft + ' j restants';
+
+  const htmlBody = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f4f4f4;padding:20px">
+    <div style="background:#08080F;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(135deg,#6D28D9,#00B4D8);padding:24px;text-align:center">
+        <div style="font-size:26px;font-weight:800;color:#fff">${app.emoji || '🚀'} ${app.nom || 'StudioPro'}</div>
+        <div style="font-size:12px;color:#C4B5FD;margin-top:4px">by BALANCE CONSULTING</div>
+      </div>
+      <div style="padding:28px;color:#E2E8F0">
+        <p style="font-size:15px">Bonjour <strong>${client}</strong>,</p>
+        <div style="background:${urgencyColor}20;border:2px solid ${urgencyColor};border-radius:10px;padding:14px;text-align:center;margin:16px 0">
+          <div style="font-size:22px;font-weight:800;color:${urgencyColor}">${urgencyText}</div>
+          <div style="font-size:13px;color:#94A3B8;margin-top:4px">Votre abonnement ${app.nom || 'StudioPro'} · ${type}</div>
+        </div>
+        <div style="background:#1E2E33;border-radius:10px;padding:16px;margin:16px 0">
+          <div style="font-size:12px;color:#90E0EF;margin-bottom:8px">DÉTAILS DU RENOUVELLEMENT</div>
+          <div style="font-size:22px;font-weight:700;color:#FCD34D">${fmt(montant)}</div>
+          <div style="font-size:13px;color:#64748B;margin-top:4px">Durée : ${duree}</div>
+        </div>
+        ${waveLink ? `<a href="${waveLink}" style="display:block;background:#1DA462;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;margin-bottom:10px">🌊 Payer par Wave — ${fmt(montant)}</a>` : ''}
+        ${omLink ? `<a href="${omLink}" style="display:block;background:#FF6900;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;margin-bottom:10px">🟠 Payer par Orange Money — ${fmt(montant)}</a>` : ''}
+        <div style="background:#10B98118;border:1px solid #10B98144;border-radius:8px;padding:12px;margin-top:16px;font-size:12px;color:#6EE7B7">
+          ✅ Votre licence est renouvelée automatiquement dès réception du paiement.
+        </div>
+        <p style="font-size:12px;color:#64748B;margin-top:20px;line-height:1.8">
+          Questions ? Contactez-nous :<br>
+          📞 +225 0700776975 &nbsp;|&nbsp; ✉️ contact@balanceconsulting.ci<br>
+          <strong>BALANCE CONSULTING</strong> · Abidjan, Côte d'Ivoire
+        </p>
+      </div>
+    </div>
+  </div>`;
+
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: urgencyText + ' — Renouvellement ' + (app.nom || 'StudioPro') + ' · ' + fmt(montant),
+      htmlBody,
+      name: 'BALANCE CONSULTING – ' + (app.nom || 'StudioPro'),
+    });
+
+    appendRow('email_log', {
+      id: Utilities.getUuid().slice(0, 8),
+      ts: new Date().toISOString(),
+      type: 'RENEWAL_REMINDER',
+      client, app_id, statut: 'sent',
+      detail: daysLeft + 'j · ' + fmt(montant),
+    });
+
+    return { ok: true, sent_to: email };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+function sendPaymentConfirmEmail(data) {
+  const email = getClientEmail(data.client);
+  if (!email) return;
+  const apps = sheetToObjects('apps');
+  const app = apps.find(a => a.id === data.app_id) || {};
+  const fmt = n => new Intl.NumberFormat('fr-FR').format(+n) + ' FCFA';
+  const days = data.type_lic === 'MOIS' ? 30 : data.type_lic === 'TRIM' ? 90 : 365;
+  const newExp = new Date(Date.now() + days * 86400000).toLocaleDateString('fr-FR');
+  const moyenIcon = data.moyen === 'Wave' ? '🌊' : data.moyen === 'Orange Money' ? '🟠' : '💳';
+
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: '✅ Paiement confirmé — ' + (app.nom || 'StudioPro') + ' renouvelé',
+      htmlBody: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#10B981;padding:24px;text-align:center;border-radius:14px 14px 0 0">
+          <div style="font-size:36px">✅</div>
+          <div style="font-size:20px;font-weight:700;color:#fff;margin-top:8px">Paiement confirmé !</div>
+        </div>
+        <div style="background:#0D1517;padding:28px;color:#E2E8F0;border-radius:0 0 14px 14px">
+          <p>Bonjour <strong>${data.client}</strong>,</p>
+          <p>Votre paiement a été reçu et votre licence est renouvelée.</p>
+          <div style="background:#1E2E33;border-radius:10px;padding:16px;margin:16px 0;line-height:2">
+            <div>${moyenIcon} Moyen : <strong>${data.moyen}</strong></div>
+            <div>💰 Montant : <strong style="color:#FCD34D">${fmt(data.montant)}</strong></div>
+            <div>🔑 Référence : <strong style="font-family:monospace">${data.reference || '—'}</strong></div>
+            <div>✅ Valide jusqu'au : <strong style="color:#10B981">${newExp}</strong></div>
+          </div>
+          <p style="font-size:12px;color:#64748B">Merci pour votre confiance !<br><strong>BALANCE CONSULTING</strong> · +225 0700776975</p>
+        </div>
+      </div>`,
+      name: 'BALANCE CONSULTING – ' + (app.nom || 'StudioPro'),
+    });
+
+    appendRow('email_log', {
+      id: Utilities.getUuid().slice(0, 8),
+      ts: new Date().toISOString(),
+      type: 'PAYMENT_CONFIRM',
+      client: data.client, app_id: data.app_id,
+      statut: 'sent', detail: fmt(data.montant),
+    });
+  } catch (e) {
+    Logger.log('Erreur email confirm : ' + e.message);
+  }
+}
+
+// ── RAPPORT MENSUEL ──────────────────────────────────────────────
+function sendMonthlyReports() {
+  const clients = sheetToObjects('clients');
+  const licences = sheetToObjects('licences');
+  const payments = sheetToObjects('payments');
+  const apps = sheetToObjects('apps');
+  const links = getPayLinks();
+  const mois = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const fmt = n => new Intl.NumberFormat('fr-FR').format(+n) + ' FCFA';
+
+  clients.forEach(client => {
+    const email = client.email;
+    if (!email) return;
+    const cLics = licences.filter(l => l.client === client.nom && l.active);
+    if (!cLics.length) return;
+    const cPays = payments.filter(p => p.client === client.nom && p.statut === 'success');
+    const cCA = cPays.reduce((s, p) => s + (+p.montant || 0), 0);
+
+    const licsRows = cLics.map(l => {
+      const app = apps.find(a => a.id === l.app_id) || {};
+      const days = l.expiration === 'DEV' ? 9999 : Math.ceil((new Date(l.expiration) - Date.now()) / 86400000);
+      const col = days <= 7 ? '#EF4444' : days <= 30 ? '#F59E0B' : '#10B981';
+      const waveLink = links.wave[l.type] || '';
+      return `<tr>
+        <td style="padding:10px;border-bottom:1px solid #1E2E33">${app.emoji || '📦'} ${app.nom || l.app_id}</td>
+        <td style="padding:10px;border-bottom:1px solid #1E2E33"><span style="color:${col};font-weight:600">${days >= 9999 ? 'Illimitée' : days > 0 ? days + ' jours' : 'EXPIRÉE'}</span></td>
+        <td style="padding:10px;border-bottom:1px solid #1E2E33">${l.type}</td>
+        <td style="padding:10px;border-bottom:1px solid #1E2E33">${waveLink ? `<a href="${waveLink}" style="color:#1DA462;font-weight:600">🌊 Renouveler</a>` : '—'}</td>
+      </tr>`;
+    }).join('');
+
+    try {
+      MailApp.sendEmail({
+        to: email,
+        subject: '📊 Récapitulatif mensuel ' + mois + ' — BALANCE CONSULTING',
+        htmlBody: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f4f4f4;padding:20px">
+          <div style="background:#08080F;border-radius:14px;overflow:hidden">
+            <div style="background:linear-gradient(135deg,#0D1517,#1E2E33);padding:24px">
+              <div style="font-size:18px;font-weight:700;color:#fff">Récapitulatif ${mois}</div>
+              <div style="font-size:13px;color:#4A7C8E;margin-top:4px">${client.nom} · BALANCE CONSULTING</div>
+            </div>
+            <div style="padding:24px;color:#E2E8F0">
+              <table style="width:100%;border-collapse:collapse">
+                <thead><tr>
+                  <th style="text-align:left;padding:8px;background:#1E2E33;color:#90E0EF;font-size:11px">Application</th>
+                  <th style="text-align:left;padding:8px;background:#1E2E33;color:#90E0EF;font-size:11px">Expiration</th>
+                  <th style="text-align:left;padding:8px;background:#1E2E33;color:#90E0EF;font-size:11px">Abonnement</th>
+                  <th style="text-align:left;padding:8px;background:#1E2E33;color:#90E0EF;font-size:11px">Action</th>
+                </tr></thead>
+                <tbody>${licsRows}</tbody>
+              </table>
+              <div style="background:#1E2E33;border-radius:8px;padding:14px;margin-top:16px">
+                <div style="font-size:12px;color:#90E0EF">Total payé depuis le début</div>
+                <div style="font-size:20px;font-weight:700;color:#FCD34D">${fmt(cCA)}</div>
+              </div>
+              <p style="font-size:12px;color:#64748B;margin-top:20px">
+                📞 +225 0700776975 · <strong>BALANCE CONSULTING</strong> · Abidjan, CI
+              </p>
+            </div>
+          </div>
+        </div>`,
+        name: 'BALANCE CONSULTING',
+      });
+
+      appendRow('email_log', {
+        id: Utilities.getUuid().slice(0, 8),
+        ts: new Date().toISOString(),
+        type: 'MONTHLY_REPORT',
+        client: client.nom, app_id: '',
+        statut: 'sent', detail: mois,
+      });
+    } catch (e) {
+      Logger.log('Rapport mensuel erreur : ' + client.nom + ' · ' + e.message);
+    }
+  });
+}
+
+// ── TRIGGERS AUTO ────────────────────────────────────────────────
+function setupTriggers() {
+  // Supprimer tous les triggers existants
+  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
+
+  // J-30, J-7, J-3 : vérification quotidienne à 8h
+  ScriptApp.newTrigger('checkAndSendRenewals').timeBased().everyDays(1).atHour(8).create();
+
+  // Suspension à minuit
+  ScriptApp.newTrigger('suspendExpiredLicences').timeBased().everyDays(1).atHour(0).create();
+
+  // Rapport mensuel le 1er du mois à 9h
+  ScriptApp.newTrigger('sendMonthlyReports').timeBased().onMonthDay(1).atHour(9).create();
+
+  Logger.log('✅ Triggers installés : relances J-30/J-7/J-3, suspension J0, rapport mensuel');
+}
+
+function checkAndSendRenewals() {
+  const licences = sheetToObjects('licences');
+  const apps = sheetToObjects('apps');
+  const emailLog = sheetToObjects('email_log');
+  const today = new Date().toISOString().slice(0, 10);
+
+  licences.forEach(l => {
+    if (!l.active || l.expiration === 'DEV') return;
+    const days = Math.ceil((new Date(l.expiration) - Date.now()) / 86400000);
+
+    // Envoyer uniquement aux jalons : 30, 15, 7, 3, 1
+    const shouldSend = [30, 15, 7, 3, 1].includes(days);
+    if (!shouldSend) return;
+
+    // Vérifier qu'on n'a pas déjà envoyé aujourd'hui pour ce client/app/jalons
+    const alreadySent = emailLog.some(e =>
+      e.type === 'RENEWAL_REMINDER' &&
+      e.client === l.client &&
+      e.app_id === l.app_id &&
+      e.ts?.startsWith(today)
+    );
+    if (alreadySent) return;
+
+    const app = apps.find(a => a.id === l.app_id) || {};
+    sendRenewalEmail({
+      client: l.client, type: l.type,
+      expiration: l.expiration, app_id: l.app_id,
+    });
+
+    Logger.log('Relance J-' + days + ' envoyée : ' + l.client + ' · ' + (app.nom || l.app_id));
+  });
+}
+
+function suspendExpiredLicences() {
+  const licences = sheetToObjects('licences');
+  licences.forEach(l => {
+    if (!l.active || l.expiration === 'DEV') return;
+    const days = Math.ceil((new Date(l.expiration) - Date.now()) / 86400000);
+    if (days <= 0) {
+      toggleLicActive(l.id, false);
+      // Email de suspension
+      const email = getClientEmail(l.client);
+      if (email) {
+        const apps = sheetToObjects('apps');
+        const app = apps.find(a => a.id === l.app_id) || {};
+        try {
+          MailApp.sendEmail({
+            to: email,
+            subject: '⛔ Compte suspendu — ' + (app.nom || 'StudioPro'),
+            htmlBody: `<div style="font-family:Arial;max-width:600px;margin:0 auto;padding:20px">
+              <div style="background:#EF4444;padding:20px;border-radius:12px;text-align:center;color:#fff">
+                <div style="font-size:28px">⛔</div>
+                <div style="font-size:18px;font-weight:700;margin-top:8px">Compte suspendu</div>
+              </div>
+              <div style="background:#0D1517;color:#E2E8F0;padding:24px;border-radius:0 0 12px 12px">
+                <p>Bonjour <strong>${l.client}</strong>,</p>
+                <p>Votre accès à <strong>${app.nom || 'StudioPro'}</strong> a été suspendu car votre abonnement a expiré.</p>
+                <p style="margin-top:16px">Pour réactiver votre compte, procédez au renouvellement de votre licence.<br>
+                Vos données sont conservées pendant 30 jours.</p>
+                <p style="margin-top:16px;font-size:12px;color:#64748B">
+                  📞 +225 0700776975 · BALANCE CONSULTING
+                </p>
+              </div>
+            </div>`,
+            name: 'BALANCE CONSULTING',
+          });
+        } catch(e) { Logger.log('Email suspension erreur : ' + e.message); }
+      }
+      Logger.log('Licence suspendue : ' + l.client + ' · ' + l.app_id);
+    }
+  });
+}
+
+// ── DONNÉES APP (StudioPro modules) ─────────────────────────────
+function saveModuleData(module, data) {
+  const cols = {
+    projets: ['id','titre','type','statut','client','contact','budget','b_equipe','b_materiel','b_deplacement','b_postprod','b_hebergement','b_divers','acompte','facture','avancement','debut','fin','lieu','notes','jours_estimes','jours_reels','archived','created_at','updated_at'],
+    ventes: ['id','date','client','produit','categorie','qte','prix_unit','total','statut_pmt','updated_at'],
+    stock: ['id','nom','categorie','marque','prix_achat','prix_vente','stock','stock_min','updated_at'],
+    services: ['id','date','client','titre','categorie','montant','statut','updated_at'],
+    formations: ['id','titre','statut','mode','formateur','inscrits','max','tarif','debut','fin','lieu','updated_at'],
+    membres: ['id','nom','prenom','role','specialite','statut','tarif_jour','tel','email','updated_at'],
+    tarifs: ['id','nom','categorie','unite','prix','prix_min','prix_max','updated_at'],
+  };
+  const shCols = cols[module];
+  if (!shCols) return;
+  let sh = SS.getSheetByName('data_' + module);
+  if (!sh) { sh = SS.insertSheet('data_' + module); }
+  sh.clearContents();
+  sh.getRange(1, 1, 1, shCols.length).setValues([shCols]).setFontWeight('bold').setBackground('#0D1517').setFontColor('#90E0EF');
+  const items = Array.isArray(data) ? data : (typeof data === 'string' ? JSON.parse(data) : []);
+  if (!items.length) return;
+  const rows = items.map(item => shCols.map(col => {
+    const v = item[col]; return (v === undefined || v === null) ? '' : typeof v === 'object' ? JSON.stringify(v) : v;
+  }));
+  sh.getRange(2, 1, rows.length, shCols.length).setValues(rows);
+}
+
+function loadModuleData(module) {
+  const sh = SS.getSheetByName('data_' + module);
+  if (!sh || sh.getLastRow() <= 1) return [];
+  const cols = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, cols.length).getValues();
+  return rows.filter(r => r[0] !== '').map(row => {
+    const obj = {};
+    cols.forEach((col, i) => { if (row[i] !== '') obj[col] = row[i]; });
+    return obj;
+  });
+}
+
+function saveAllData(data) {
+  if (!data) return;
+  ['projets','ventes','stock','services','formations','membres','tarifs'].forEach(k => {
+    if (data[k]) saveModuleData(k, data[k]);
+  });
+}
+
+function loadAllData() {
+  const modules = ['projets','ventes','stock','services','formations','membres','tarifs'];
+  const result = {};
+  modules.forEach(k => { result[k] = loadModuleData(k); });
+  return result;
+}
+
+// ── ADMIN DATA (apps, clients, licences, payments) ──────────────
+function saveAdminModule(module, data) {
+  if (!SCHEMAS[module]) return;
+  const sh = getSheet(module);
+  sh.clearContents();
+  const cols = SCHEMAS[module];
+  sh.getRange(1, 1, 1, cols.length).setValues([cols])
+    .setFontWeight('bold').setBackground('#0D1517').setFontColor('#90E0EF');
+  if (!data || !data.length) return;
+  const rows = data.map(item => cols.map(col => {
+    const v = item[col];
+    return (v === undefined || v === null) ? ''
+      : (typeof v === 'boolean') ? (v ? 'TRUE' : 'FALSE')
+      : (typeof v === 'object') ? JSON.stringify(v) : v;
+  }));
+  sh.getRange(2, 1, rows.length, cols.length).setValues(rows);
+  for (let i = 0; i < rows.length; i++) {
+    sh.getRange(i + 2, 1, 1, cols.length)
+      .setBackground(i % 2 === 0 ? '#080F12' : '#0D1517')
+      .setFontColor('#CAE9F5');
+  }
+}
+
+function loadAdminModule(module) {
+  if (!SCHEMAS[module]) return [];
+  const sh = SS.getSheetByName(module);
+  if (!sh || sh.getLastRow() <= 1) return [];
+  const cols = SCHEMAS[module];
+  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, cols.length).getValues();
+  return rows.filter(r => r[0] !== '').map(row => {
+    const obj = {};
+    cols.forEach((col, i) => {
+      const v = row[i];
+      if (v === '' || v === null) return;
+      if (v === 'TRUE') { obj[col] = true; return; }
+      if (v === 'FALSE') { obj[col] = false; return; }
+      if (v instanceof Date) { obj[col] = v.toISOString().slice(0, 10); return; }
+      try { obj[col] = JSON.parse(v); } catch(e) { obj[col] = v; }
+    });
+    return obj;
+  });
+}
+
+// ── AUDIT LOG ────────────────────────────────────────────────────
+function addAuditLog(entry) {
+  appendRow('audit_log', {
+    ts: new Date().toISOString(),
+    user: entry.user || 'system',
+    action: entry.action || '',
+    module: entry.module || '',
+    detail: entry.detail || '',
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SCRIPT PROPERTIES À CONFIGURER DANS APPS SCRIPT
+// (Project Settings → Script Properties → Ajouter variable)
+// ══════════════════════════════════════════════════════════════════
+//
+//  ADMIN_KEY         → Clé secrète (ex: BC2026-PLATFORM-XXXX)
+//  ADMIN_USERNAME    → admin
+//  ADMIN_PASSWORD    → Mot de passe admin
+//  TARIF_MOIS        → 15000
+//  TARIF_TRIM        → 40000
+//  TARIF_ANNU        → 150000
+//  WAVE_LINK_MOIS    → https://pay.wave.com/m/VOTRE_ID/c/?amount=15000
+//  WAVE_LINK_TRIM    → https://pay.wave.com/m/VOTRE_ID/c/?amount=40000
+//  WAVE_LINK_ANNU    → https://pay.wave.com/m/VOTRE_ID/c/?amount=150000
+//  OM_LINK_MOIS      → https://...orange-money...15000...
+//  OM_LINK_TRIM      → https://...orange-money...40000...
+//  OM_LINK_ANNU      → https://...orange-money...150000...
+</script>
+</body>
+</html>
