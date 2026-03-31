@@ -1,61 +1,64 @@
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// Proxy Vercel — adapté depuis StudioPro (version qui marche)
+const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || '';
+const ADMIN_KEY = process.env.ADMIN_KEY || '';
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
+module.exports = async function handler(req, res) {
+  const cors = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, x-session-token, x-site-id',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Content-Type': 'application/json',
+  };
 
-  const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || '';
-  const ADMIN_KEY = process.env.ADMIN_KEY || '';
+  const send = (status, body) => {
+    Object.entries(cors).forEach(([k,v]) => res.setHeader(k, v));
+    return res.status(status).json(typeof body === 'string' ? { raw: body } : body);
+  };
+
+  if (req.method === 'OPTIONS') return send(200, {});
 
   if (!APPS_SCRIPT_URL) {
-    return res.status(500).json({ error: 'APPS_SCRIPT_URL non configurée' });
+    return send(503, { error: 'APPS_SCRIPT_URL non configurée dans Vercel Environment Variables' });
   }
 
-  let body = {};
   try {
-    body = typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}');
-  } catch(e) {}
-  if (!body.admin_key) body.admin_key = ADMIN_KEY;
+    let body = {};
+    try {
+      body = typeof req.body === 'object' && req.body !== null
+        ? req.body
+        : JSON.parse(req.body || '{}');
+    } catch(e) {}
 
-  // Étape 1 : Obtenir l'URL finale après redirection (GET pour suivre les redirects)
-  // Google Apps Script redirige les POST vers une URL différente
-  try {
-    const finalUrl = await getFinalUrl(APPS_SCRIPT_URL);
-    
-    // Étape 2 : Envoyer le POST à l'URL finale directement
-    const response = await fetch(finalUrl, {
+    const r = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'text/plain',
+        'User-Agent': 'BalanceAdmin-Proxy/1.0',
+      },
+      redirect: 'follow',
+      body: JSON.stringify({
+        ...body,
+        admin_key: body.admin_key || ADMIN_KEY,
+      }),
     });
 
-    const text = await response.text();
-    
-    // Vérifier que c'est du JSON valide
+    const text = await r.text();
+    let result;
     try {
-      JSON.parse(text);
+      result = JSON.parse(text);
     } catch(e) {
-      // Si pas JSON, retourner une erreur claire
-      return res.status(500).json({ 
-        error: 'Le serveur Apps Script a retourné une réponse non-JSON',
-        raw: text.slice(0, 200)
+      // Apps Script a retourné du HTML — problème de déploiement
+      console.error('Non-JSON response:', text.slice(0, 300));
+      return send(502, { 
+        error: 'Apps Script non-JSON response. Vérifiez que le script est bien déployé en mode public.',
+        preview: text.slice(0, 100)
       });
     }
-    
-    res.setHeader('Content-Type', 'application/json');
-    return res.status(200).send(text);
 
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return send(200, result);
+
+  } catch(err) {
+    console.error('Proxy error:', err.message);
+    return send(502, { error: err.message });
   }
-}
-
-async function getFinalUrl(url) {
-  // Suivre les redirections pour obtenir l'URL finale
-  const response = await fetch(url, {
-    method: 'GET',
-    redirect: 'follow',
-  });
-  return response.url || url;
-}
+};
