@@ -256,7 +256,10 @@ const ROLES = {
 function getUsers(){ return S.g('admin_users') || [
   { id:'1', nom:'Admin', email:'admin', role:'superadmin', actif:true, password:btoa('BC2026Admin!'), created_at:'2026-01-01' }
 ];}
-function saveUsers(d){ S.s('admin_users', d); _write('admin_users', d); }
+function saveUsers(d){ 
+  S.s('admin_users', d); 
+  if(getApiUrl()) apiCall('saveAdminData', {module:'admin_users', data:d}).catch(()=>{});
+}
 
 function rUsers(){
   const users = getUsers();
@@ -269,8 +272,8 @@ function rUsers(){
       '<td style="font-size:11px;color:var(--muted)">'+role.access+'</td>'+
       '<td><span class="b '+(u.actif?'bg':'br')+'">'+(u.actif?'Actif':'Inactif')+'</span></td>'+
       '<td><div style="display:flex;gap:4px">'+
-        '<button class="btgh btsm" onclick="openUserForm(&quot;'+u.id+'&quot;)">&#9998;</button>'+
-        (u.id!=='1'?'<button class="btgh btsm" onclick="toggleUser(&quot;'+u.id+'&quot;)">'+(u.actif?'&#9208;':'&#9654;')+'</button>':'')+
+        '<button class="btgh btsm" data-uid="'+u.id+'" onclick="openUserForm(this.dataset.uid)">&#9998;</button>'+
+        (u.id!=='1'?'<button class="btgh btsm" data-uid="'+u.id+'" onclick="toggleUser(this.dataset.uid)">'+(u.actif?'&#9208;':'&#9654;')+'</button>':'')+
       '</div></td></tr>';
   }).join('');
   const roleRows = Object.entries(ROLES).map(function(entry){
@@ -302,7 +305,8 @@ function openUserForm(id){
     '<div class="f"><label>Mot de passe '+(id?'(vide = inchangé)':'*')+'</label>'+
     '<input id="uf_pass" type="password" placeholder=""/></div>'+
     '<div class="f"><label>Rôle</label><select id="uf_role">'+roleOpts+'</select></div>'+
-    '<button class="btn btg" style="width:100%" onclick="saveUser(&quot;'+(id||'')+'&quot;)">Sauvegarder</button>');
+    '<button class="btn btg" style="width:100%" id="uf_save_btn">Sauvegarder</button>');
+  document.getElementById('uf_save_btn').onclick = function(){ saveUser(id||''); };
 }
 
 function saveUser(id){
