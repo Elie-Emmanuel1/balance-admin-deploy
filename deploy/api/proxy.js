@@ -1,64 +1,59 @@
-// Proxy Vercel — adapté depuis StudioPro (version qui marche)
+const https = require('https');
+const { URL } = require('url');
+
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwtEoNogCNhQiEjRTqygQ32TKc0pZ25bjCGnTs9m4iODPwRZW9crD4_jIzcBF2f3BaXrQ/exec';
 const ADMIN_KEY = process.env.ADMIN_KEY || 'BC2026Platform';
 
 module.exports = async function handler(req, res) {
-  const cors = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, x-session-token, x-site-id',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Content-Type': 'application/json',
-  };
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Content-Type', 'application/json');
 
-  const send = (status, body) => {
-    Object.entries(cors).forEach(([k,v]) => res.setHeader(k, v));
-    return res.status(status).json(typeof body === 'string' ? { raw: body } : body);
-  };
-
-  if (req.method === 'OPTIONS') return send(200, {});
-
-  if (!APPS_SCRIPT_URL) {
-    return send(503, { error: 'APPS_SCRIPT_URL non configurée dans Vercel Environment Variables' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
+    // Lire le body
     let body = {};
     try {
       body = typeof req.body === 'object' && req.body !== null
-        ? req.body
-        : JSON.parse(req.body || '{}');
+        ? req.body : JSON.parse(req.body || '{}');
     } catch(e) {}
+    if (!body.admin_key) body.admin_key = ADMIN_KEY;
 
-    const r = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain',
-        'User-Agent': 'BalanceAdmin-Proxy/1.0',
-      },
-      redirect: 'follow',
-      body: JSON.stringify({
-        ...body,
-        admin_key: body.admin_key || ADMIN_KEY,
-      }),
+    // Construire URL GET avec tous les paramètres à plat
+    const url = new URL(APPS_SCRIPT_URL);
+    Object.entries(body).forEach(([k, v]) => {
+      url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
     });
 
-    const text = await r.text();
-    let result;
-    try {
-      result = JSON.parse(text);
-    } catch(e) {
-      // Apps Script a retourné du HTML — problème de déploiement
-      console.error('Non-JSON response:', text.slice(0, 300));
-      return send(502, { 
-        error: 'Apps Script non-JSON response. Vérifiez que le script est bien déployé en mode public.',
-        preview: text.slice(0, 100)
-      });
+    const text = await getWithRedirects(url.toString(), 5);
+
+    try { JSON.parse(text); } catch(e) {
+      return res.status(502).json({ error: 'Réponse non-JSON', preview: text.slice(0, 150) });
     }
 
-    return send(200, result);
-
+    return res.status(200).send(text);
   } catch(err) {
-    console.error('Proxy error:', err.message);
-    return send(502, { error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
+
+function getWithRedirects(urlStr, maxRedirects) {
+  return new Promise((resolve, reject) => {
+    if (maxRedirects <= 0) return reject(new Error('Trop de redirections'));
+    https.get(urlStr, (response) => {
+      if (response.statusCode >= 300 && response.headers.location) {
+        const next = response.headers.location.startsWith('http')
+          ? response.headers.location
+          : new URL(response.headers.location, urlStr).toString();
+        response.resume();
+        getWithRedirects(next, maxRedirects - 1).then(resolve).catch(reject);
+        return;
+      }
+      let data = '';
+      response.on('data', c => data += c);
+      response.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
