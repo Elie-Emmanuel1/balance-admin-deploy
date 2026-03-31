@@ -1,6 +1,6 @@
 // Proxy Vercel — adapté depuis StudioPro (version qui marche)
-const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || '';
-const ADMIN_KEY = process.env.ADMIN_KEY || '';
+const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwtEoNogCNhQiEjRTqygQ32TKc0pZ25bjCGnTs9m4iODPwRZW9crD4_jIzcBF2f3BaXrQ/exec';
+const ADMIN_KEY = process.env.ADMIN_KEY || 'BC2026Platform';
 
 module.exports = async function handler(req, res) {
   const cors = {
