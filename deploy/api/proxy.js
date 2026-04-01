@@ -1,7 +1,7 @@
 const https = require('https');
 const { URL } = require('url');
 
-const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbyOolmM8Ys_LEMp7FNigIC45L5rWByEJNG2ZU79wHcCsVWkrTCHyKN_zrjbiXdBP1JjtA/exec';
+const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbzU93X8_LehEFASWS3MEfU_f-Zs-T2O0CWr4U2AZ7bVUqWtcwg3OVs30Nkl1JDXRG7OKw/exec';
 const ADMIN_KEY = process.env.ADMIN_KEY || 'BC2026Platform';
 
 module.exports = async function handler(req, res) {
