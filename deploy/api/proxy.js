@@ -1,8 +1,7 @@
 const https = require('https');
-const http = require('http');
 const { URL } = require('url');
 
-const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxa3CKcGsX-ZIrq9zDRt72lWPKftrPl3HNb_03BeurHAnN9Rsa1ejKhh4K_2YMmz6-Tbw/exec';
+const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwGR0HUoDiyprHKPN8Zm2WShgOfY6uEz3_axzgt24GEyDY8hXYqBHtc3lRcZyK_vbQD-A/exec';
 const ADMIN_KEY = process.env.ADMIN_KEY || 'BC2026Platform';
 
 module.exports = async function handler(req, res) {
@@ -13,6 +12,7 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
+    // Lire le body
     let body = {};
     try {
       body = typeof req.body === 'object' && req.body !== null
@@ -20,93 +20,56 @@ module.exports = async function handler(req, res) {
     } catch(e) {}
     if (!body.admin_key) body.admin_key = ADMIN_KEY;
 
-    const payload = JSON.stringify(body);
-
-    // ÉTAPE 1 : POST initial vers Apps Script
-    // Apps Script va rediriger vers une autre URL
-    const redirectUrl = await new Promise((resolve, reject) => {
-      const parsed = new URL(APPS_SCRIPT_URL);
-      const buf = Buffer.from(payload);
-      const opts = {
-        hostname: parsed.hostname,
-        path: parsed.pathname + parsed.search,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain',
-          'Content-Length': buf.length,
-        },
-      };
-      const req2 = https.request(opts, (r) => {
-        r.resume(); // Ignorer le body
-        if (r.headers.location) {
-          resolve(r.headers.location);
-        } else {
-          // Pas de redirection — lire directement
-          let data = '';
-          // On a déjà fait resume(), relancer
-          reject(new Error('NO_REDIRECT'));
-        }
-      });
-      req2.on('error', reject);
-      req2.write(buf);
-      req2.end();
-    }).catch(async (e) => {
-      if (e.message === 'NO_REDIRECT') return null;
-      throw e;
+    // Envoyer en GET — méthode qui fonctionne avec Apps Script
+    // Les données complexes (row, data) sont encodées en base64
+    const url = new URL(APPS_SCRIPT_URL);
+    Object.entries(body).forEach(([k, v]) => {
+      if (typeof v === 'object' && v !== null) {
+        // Encoder les objets en base64 pour éviter les problèmes d'URL
+        url.searchParams.set(k, Buffer.from(JSON.stringify(v)).toString('base64'));
+        url.searchParams.set(k + '__b64', '1');
+      } else {
+        url.searchParams.set(k, String(v ?? ''));
+      }
     });
 
-    let text;
-    
-    if (redirectUrl) {
-      // ÉTAPE 2 : POST vers l'URL finale (après redirection)
-      text = await new Promise((resolve, reject) => {
-        const parsed = new URL(redirectUrl);
-        const buf = Buffer.from(payload);
-        const lib = redirectUrl.startsWith('https') ? https : http;
-        const opts = {
-          hostname: parsed.hostname,
-          path: parsed.pathname + parsed.search,
-          method: 'POST',
-          headers: {
-            'Content-Type': 'text/plain',
-            'Content-Length': buf.length,
-          },
-        };
-        const req3 = lib.request(opts, (r) => {
-          let data = '';
-          r.on('data', c => data += c);
-          r.on('end', () => resolve(data));
-        });
-        req3.on('error', reject);
-        req3.write(buf);
-        req3.end();
-      });
-    } else {
-      // Pas de redirection — GET direct
-      const url = new URL(APPS_SCRIPT_URL);
-      Object.entries(body).forEach(([k, v]) => {
-        url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
-      });
-      text = await new Promise((resolve, reject) => {
-        https.get(url.toString(), (r) => {
-          if (r.headers.location) {
-            https.get(r.headers.location, (r2) => {
-              let d = ''; r2.on('data', c => d += c); r2.on('end', () => resolve(d));
-            }).on('error', reject);
-            return;
-          }
-          let d = ''; r.on('data', c => d += c); r.on('end', () => resolve(d));
-        }).on('error', reject);
-      });
-    }
+    const text = await getFollowRedirect(url.toString());
 
     // Valider JSON
-    try { JSON.parse(text); } catch(e) {
-      return res.status(502).json({ error: 'non-JSON: ' + text.slice(0, 200) });
+    try {
+      JSON.parse(text);
+      return res.status(200).send(text);
+    } catch(e) {
+      // Si HTML → le script n'est pas public
+      if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+        return res.status(502).json({ 
+          error: 'Apps Script non-public. Vérifiez le déploiement : Accès = Tout le monde' 
+        });
+      }
+      return res.status(502).json({ error: 'Réponse invalide', preview: text.slice(0,100) });
     }
-    return res.status(200).send(text);
 
   } catch(err) {
     return res.status(500).json({ error: err.message });
   }
 };
+
+function getFollowRedirect(urlStr, depth) {
+  depth = depth || 0;
+  if (depth > 5) return Promise.reject(new Error('Trop de redirections'));
+  return new Promise((resolve, reject) => {
+    https.get(urlStr, (r) => {
+      if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
+        r.resume();
+        const next = r.headers.location.startsWith('http')
+          ? r.headers.location
+          : new URL(r.headers.location, urlStr).toString();
+        getFollowRedirect(next, depth + 1).then(resolve).catch(reject);
+        return;
+      }
+      let data = '';
+      r.on('data', c => data += c);
+      r.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
