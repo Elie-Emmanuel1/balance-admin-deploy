@@ -113,7 +113,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-@media(max-width:1200px){.g4{grid-template-columns:repeat(2,1fr);}}.
+@media(max-width:1200px){.g4{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:900px){.g3{grid-template-columns:1fr 1fr;}.g2{grid-template-columns:1fr;}}
 
 /* ── KPI ── */
@@ -836,7 +836,7 @@ function wizNext(step){
     score=Math.min(score,100);
     const cas=score<=30?'Cas simple — tarif mensuel standard':'';
     const col=score<=30?'green':score<=60?'gold':'red';
-    const label=score<=30?'Cas simple':'score<=60?Cas intermédiaire':'Cas complexe';
+    const label=score<=30?'Cas simple':score<=60?'Cas intermédiaire':'Cas complexe';
     const labelTxt=score<=30?'Cas simple':score<=60?'Cas intermédiaire':'Cas complexe — entretien requis';
     document.getElementById('score-result').innerHTML=`
 <div class="card card-${col==='gold'?'gold':col==='red'?'red':'green'}" style="margin-bottom:0">
