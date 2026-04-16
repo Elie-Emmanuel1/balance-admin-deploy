@@ -1172,18 +1172,20 @@ function rDocForm(t){
   if(t==='attestation')calcAtt();
   if(t==='contrat_artiste')calcArt();
 }
-
 function genDoc(t){
   const c=getDocCfg();const doc=DOC_TYPES.find(d=>d.id===t);
   const num=gv('dc_num')||nDoc(doc?.pfx||'DOC');const date=gv('dc_date')||TODAY;
   const client=gv('dc_cl')||gv('dc_art');if(!client){alert('Client / Bénéficiaire obligatoire');return;}
   const sign=gv('dc_sign')?.split('|')[0]||c.sigs?.[0]?.nom||'—';const qual=gv('dc_qual')||c.sigs?.[0]?.role||'—';
   const adr=gv('dc_adr')||'',cnt=gv('dc_cnt')||'';
-  const logoHtml=c.logo?`<img src="${c.logo}" alt="logo" style="height:52px;max-width:130px;object-fit:contain;display:block;margin-bottom:5px" crossorigin="anonymous"/>`:`<div style="font-size:22px;font-weight:800;color:${c.couleur};letter-spacing:-1px;margin-bottom:4px">${(c.nom||'BC').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>`;
-  const Hdr=()=>`<div class="dh"><div>${logoHtml}<div class="dfn">${c.nom}</div><div class="dsb">${c.slogan}</div><div class="din">${c.adresse}<br>Tél : ${c.tel}${c.email?' · '+c.email:''}<br>${c.web?'Web : '+c.web+'<br>':''}${c.rccm?'RCCM : '+c.rccm+' · ':''} ${c.ncc?'NCC : '+c.ncc:''}</div></div><div style="text-align:right"><div class="dbd">${doc?.lbl?.toUpperCase()||t.toUpperCase()}</div><div class="dnum">N° ${num}</div><div style="font-size:10px;color:#666;margin-top:2px">Date : ${fmtD(date)}</div></div></div>`;
-  const Parties=(cl,a,cn)=>`<div class="dp"><div class="dpa"><div class="dpl">Prestataire</div><div class="dpn">${c.nom}</div><div class="dpi">${c.adresse}<br>${c.rccm?'RCCM : '+c.rccm:''}</div></div><div class="dpa"><div class="dpl">Client / Destinataire</div><div class="dpn">${cl}</div><div class="dpi">${a||'—'}<br>${cn||'—'}</div></div></div>`;
-  const Signs=(s,q,cl)=>`<div class="dfooter"><div><div class="dsl"></div><div class="dslb">Pour ${c.nom} — Signature & Cachet</div><div style="height:40px;margin:5px 0"></div><div style="margin-top:2px;font-size:11.5px;font-weight:600">${s}</div><div style="font-size:10.5px;color:#888">${q}</div></div><div><div class="dsl"></div><div class="dslb">Pour ${cl} — Bon pour accord</div></div></div>`;
-  const Ments=()=>`<div class="dments">${c.mentions}${c.rccm?' · RCCM : '+c.rccm:''}<br><div style="margin-top:5px;padding-top:5px;border-top:1px dashed #ddd;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;color:#bbb;font-style:italic"><strong>BALANCE CONSULTING</strong> — Expert-comptable &amp; Conseil fiscal · <strong>${c.tel}</strong></span><span style="font-size:9px;color:#bbb">${c.email}</span></div></div>`;
+  const abbr2=(c.nom||'BC').replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
+  const logoBox=c.logo?`<div class="dh-logo-wrap"><img src="${c.logo}" alt="logo" crossorigin="anonymous"/></div>`:`<div class="dh-logo-wrap"><span class="dh-logo-initials">${abbr2}</span></div>`;
+  const Hdr=()=>`<div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||'Expert-comptable · Conseil fiscal · Gestion'}</div><div class="din">${c.adresse||'Abidjan, Côte d\'Ivoire'}<br>Tél : ${c.tel||''}${c.email?' &nbsp;·&nbsp; '+c.email:''}<br>${c.rccm?'RCCM : '+c.rccm+' &nbsp;·&nbsp; ':''} ${c.ncc?'NCC : '+c.ncc:''}</div></div></div><div style="text-align:right"><div class="dbd">${doc?.lbl?.toUpperCase()||t.toUpperCase()}</div><div class="dnum">N° ${num}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Date : ${fmtD(date)}</div></div></div>`;
+  const MARGIN_TXT='BALANCE CONSULTING — SUIVI COMPTABLE — CRÉATION D\'ENTREPRISE — FORMATION — STRATÉGIE ADMINISTRATIVE — +225 0700776975 — contact@balanceconsultingci.com';
+  const wrapDoc=(inner)=>`<div class="doc-wrap"><div class="doc-margin"><span class="doc-margin-txt">${MARGIN_TXT}</span></div>${inner}</div>`;
+  const Parties=(cl,a,cn)=>`<div class="dp"><div class="dpa"><div class="dpl">Prestataire</div><div class="dpn">${c.nom}</div><div class="dpi">${c.adresse||'Abidjan, Côte d\'Ivoire'}<br>${c.rccm?'RCCM : '+c.rccm:''}</div></div><div class="dpa"><div class="dpl">Client / Destinataire</div><div class="dpn">${cl}</div><div class="dpi">${a||'—'}<br>${cn||'—'}</div></div></div>`;
+  const Signs=(s,q,cl)=>`<div class="dfooter"><div><div class="dsl"></div><div class="dslb">Pour ${c.nom} — Signature & Cachet</div><div style="height:38px;margin:5px 0"></div><div style="margin-top:2px;font-size:11px;font-weight:600">${s}</div><div style="font-size:10px;color:#888">${q}</div></div><div><div class="dsl"></div><div class="dslb">Pour ${cl} — Bon pour accord</div></div></div>`;
+  const Ments=()=>`<div class="dments">${c.mentions||'Tous droits réservés.'}${c.rccm?' &nbsp;·&nbsp; RCCM : '+c.rccm:''}<div class="dments-brand">BALANCE CONSULTING — SUIVI COMPTABLE — CRÉATION D'ENTREPRISE — FORMATION — STRATÉGIE ADMINISTRATIVE — ${c.tel||'+225 0700776975'} — ${c.email||'contact@balanceconsultingci.com'}</div></div>`;
 
   let html='',montant='';
 
@@ -1219,9 +1221,9 @@ function genDoc(t){
     html=`<div class="docpg">${Hdr()}<div style="margin-bottom:14px"><div style="font-size:11px;color:#888;margin-bottom:11px">Abidjan, le ${fmtD(date)}</div><div style="margin-bottom:11px"><b>${client}</b><br>${adr||''}</div><div style="font-size:13px;font-weight:700;margin-bottom:3px">Objet : ${titre} — ${gv('dc_facref')||'Facture impayée'}</div>${niv===3?`<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:3px;padding:3px 11px;font-size:11px;font-weight:600;color:#856404;display:inline-block;margin-top:4px">⚠ MISE EN DEMEURE</div>`:''}</div><div style="font-size:12.5px;line-height:1.9;margin-bottom:16px"><p>Madame, Monsieur,</p><br><p>Nous vous rappelons que la facture <b>${gv('dc_facref')||'—'}</b> du <b>${fmtD(gv('dc_dfac'))}</b> d'un montant de <b>${fmt(mt)}</b> demeure à ce jour impayée.</p><br><p>${intro}</p>${gv('dc_notes')?`<br><p>${gv('dc_notes')}</p>`:''}<br><p>Veuillez agréer nos salutations distinguées.</p></div><div class="dfooter"><div><div class="dsl"></div><div class="dslb">Signature & Cachet</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${sign}</div><div style="font-size:10.5px;color:#888">${qual}</div></div></div>${Ments()}</div>`;
   }
 
-  const docLbl=doc?.lbl||t;curDoc={num,type:docLbl,date:fmtD(date),client,html,montant};
+  const docLbl=doc?.lbl||t;const finalHtml=wrapDoc(html);curDoc={num,type:docLbl,date:fmtD(date),client,html:finalHtml,montant};
   const h=S.g('doc_hist')||[];h.unshift(curDoc);if(h.length>100)h.pop();S.s('doc_hist',h);
-  nDoc(doc?.pfx||'DOC');showPov(html,num);rDocHist();
+  nDoc(doc?.pfx||'DOC');showPov(finalHtml,num);rDocHist();
 }
 
 function filterDocHist(){
