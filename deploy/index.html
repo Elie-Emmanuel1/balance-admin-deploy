@@ -1265,8 +1265,6 @@ function rConfig(){
     <div class="f"><label>Slogan</label><input id="ci_slogan" value="${esc(ci.slogan||'')}" placeholder="Expert-comptable · Conseil fiscal · Gestion"/></div>
     <div class="g2"><div class="f"><label>Email</label><input id="ci_email" type="email" value="${esc(ci.email||'')}"/></div><div class="f"><label>Téléphone</label><input id="ci_tel" value="${esc(ci.tel||'')}"/></div></div>
     <div class="g2"><div class="f"><label>Adresse</label><input id="ci_addr" value="${esc(ci.adresse||'')}"/></div><div class="f"><label>Ville</label><input id="ci_ville" value="${esc(ci.ville||'Abidjan')}"/></div></div>
-    <div class="g2"><div class="f"><label>RCCM</label><input id="ci_rccm" value="${esc(ci.rccm||'')}"/></div><div class="f"><label>NCC / NIF</label><input id="ci_ncc" value="${esc(ci.ncc||'')}"/></div></div>
-    <div class="f"><label>Mentions légales (documents)</label><textarea id="ci_mentions" rows="2">${esc(ci.mentions||'Tous droits réservés.')}</textarea></div>
     <div class="sep"></div>
     <div style="font-size:10px;font-weight:700;color:var(--acc3);margin-bottom:7px">SIGNATAIRES DOCUMENTS</div>
     <div id="sigArea">${(ci.sigs||[]).map((s,i)=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:9px;margin-bottom:7px"><div class="g2"><div class="f" style="margin:0"><label>Nom</label><input id="sig_nom_${i}" value="${esc(s.nom||'')}"/></div><div class="f" style="margin:0"><label>Rôle</label><input id="sig_role_${i}" value="${esc(s.role||'')}"/></div></div></div>`).join('')||'<div style="font-size:11px;color:var(--muted)">Aucun signataire configuré</div>'}</div>
