@@ -153,13 +153,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .us{font-size:10.5px;color:var(--muted);margin-top:1px;}
 
 /* ── DOCUMENT STYLES ── */
-.docpg{background:#fff;color:#000;width:100%;max-width:800px;margin:0 auto;padding:32px 44px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;border-radius:4px;}
-/* En-tête document : logo à gauche + numéro/badge à droite */
+.docpg{background:#fff;color:#000;width:100%;max-width:800px;margin:0 auto;padding:36px 44px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;border-radius:4px;}
 .dh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-bottom:14px;border-bottom:3px solid #08080F;}
-.dh-left{display:flex;align-items:center;gap:12px;}
-.dh-logo-wrap{width:46px;height:46px;border-radius:9px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1A56DB,#3B9EFF);}
-.dh-logo-wrap img{width:100%;height:100%;object-fit:contain;}
-.dh-logo-initials{font-size:13px;font-weight:800;color:#fff;}
 .dfn{font-size:16px;font-weight:700;color:#08080F;}
 .dsb{font-size:9px;color:#666;letter-spacing:1.5px;text-transform:uppercase;}
 .din{font-size:11px;color:#555;line-height:1.8;margin-top:3px;}
@@ -190,86 +185,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .dments{font-size:9.5px;color:#888;line-height:1.7;margin-top:13px;padding-top:9px;border-top:1px solid #eee;}
 .dfooter-brand{font-size:9px;color:#bbb;font-style:italic;}
 
-/* ── PRINT HEADER / FOOTER (masqués en mode app, affichés à l'impression) ── */
-#print-header,#print-footer{display:none;}
-
 /* ── DOC PREVIEW ── */
 .pov{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:600;display:flex;flex-direction:column;align-items:center;padding:13px;overflow-y:auto;}
 .ptb{display:flex;align-items:center;gap:7px;margin-bottom:12px;width:100%;max-width:820px;flex-wrap:wrap;}
 .ptl{font-size:12.5px;font-weight:600;color:#fff;flex:1;}
-
-/* ═══════════════════════════════════════════════════════════════
-   IMPRESSION A4 — FORMAT STRICT
-   ═══════════════════════════════════════════════════════════════ */
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
-  body{background:#fff!important;margin:0!important;padding:0!important;}
+  body{background:#fff!important;margin:0!important;}
   #sidebar,#topbar,#main,.pov .ptb,.lbox,.btgh,.btn{display:none!important;}
   .pov{position:static!important;background:#fff!important;padding:0!important;display:block!important;overflow:visible!important;}
   #povC{display:block!important;}
-
-  /* ── Page A4 avec marges réservant l'espace en-tête/pied ── */
-  @page{
-    size:A4 portrait;
-    margin:30mm 15mm 22mm 15mm;
-  }
-
-  /* ── Contenu centré dans la zone utile ── */
-  .docpg{
-    box-shadow:none!important;
-    width:180mm!important;
-    max-width:180mm!important;
-    margin:0 auto!important;
-    padding:0!important;
-    font-size:11.5px!important;
-    line-height:1.55!important;
-  }
-
-  /* ── EN-TÊTE imprimé sur CHAQUE page (position fixed = répété) ── */
-  #print-header{
-    display:flex!important;
-    position:fixed;
-    top:0;left:0;right:0;
-    height:24mm;
-    align-items:center;
-    padding:0 15mm;
-    background:#fff;
-    border-bottom:2.5px solid #08080F;
-    z-index:9999;
-  }
-  #ph-logo-box{
-    width:44px;height:44px;
-    border-radius:9px;
-    overflow:hidden;
-    flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(135deg,#1A56DB,#3B9EFF);
-    margin-right:12px;
-  }
-  #ph-logo-box img{width:100%;height:100%;object-fit:contain;}
-  #ph-initials{font-size:13px;font-weight:800;color:#fff;font-family:'Inter',sans-serif;}
-  #ph-nom{font-size:13px;font-weight:800;color:#08080F;letter-spacing:.3px;font-family:'Inter',sans-serif;}
-  #ph-slogan{font-size:8px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:1.2px;font-family:'Inter',sans-serif;}
-
-  /* ── PIED DE PAGE imprimé sur CHAQUE page ── */
-  #print-footer{
-    display:flex!important;
-    position:fixed;
-    bottom:0;left:0;right:0;
-    height:14mm;
-    align-items:center;
-    justify-content:center;
-    padding:0 15mm;
-    background:#fff;
-    border-top:1px solid #ddd;
-    z-index:9999;
-    font-size:6px!important;
-    font-family:'Inter',sans-serif!important;
-    color:#999!important;
-    text-align:center;
-    letter-spacing:.3px;
-    line-height:1.6;
-  }
+  .docpg{box-shadow:none!important;max-width:100%!important;margin:0!important;padding:20mm 18mm!important;font-size:12px!important;}
+  @page{margin:10mm;size:A4;}
 }
 
 /* ── DOC FORM STYLES ── */
@@ -392,22 +319,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
     <div id="mBody"></div>
   </div>
-</div>
-
-<!-- EN-TÊTE D'IMPRESSION — fixé en haut sur chaque page imprimée -->
-<div id="print-header">
-  <div id="ph-logo-box">
-    <span id="ph-initials">BC</span>
-  </div>
-  <div>
-    <div id="ph-nom">BALANCE CONSULTING</div>
-    <div id="ph-slogan">Expert-comptable · Conseil fiscal · Gestion</div>
-  </div>
-</div>
-
-<!-- PIED DE PAGE D'IMPRESSION — fixé en bas sur chaque page imprimée -->
-<div id="print-footer">
-  BALANCE CONSULTING &nbsp;—&nbsp; SUIVI COMPTABLE &nbsp;—&nbsp; CRÉATION D'ENTREPRISE &nbsp;—&nbsp; FORMATION &nbsp;—&nbsp; STRATÉGIE ADMINISTRATIVE &nbsp;—&nbsp; +225 0700776975 &nbsp;—&nbsp; contact@balanceconsultingci.com
 </div>
 
 <!-- DOC PREVIEW -->
@@ -1255,9 +1166,8 @@ function genDoc(t){
   const client=gv('dc_cl')||gv('dc_art');if(!client){alert('Client / Bénéficiaire obligatoire');return;}
   const sign=gv('dc_sign')?.split('|')[0]||c.sigs?.[0]?.nom||'—';const qual=gv('dc_qual')||c.sigs?.[0]?.role||'—';
   const adr=gv('dc_adr')||'',cnt=gv('dc_cnt')||'';
-  const abbr2=(c.nom||'BC').replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
-  const logoBox=c.logo?`<div class="dh-logo-wrap"><img src="${c.logo}" alt="logo" crossorigin="anonymous"/></div>`:`<div class="dh-logo-wrap"><span class="dh-logo-initials">${abbr2}</span></div>`;
-  const Hdr=()=>`<div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan}</div><div class="din">${c.adresse}<br>Tél : ${c.tel}${c.email?' · '+c.email:''}<br>${c.web?'Web : '+c.web+'<br>':''}${c.rccm?'RCCM : '+c.rccm+' · ':''} ${c.ncc?'NCC : '+c.ncc:''}</div></div></div><div style="text-align:right"><div class="dbd">${doc?.lbl?.toUpperCase()||t.toUpperCase()}</div><div class="dnum">N° ${num}</div><div style="font-size:10px;color:#666;margin-top:2px">Date : ${fmtD(date)}</div></div></div>`;
+  const logoHtml=c.logo?`<img src="${c.logo}" alt="logo" style="height:52px;max-width:130px;object-fit:contain;display:block;margin-bottom:5px" crossorigin="anonymous"/>`:`<div style="font-size:22px;font-weight:800;color:${c.couleur};letter-spacing:-1px;margin-bottom:4px">${(c.nom||'BC').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>`;
+  const Hdr=()=>`<div class="dh"><div>${logoHtml}<div class="dfn">${c.nom}</div><div class="dsb">${c.slogan}</div><div class="din">${c.adresse}<br>Tél : ${c.tel}${c.email?' · '+c.email:''}<br>${c.web?'Web : '+c.web+'<br>':''}${c.rccm?'RCCM : '+c.rccm+' · ':''} ${c.ncc?'NCC : '+c.ncc:''}</div></div><div style="text-align:right"><div class="dbd">${doc?.lbl?.toUpperCase()||t.toUpperCase()}</div><div class="dnum">N° ${num}</div><div style="font-size:10px;color:#666;margin-top:2px">Date : ${fmtD(date)}</div></div></div>`;
   const Parties=(cl,a,cn)=>`<div class="dp"><div class="dpa"><div class="dpl">Prestataire</div><div class="dpn">${c.nom}</div><div class="dpi">${c.adresse}<br>${c.rccm?'RCCM : '+c.rccm:''}</div></div><div class="dpa"><div class="dpl">Client / Destinataire</div><div class="dpn">${cl}</div><div class="dpi">${a||'—'}<br>${cn||'—'}</div></div></div>`;
   const Signs=(s,q,cl)=>`<div class="dfooter"><div><div class="dsl"></div><div class="dslb">Pour ${c.nom} — Signature & Cachet</div><div style="height:40px;margin:5px 0"></div><div style="margin-top:2px;font-size:11.5px;font-weight:600">${s}</div><div style="font-size:10.5px;color:#888">${q}</div></div><div><div class="dsl"></div><div class="dslb">Pour ${cl} — Bon pour accord</div></div></div>`;
   const Ments=()=>`<div class="dments">${c.mentions}${c.rccm?' · RCCM : '+c.rccm:''}<br><div style="margin-top:5px;padding-top:5px;border-top:1px dashed #ddd;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;color:#bbb;font-style:italic"><strong>BALANCE CONSULTING</strong> — Expert-comptable &amp; Conseil fiscal · <strong>${c.tel}</strong></span><span style="font-size:9px;color:#bbb">${c.email}</span></div></div>`;
@@ -1309,24 +1219,7 @@ function filterDocHist(){
 }
 function rDocHist(){const el=document.getElementById('dHistList');if(!el)return;filterDocHist();}
 function reloadDoc(i){const h=S.g('doc_hist')||[];if(!h[i])return;curDoc=h[i];showPov(h[i].html,h[i].num);}
-function showPov(html,num){
-  document.getElementById('povC').innerHTML=html;
-  document.getElementById('povTit').textContent='Aperçu — '+num;
-  document.getElementById('pov').style.display='flex';
-  // ── Alimenter l'en-tête d'impression avec les infos société ──
-  const ci=getCompanyInfo();
-  const nom=ci.nom||'BALANCE CONSULTING';
-  const slogan=ci.slogan||'Expert-comptable · Conseil fiscal · Gestion';
-  const logoUrl=ci.logo_url||'';
-  const abbr=nom.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
-  const phBox=document.getElementById('ph-logo-box');
-  if(phBox){
-    if(logoUrl){phBox.innerHTML='<img src="'+logoUrl+'" alt="logo"/>';}
-    else{phBox.innerHTML='<span id="ph-initials" style="font-size:13px;font-weight:800;color:#fff;font-family:Inter,sans-serif">'+abbr+'</span>';}
-  }
-  const phNom=document.getElementById('ph-nom');if(phNom)phNom.textContent=nom;
-  const phSlog=document.getElementById('ph-slogan');if(phSlog)phSlog.textContent=slogan;
-}
+function showPov(html,num){document.getElementById('povC').innerHTML=html;document.getElementById('povTit').textContent='Aperçu — '+num;document.getElementById('pov').style.display='flex';}
 function closePov(){const p=document.getElementById('pov');if(p)p.style.display='none';}
 
 // ══ LOGS / USERS / CONFIG ════════════════════════════════════
