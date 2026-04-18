@@ -1354,124 +1354,120 @@ async function downloadPDF(){
 
 // ── Construit une chaîne HTML autonome pour l'iframe ──────────
 function buildPrintHTMLString(c,logoHtml,num){
-  // Extraire le contenu interne (sans .dh, .dments, etc.)
   const tmp=document.createElement('div');
   tmp.innerHTML=curDoc.html||'';
   const docpg=tmp.querySelector('.docpg');
   const inner=document.createElement('div');
   inner.innerHTML=docpg?docpg.innerHTML:(tmp.innerHTML||'');
 
-  // Supprimer les éléments recréés proprement
-  ['.dh','.dments','.dments-brand','.doc-margin','.doc-margin-txt'].forEach(sel=>{
-    inner.querySelectorAll(sel).forEach(el=>el.remove());
+  ['.dh','.dments','.dments-brand','.doc-margin','.doc-margin-txt'].forEach(function(sel){
+    inner.querySelectorAll(sel).forEach(function(el){el.remove();});
   });
 
-  // Dans .dfooter, supprimer les textes nom/fonction après .dslb
-  inner.querySelectorAll('.dfooter > div').forEach(col=>{
-    const dslb=col.querySelector('.dslb');
+  inner.querySelectorAll('.dfooter > div').forEach(function(col){
+    var dslb=col.querySelector('.dslb');
     if(dslb){
-      let next=dslb.nextSibling;
-      while(next){const n2=next.nextSibling;col.removeChild(next);next=n2;}
+      var next=dslb.nextSibling;
+      while(next){var n2=next.nextSibling;col.removeChild(next);next=n2;}
     }
   });
 
-  const bodyContent=inner.innerHTML;
+  var bodyContent=inner.innerHTML;
+  var docTypeEntry=DOC_TYPES.find(function(d){return d.id===curDoc.type||d.lbl===curDoc.type;});
+  var docTypeLbl=((docTypeEntry&&docTypeEntry.lbl)||curDoc.type||'Document').toUpperCase();
+  var couleur=c.couleur||'#1A56DB';
+  var nomSoc=c.nom||'BALANCE CONSULTING';
+  var slogan=c.slogan||'Expert-comptable &middot; Conseil fiscal &middot; Gestion';
+  var adresse=c.adresse||'Abidjan, C&ocirc;te d&apos;Ivoire';
+  var tel=c.tel||'+225 07 00 77 69 75';
+  var email=c.email||'contact@balanceconsulting.ci';
+  var rccm=c.rccm||'CI-ABJ-XXXX-B-XXXXX';
+  var mentions=c.mentions||'Tous droits r&eacute;serv&eacute;s.';
+  var ville=c.ville||'Abidjan';
+  var docDate=curDoc.date||'';
 
-  // Résoudre le type de document
-  const docTypeEntry=DOC_TYPES.find(d=>d.id===curDoc.type||d.lbl===curDoc.type);
-  const docTypeLbl=(docTypeEntry?.lbl||curDoc.type||'Document').toUpperCase();
-  const couleur=c.couleur||'#1A56DB';
-  const mentionsLine=`${c.mentions||'Tous droits réservés.'} · RCCM : ${c.rccm||'CI-ABJ-XXXX-B-XXXXX'}`;
+  var mentionsLine=mentions+' &middot; RCCM : '+rccm;
 
-  return `<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8"/>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  body{font-family:'Inter',Arial,sans-serif;background:#fff;color:#111;font-size:12px;line-height:1.65;}
-  #pdf-root{width:794px;background:#fff;padding:16mm 14mm 20mm 14mm;}
+  var html='<!DOCTYPE html>\n'
+  +'<html lang="fr">\n'
+  +'<head>\n'
+  +'<meta charset="UTF-8"/>\n'
+  +'<style>\n'
+  +'*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}\n'
+  +'body{font-family:Arial,sans-serif;background:#fff;color:#111;font-size:12px;line-height:1.65;}\n'
+  +'#pdf-root{width:794px;background:#fff;padding:16mm 14mm 20mm 14mm;}\n'
+  +'.pdf-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:13px;border-bottom:3px solid '+couleur+';margin-bottom:18px;}\n'
+  +'.pdf-header-left{display:flex;align-items:center;gap:12px;}\n'
+  +'.pdf-header-logo{width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}\n'
+  +'.company-name{font-size:15px;font-weight:800;color:#08080F;letter-spacing:-0.3px;}\n'
+  +'.company-slogan{font-size:7px;color:#777;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}\n'
+  +'.company-details{font-size:9.5px;color:#555;line-height:1.85;margin-top:3px;}\n'
+  +'.pdf-header-right{text-align:right;flex-shrink:0;}\n'
+  +'.doc-badge{background:'+couleur+';color:#fff;padding:5px 13px;border-radius:5px;font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;display:inline-block;}\n'
+  +'.doc-num{font-size:10.5px;color:#333;font-family:monospace;margin-top:5px;font-weight:600;}\n'
+  +'.doc-date{font-size:9.5px;color:#777;margin-top:2px;}\n'
+  +'.dp{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}\n'
+  +'.dpa{background:#f8f9fa;border-radius:7px;padding:11px 13px;border-left:3px solid '+couleur+';}\n'
+  +'.dpl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:3px;}\n'
+  +'.dpn{font-size:13px;font-weight:700;color:#08080F;}\n'
+  +'.dpi{font-size:10px;color:#555;line-height:1.8;margin-top:2px;}\n'
+  +'.dtbl{width:100%;border-collapse:collapse;margin-bottom:14px;}\n'
+  +'.dtbl th{background:#08080F;color:#fff;padding:8px 10px;text-align:left;font-size:10.5px;font-weight:600;}\n'
+  +'.dtbl th:last-child,.dtbl td:last-child{text-align:right;}\n'
+  +'.dtbl td{padding:8px 10px;border-bottom:1px solid #efefef;font-size:11px;color:#333;}\n'
+  +'.dtbl tr:nth-child(even) td{background:#f8f9fa;}\n'
+  +'.dtbl tr{page-break-inside:avoid;}\n'
+  +'.dtb{width:270px;margin-left:auto;margin-bottom:14px;}\n'
+  +'.dtr{display:flex;justify-content:space-between;padding:4px 0;font-size:11px;border-bottom:1px solid #efefef;color:#555;}\n'
+  +'.dtr.fin{font-size:13px;font-weight:700;color:#08080F;border-top:2px solid #08080F;border-bottom:2px solid #08080F;padding:6px 0;margin-top:3px;}\n'
+  +'.dtr.ret{background:#fff9e6;padding:4px 8px;border-radius:4px;margin:2px 0;color:#856404;}\n'
+  +'.dfooter{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px;padding-top:13px;border-top:1px solid #efefef;page-break-inside:avoid;}\n'
+  +'.dsl{width:100%;height:1px;background:#ccc;margin:32px 0 5px;}\n'
+  +'.dslb{font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.5px;}\n'
+  +'.dhl{background:#f0fff7;border:2px solid #059669;border-radius:8px;padding:13px;margin:13px 0;page-break-inside:avoid;}\n'
+  +'.dha{font-size:22px;font-weight:800;color:#065f46;font-family:monospace;}\n'
+  +'.dstamp{width:76px;height:76px;border-radius:50%;border:3px solid #059669;display:flex;align-items:center;justify-content:center;margin:0 auto;color:#059669;font-size:7.5px;font-weight:700;text-align:center;line-height:1.4;text-transform:uppercase;}\n'
+  +'.dart{font-size:12.5px;font-weight:700;color:#08080F;margin:10px 0 3px;}\n'
+  +'.darb{font-size:11px;color:#444;line-height:1.85;}\n'
+  +'.no-break{page-break-inside:avoid;}\n'
+  +'.dh,.dments,.dments-brand,.doc-margin,.doc-margin-txt{display:none!important;}\n'
+  +'</style>\n'
+  +'</head>\n'
+  +'<body>\n'
+  +'<div id="pdf-root">\n'
 
-  /* En-tête */
-  .pdf-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:13px;border-bottom:3px solid ${couleur};margin-bottom:18px;}
-  .pdf-header-left{display:flex;align-items:center;gap:12px;}
-  .pdf-header-logo{width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-  .pdf-header-info .company-name{font-size:15px;font-weight:800;color:#08080F;letter-spacing:-0.3px;}
-  .pdf-header-info .company-slogan{font-size:7px;color:#777;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
-  .pdf-header-info .company-details{font-size:9.5px;color:#555;line-height:1.85;margin-top:3px;}
-  .pdf-header-right{text-align:right;flex-shrink:0;}
-  .doc-badge{background:${couleur};color:#fff;padding:5px 13px;border-radius:5px;font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;display:inline-block;}
-  .doc-num{font-size:10.5px;color:#333;font-family:monospace;margin-top:5px;font-weight:600;}
-  .doc-date{font-size:9.5px;color:#777;margin-top:2px;}
+  // EN-TÊTE
+  +'<div class="pdf-header">'
+  +'<div class="pdf-header-left">'
+  +'<div class="pdf-header-logo">'+logoHtml+'</div>'
+  +'<div>'
+  +'<div class="company-name">'+nomSoc+'</div>'
+  +'<div class="company-slogan">'+slogan+'</div>'
+  +'<div class="company-details">'+adresse+'<br>T&eacute;l : '+tel+' &nbsp;&middot;&nbsp; '+email+'<br>'+mentionsLine+'</div>'
+  +'</div>'
+  +'</div>'
+  +'<div class="pdf-header-right">'
+  +'<div class="doc-badge">'+docTypeLbl+'</div>'
+  +'<div class="doc-num">N&deg; '+num+'</div>'
+  +'<div class="doc-date">Date : '+docDate+'</div>'
+  +'</div>'
+  +'</div>'
 
-  /* Contenu document */
-  .dp{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
-  .dpa{background:#f8f9fa;border-radius:7px;padding:11px 13px;border-left:3px solid ${couleur};}
-  .dpl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:3px;}
-  .dpn{font-size:13px;font-weight:700;color:#08080F;}
-  .dpi{font-size:10px;color:#555;line-height:1.8;margin-top:2px;}
-  .dtbl{width:100%;border-collapse:collapse;margin-bottom:14px;}
-  .dtbl th{background:#08080F;color:#fff;padding:8px 10px;text-align:left;font-size:10.5px;font-weight:600;}
-  .dtbl th:last-child,.dtbl td:last-child{text-align:right;}
-  .dtbl td{padding:8px 10px;border-bottom:1px solid #efefef;font-size:11px;color:#333;}
-  .dtbl tr:nth-child(even) td{background:#f8f9fa;}
-  .dtbl tr{page-break-inside:avoid;}
-  .dtb{width:270px;margin-left:auto;margin-bottom:14px;}
-  .dtr{display:flex;justify-content:space-between;padding:4px 0;font-size:11px;border-bottom:1px solid #efefef;color:#555;}
-  .dtr.fin{font-size:13px;font-weight:700;color:#08080F;border-top:2px solid #08080F;border-bottom:2px solid #08080F;padding:6px 0;margin-top:3px;}
-  .dtr.ret{background:#fff9e6;padding:4px 8px;border-radius:4px;margin:2px 0;color:#856404;}
-  .dfooter{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px;padding-top:13px;border-top:1px solid #efefef;page-break-inside:avoid;}
-  .dsl{width:100%;height:1px;background:#ccc;margin:32px 0 5px;}
-  .dslb{font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.5px;}
-  .dhl{background:#f0fff7;border:2px solid #059669;border-radius:8px;padding:13px;margin:13px 0;page-break-inside:avoid;}
-  .dha{font-size:22px;font-weight:800;color:#065f46;font-family:monospace;}
-  .dstamp{width:76px;height:76px;border-radius:50%;border:3px solid #059669;display:flex;align-items:center;justify-content:center;margin:0 auto;color:#059669;font-size:7.5px;font-weight:700;text-align:center;line-height:1.4;text-transform:uppercase;}
-  .dart{font-size:12.5px;font-weight:700;color:#08080F;margin:10px 0 3px;}
-  .darb{font-size:11px;color:#444;line-height:1.85;}
-  .no-break{page-break-inside:avoid;}
-  /* Masquer éléments spécifiques au dark-mode */
-  .dh,.dments,.dments-brand,.doc-margin,.doc-margin-txt{display:none!important;}
-</style>
-</head>
-<body>
-<div id="pdf-root">
+  // CORPS
+  +'<div class="doc-body">'+bodyContent+'</div>'
 
-  <!-- EN-TÊTE -->
-  <div class="pdf-header">
-    <div class="pdf-header-left">
-      <div class="pdf-header-logo">${logoHtml}</div>
-      <div class="pdf-header-info">
-        <div class="company-name">${c.nom||'BALANCE CONSULTING'}</div>
-        <div class="company-slogan">${c.slogan||'Expert-comptable · Conseil fiscal · Gestion'}</div>
-        <div class="company-details">
-          ${c.adresse||'Abidjan, Côte d\'Ivoire'}<br>
-          Tél : ${c.tel||'+225 07 00 77 69 75'} &nbsp;·&nbsp; ${c.email||'contact@balanceconsulting.ci'}<br>
-          ${mentionsLine}
-        </div>
-      </div>
-    </div>
-    <div class="pdf-header-right">
-      <div class="doc-badge">${docTypeLbl}</div>
-      <div class="doc-num">N° ${num}</div>
-      <div class="doc-date">Date : ${curDoc.date||''}</div>
-    </div>
-  </div>
+  // PIED DE PAGE
+  +'<div style="margin-top:26px;padding-top:8px;border-top:1px solid #e5e5e5;text-align:center;font-size:7px;color:#bbb;letter-spacing:0.3px;line-height:1.9;">'
+  +nomSoc+' &nbsp;&middot;&nbsp; Suivi comptable &nbsp;&middot;&nbsp; Cr&eacute;ation d&apos;entreprise &nbsp;&middot;&nbsp; Conseil fiscal &nbsp;&middot;&nbsp; Formation<br>'
+  +tel+' &nbsp;&middot;&nbsp; '+email+' &nbsp;&middot;&nbsp; RCCM : '+rccm
+  +'</div>'
 
-  <!-- CORPS DU DOCUMENT -->
-  <div class="doc-body">${bodyContent}</div>
+  +'</div>\n'
+  +'</body>\n'
+  +'</html>';
 
-  <!-- PIED DE PAGE DOCUMENT (séparé de la numérotation jsPDF) -->
-  <div style="margin-top:26px;padding-top:8px;border-top:1px solid #e5e5e5;text-align:center;font-size:7px;color:#bbb;letter-spacing:0.3px;line-height:1.9;">
-    ${c.nom||'BALANCE CONSULTING'} &nbsp;·&nbsp; Suivi comptable &nbsp;·&nbsp; Cr&#xe9;ation d&#x27;entreprise &nbsp;·&nbsp; Conseil fiscal &nbsp;·&nbsp; Formation<br>
-    ${c.tel||'+225 07 00 77 69 75'} &nbsp;·&nbsp; ${c.email||'contact@balanceconsulting.ci'} &nbsp;·&nbsp; RCCM : ${c.rccm||'CI-ABJ-XXXX-B-XXXXX'}
-  </div>
-
-</div>
-</body>
-</html>`;
+  return html;
 }
-
 // ── buildPrintDocument reste pour compatibilité (non utilisée pour PDF) ──
 function buildPrintDocument(c,logoHtml,abbr2,num){
   // Conservée pour compatibilité — downloadPDF utilise désormais buildPrintHTMLString + iframe
