@@ -22,6 +22,38 @@
   --red:#EF4444;--blue:#3B82F6;--cyan:#06B6D4;
   --purple:#8B5CF6;--orange:#F97316;
 }
+/* ── MODE JOUR ── */
+body.day-mode{
+  --bg:#F0F4F8;--bg2:#E8EEF5;--card:#FFFFFF;--card2:#EDF2F7;
+  --border:#CBD5E1;--border2:#94A3B8;
+  --text:#1E3A5F;--w:#0F172A;--muted:#64748B;
+  --acc:#1A56DB;--acc2:#1344C0;--acc3:#1A56DB;--blue-light:#3B9EFF;
+  --green:#059669;--gold:#D97706;--gold2:#F59E0B;
+  --red:#DC2626;--blue:#2563EB;--cyan:#0891B2;
+  --purple:#7C3AED;--orange:#EA580C;
+}
+body.day-mode #sidebar{background:linear-gradient(180deg,#1E3A5F,#1A3358 60%,#152B4A);border-right:1px solid #2D5282;}
+body.day-mode #sidebar .sb-logo-title{color:#fff;}
+body.day-mode #sidebar .sb-logo-sub{color:#93C5FD;}
+body.day-mode #sidebar .sb-section{color:#93C5FD;}
+body.day-mode #sidebar .nb{color:#93C5FD;}
+body.day-mode #sidebar .nb:hover{background:rgba(255,255,255,.1);color:#fff;}
+body.day-mode #sidebar .nb.active{background:linear-gradient(90deg,rgba(255,255,255,.15),rgba(255,255,255,.05),transparent);color:#fff;border-left-color:#60A5FA;}
+body.day-mode #sidebar .sb-user{color:#93C5FD;}
+body.day-mode #sidebar .sb-user strong{color:#fff;}
+body.day-mode #sidebar .sb-footer{border-top:1px solid rgba(255,255,255,.1);}
+body.day-mode #sidebar .btgh{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2);}
+body.day-mode #sidebar .btgh:hover{background:rgba(255,255,255,.18);}
+body.day-mode #topbar{background:#FFFFFF;border-bottom:1px solid #CBD5E1;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+body.day-mode .pov{background:rgba(15,23,42,.88);}
+body.day-mode #modal{box-shadow:0 8px 32px rgba(0,0,0,.12);}
+body.day-mode .kpi{box-shadow:0 1px 4px rgba(0,0,0,.06);}
+body.day-mode .card{box-shadow:0 1px 4px rgba(0,0,0,.06);}
+body.day-mode .item{box-shadow:0 1px 3px rgba(0,0,0,.04);}
+body.day-mode ::-webkit-scrollbar-thumb{background:#94A3B8;}
+body.day-mode .tbl th{background:#F1F5F9;}
+body.day-mode .tbl tr:hover td{background:#F8FAFC;}
+body.day-mode #theme-toggle-btn{background:rgba(255,255,255,.12)!important;color:#fff!important;border-color:rgba(255,255,255,.2)!important;}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow-x:hidden;}
 
 /* ── SIDEBAR ── */
@@ -315,6 +347,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
   <div class="sb-footer">
     <div class="sb-user"><strong id="sb-username">Admin</strong>BALANCE CONSULTING</div>
+    <div style="display:flex;gap:5px;margin-bottom:5px">
+      <button id="theme-toggle-btn" class="btgh btsm" style="flex:1;font-size:10px" onclick="toggleTheme()">☀️ Mode Jour</button>
+    </div>
     <button class="btgh btsm" style="width:100%" onclick="doLogout()">Déconnexion</button>
   </div>
 </div>
@@ -578,6 +613,20 @@ function doLogin(){
   }
 }
 async function doLogout(){S.d('auth');Object.keys(CACHE).forEach(k=>delete CACHE[k]);location.reload();}
+function toggleTheme(){
+  var isDay=document.body.classList.toggle('day-mode');
+  S.s('theme',isDay?'day':'night');
+  var btn=document.getElementById('theme-toggle-btn');
+  if(btn){btn.textContent=isDay?'🌙 Mode Nuit':'☀️ Mode Jour';}
+}
+function applyTheme(){
+  var t=S.g('theme');
+  if(t==='day'){
+    document.body.classList.add('day-mode');
+    var btn=document.getElementById('theme-toggle-btn');
+    if(btn)btn.textContent='🌙 Mode Nuit';
+  }
+}
 function checkAuth(){const auth=S.g('auth');return auth&&auth.expires>Date.now();}
 
 async function showApp(){
@@ -1775,6 +1824,7 @@ function globalSearch(q){
 
 // ══ INIT ════════════════════════════════════════════════════
 (function init(){
+  applyTheme();
   if(checkAuth()){
     const auth=S.g('auth');
     document.getElementById('sb-username').textContent=auth?.displayName||auth?.user||'Admin';
