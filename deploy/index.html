@@ -369,7 +369,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <div id="pov" style="display:none" class="pov">
   <div class="ptb">
     <div class="ptl" id="povTit">Aperçu</div>
-    <button id="btnDlPdf" onclick="downloadPDF()" class="btn" style="background:var(--green);color:#fff">🖨️ Imprimer / PDF A4</button>
+    <button id="btnDlPdf" onclick="downloadPDF(false)" class="btn" style="background:var(--green);color:#fff">🖨️ Imprimer / PDF A4</button>
+    <button id="btnDlPdfStamp" onclick="downloadPDF(true)" class="btn" style="background:var(--purple);color:#fff">🔏 Imprimer avec cachet</button>
     <button onclick="closePov()" class="btgh">✕ Fermer</button>
   </div>
   <div id="povC" style="width:100%;max-width:820px;"></div>
@@ -1275,7 +1276,7 @@ function closePov(){const p=document.getElementById('pov');if(p)p.style.display=
 // ══ FONCTIONS À REMPLACER DANS LE CODE ══════════════════════
 // Remplacer downloadPDF() et buildPrintDocument() par ces versions corrigées
 
-async function downloadPDF(){
+async function downloadPDF(withStamp){
   if(!curDoc||!curDoc.html){showToast('Aucun document à exporter',false);return;}
   var btn=document.getElementById('btnDlPdf');
   if(btn){btn.textContent='⏳ Préparation...';btn.disabled=true;}
@@ -1288,7 +1289,7 @@ async function downloadPDF(){
       ?'<img src="'+c.logo+'" style="width:44px;height:44px;border-radius:8px;object-fit:contain;display:block;" crossorigin="anonymous"/>'
       :'<div style="width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,'+couleur+',#3B9EFF);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;">'+abbr2+'</div>';
 
-    var fullHtml=buildPrintHTML(c,logoHtml,num,couleur);
+    var stampUrl=withStamp?(getCompanyInfo().stamp_url||c.stamp_url||""):"";var fullHtml=buildPrintHTML(c,logoHtml,num,couleur,stampUrl);
 
     // Ouvrir une fenêtre dédiée et imprimer — @page CSS force le format A4
     var pw=window.open('','_blank','width=860,height=1100');
@@ -1313,7 +1314,7 @@ async function downloadPDF(){
       }
     },1500);
 
-    showToast('🖨️ Dialogue d\'impression ouvert — choisissez "Enregistrer en PDF"');
+    showToast(withStamp?'🔏 Impression avec cachet — choisissez "Enregistrer en PDF"':'🖨️ Dialogue d\'impression ouvert — choisissez "Enregistrer en PDF"');
   }catch(e){
     showToast('❌ Erreur : '+e.message,false);
     console.error('Print Error:',e);
@@ -1322,7 +1323,7 @@ async function downloadPDF(){
 }
 
 // ── Construit le HTML complet de la page d'impression ─────────
-function buildPrintHTML(c,logoHtml,num,couleur){
+function buildPrintHTML(c,logoHtml,num,couleur,stampUrl){
   var tmp=document.createElement('div');
   tmp.innerHTML=curDoc.html||'';
   var docpg=tmp.querySelector('.docpg');
@@ -1390,7 +1391,9 @@ function buildPrintHTML(c,logoHtml,num,couleur){
   +'.dslb{font-size:8.5px;color:#999;text-transform:uppercase;letter-spacing:.5px;}'
   +'.dhl{background:#f0fff7!important;border:2px solid #059669;border-radius:7px;padding:12px;margin:12px 0;page-break-inside:avoid;}'
   +'.dha{font-size:20px;font-weight:800;color:#065f46;font-family:monospace;}'
-  +'.dstamp{width:72px;height:72px;border-radius:50%;border:3px solid #059669;display:flex;align-items:center;justify-content:center;margin:0 auto;color:#059669;font-size:7px;font-weight:700;text-align:center;line-height:1.4;text-transform:uppercase;}'
+  +'.dstamp{width:90px;height:90px;display:flex;align-items:center;justify-content:center;margin:0 auto;}'
+  +'.dstamp-img{width:90px;height:90px;object-fit:contain;}'
+  +'.dstamp-default{width:72px;height:72px;border-radius:50%;border:3px solid #059669;display:flex;align-items:center;justify-content:center;color:#059669;font-size:7px;font-weight:700;text-align:center;line-height:1.4;text-transform:uppercase;}'
   +'.dart{font-size:12px;font-weight:700;color:#08080F;margin:9px 0 3px;}'
   +'.darb{font-size:10.5px;color:#444;line-height:1.8;}'
   +'.no-break{page-break-inside:avoid;}'
@@ -1400,7 +1403,7 @@ function buildPrintHTML(c,logoHtml,num,couleur){
   +'@media print{.print-btn{display:none!important;}}'
   +'</style></head><body>'
   // Bouton imprimer dans la fenêtre
-  +'<button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>'
+  +(stampUrl?'<button class="print-btn" onclick="window.print()">🔏 Imprimer avec cachet</button>':'<button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>')
   // En-tête du document
   +'<div class="pdf-header">'
   +'<div class="pdf-header-left">'
@@ -1419,6 +1422,10 @@ function buildPrintHTML(c,logoHtml,num,couleur){
   +'</div>'
   // Corps
   +'<div>'+bodyContent+'</div>'
+  // Cachet : injecté via DOMContentLoaded — URL encodée proprement avec JSON.stringify
+  +(stampUrl
+    ? '<script>window.addEventListener("DOMContentLoaded",function(){var url='+JSON.stringify(stampUrl)+';document.querySelectorAll(".dstamp").forEach(function(s){s.style.cssText="border:none;background:transparent;padding:0;border-radius:0;width:100px;height:100px;display:flex;align-items:center;justify-content:center;margin:0 auto;";var img=document.createElement("img");img.src=url;img.style.cssText="width:100px;height:100px;object-fit:contain;display:block;";img.alt="Cachet";s.innerHTML="";s.appendChild(img);});});<\/script>'
+    : '')
   +'</body></html>';
 }
 
@@ -1475,6 +1482,15 @@ function rConfig(){
       </div>
       <input type="hidden" id="ci_logo" value="${esc(ci.logo_url||'')}"/>
     </div>
+    <div class="f"><label>Cachet / Tampon (PNG transparent recommandé)</label>
+      <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+        <input type="file" id="ci_stamp_file" accept="image/*" onchange="handleStampUpload(this)" style="background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:6px 9px;color:var(--text);font-size:11px;flex:1;min-width:0"/>
+        <div id="ci_stamp_preview" style="width:80px;height:80px;border-radius:8px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:2px dashed var(--border2);background:var(--bg2)">${ci.stamp_url?`<img src="${esc(ci.stamp_url)}" style="width:100%;height:100%;object-fit:contain"/>`:`<span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.4">Cachet<br>PNG</span>`}</div>
+        ${ci.stamp_url?`<button class="btgh btsm" onclick="clearStamp()" style="color:var(--red)">✕ Supprimer</button>`:''}
+      </div>
+      <input type="hidden" id="ci_stamp" value="${esc(ci.stamp_url||'')}"/>
+      <div style="font-size:9.5px;color:var(--muted);margin-top:3px">Le cachet sera ajouté automatiquement lors de l'impression avec cachet.</div>
+    </div>
     <div class="g2"><div class="f"><label>Nom société</label><input id="ci_nom" value="${esc(ci.nom||'BALANCE CONSULTING')}"/></div><div class="f"><label>Couleur principale</label><input id="ci_color" type="color" value="${ci.couleur_principale||'#1A56DB'}"/></div></div>
     <div class="f"><label>Slogan</label><input id="ci_slogan" value="${esc(ci.slogan||'')}" placeholder="Expert-comptable · Conseil fiscal · Gestion"/></div>
     <div class="g2"><div class="f"><label>Email</label><input id="ci_email" type="email" value="${esc(ci.email||'')}"/></div><div class="f"><label>Téléphone</label><input id="ci_tel" value="${esc(ci.tel||'')}"/></div></div>
@@ -1523,11 +1539,34 @@ function clearLogo(){
   const ci=getCompanyInfo();ci.logo_url='';saveCompanyInfoData(ci);applyCompanyBrand();
   showToast('Logo supprimé');
 }
+function handleStampUpload(input){
+  if(!input.files||!input.files[0])return;
+  const file=input.files[0];
+  if(file.size>3*1024*1024){showToast('Cachet trop grand (max 3MB)',false);return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const dataUrl=e.target.result;
+    const hiddenInput=document.getElementById('ci_stamp');
+    if(hiddenInput)hiddenInput.value=dataUrl;
+    const preview=document.getElementById('ci_stamp_preview');
+    if(preview)preview.innerHTML=`<img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain"/>`;
+    const ci=getCompanyInfo();ci.stamp_url=dataUrl;saveCompanyInfoData(ci);
+    showToast('Cachet importé ✓');
+  };
+  reader.readAsDataURL(file);
+}
+function clearStamp(){
+  const hiddenInput=document.getElementById('ci_stamp');if(hiddenInput)hiddenInput.value='';
+  const preview=document.getElementById('ci_stamp_preview');
+  if(preview)preview.innerHTML=`<span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.4">Cachet<br>PNG</span>`;
+  const ci=getCompanyInfo();ci.stamp_url='';saveCompanyInfoData(ci);
+  showToast('Cachet supprimé');
+}
 function saveServerConfig(){const url=gv('cfg_srv');const key=gv('cfg_key');S.s('server_url',url);S.s('admin_key',key);showToast('Configuration sauvegardée ✓');if(url)loadAllData().then(ok=>{if(ok){showToast('Données chargées ✓');goTo('dash');}else showToast('Serveur configuré mais pas encore de données',false);});}
 async function testConnection(){const msg=document.getElementById('cfg_test_msg');if(msg)msg.innerHTML='<span style="color:var(--muted)">🔄 Test...</span>';try{const d=await apiCall('ping');if(msg)msg.innerHTML='<span style="color:var(--green)">✅ Connexion OK</span>';}catch(e){if(msg)msg.innerHTML='<span style="color:var(--red)">❌ '+e.message+'</span>';}}
 function saveCompanyInfoFull(){
   const ci=getCompanyInfo();const sigsCount=(ci.sigs||[]).length;const sigs=Array.from({length:sigsCount},(_,i)=>({nom:gv('sig_nom_'+i)||'',role:gv('sig_role_'+i)||''})).filter(s=>s.nom);
-  const info={...ci,nom:gv('ci_nom')||'BALANCE CONSULTING',slogan:gv('ci_slogan')||'',email:gv('ci_email')||'',tel:gv('ci_tel')||'',adresse:gv('ci_addr')||'',ville:gv('ci_ville')||'Abidjan',rccm:gv('ci_rccm')||'',ncc:gv('ci_ncc')||'',mentions:gv('ci_mentions')||'Tous droits réservés.',couleur_principale:document.getElementById('ci_color')?.value||'#1A56DB',logo_url:gv('ci_logo')||'',sigs:sigs.length?sigs:(ci.sigs||[{nom:'Directeur Général',role:'Expert-comptable agréé'}])};
+  const info={...ci,nom:gv('ci_nom')||'BALANCE CONSULTING',slogan:gv('ci_slogan')||'',email:gv('ci_email')||'',tel:gv('ci_tel')||'',adresse:gv('ci_addr')||'',ville:gv('ci_ville')||'Abidjan',rccm:gv('ci_rccm')||'',ncc:gv('ci_ncc')||'',mentions:gv('ci_mentions')||'Tous droits réservés.',couleur_principale:document.getElementById('ci_color')?.value||'#1A56DB',logo_url:gv('ci_logo')||'',stamp_url:gv('ci_stamp')||'',sigs:sigs.length?sigs:(ci.sigs||[{nom:'Directeur Général',role:'Expert-comptable agréé'}])};
   saveCompanyInfoData(info);applyCompanyBrand();showToast('Profil BALANCE CONSULTING sauvegardé ✓');}
 function savePayLinks(){const appId=gv('paylink_app')||'_global';const all=getAllPayLinks();all[appId]={wave:{MOIS:gv('wl_mois'),TRIM:gv('wl_trim'),ANNU:gv('wl_annu')},om:{MOIS:gv('ol_mois'),TRIM:gv('ol_trim'),ANNU:gv('ol_annu')}};S.s('pay_links',all);showToast('Liens sauvegardés ✓');}
 function loadPayLinksForApp(){const appId=gv('paylink_app')||'_global';const links=getPayLinks(appId==='_global'?null:appId);const setV=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};setV('wl_mois',links.wave?.MOIS);setV('wl_trim',links.wave?.TRIM);setV('wl_annu',links.wave?.ANNU);setV('ol_mois',links.om?.MOIS);setV('ol_trim',links.om?.TRIM);setV('ol_annu',links.om?.ANNU);}
