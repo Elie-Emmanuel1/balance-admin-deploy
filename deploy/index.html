@@ -1212,18 +1212,13 @@ function genDoc(t){
   const client=gv('dc_cl')||gv('dc_art');if(!client){showToast('Client / Bénéficiaire obligatoire',false);return;}
   const sign=gv('dc_sign')?.split('|')[0]||c.sigs?.[0]?.nom||'—';const qual=gv('dc_qual')||c.sigs?.[0]?.role||'—';
   const adr=gv('dc_adr')||'',cnt=gv('dc_cnt')||'';
-  const _auth=S.g('auth');
-  const _canUseSig=_auth&&(_auth.displayName===sign||_auth.role==='superadmin');
-  const _sigObj=_canUseSig?c.sigs?.find(function(sig){return sig.nom===sign;}):null;
-  const selectedSig=(_sigObj&&_sigObj.signature)||'';
-  const sigImgHtml=selectedSig?('<img src="'+selectedSig+'" style="height:55px;max-width:160px;object-fit:contain;display:block"/>'):'';
   const abbr2=(c.nom||'BC').replace(/[^A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]/g,' ').trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'BC';
   const logoBox=c.logo?'<div class="dh-logo-wrap"><img src="'+c.logo+'" alt="logo" crossorigin="anonymous"/></div>':'<div class="dh-logo-wrap"><span class="dh-logo-initials">'+abbr2+'</span></div>';
   const Hdr=function(){return'<div class="dh"><div class="dh-left">'+logoBox+'<div><div class="dfn">'+c.nom+'</div><div class="dsb">'+(c.slogan||'Expert-comptable \u00B7 Conseil fiscal \u00B7 Gestion')+'</div><div class="din">'+(c.adresse||'Abidjan, C\u00F4te d\'Ivoire')+'<br>T\u00E9l\u00A0: '+(c.tel||'')+(c.email?'\u00A0\u00B7\u00A0'+c.email:'')+'<br>'+(c.rccm?'RCCM\u00A0: '+c.rccm+'\u00A0\u00B7\u00A0':'')+(c.ncc?'NCC\u00A0: '+c.ncc:'')+'</div></div></div><div style="text-align:right"><div class="dbd">'+(doc?doc.lbl.toUpperCase():t.toUpperCase())+'</div><div class="dnum">N\u00B0 '+num+'</div><div style="font-size:9.5px;color:#666;margin-top:2px">Date\u00A0: '+fmtD(date)+'</div></div></div>';};
   const MARGIN_TXT='BALANCE CONSULTING \u2014 SUIVI COMPTABLE \u2014 CR\u00C9ATION D\'ENTREPRISE \u2014 FORMATION \u2014 STRAT\u00C9GIE ADMINISTRATIVE \u2014 +225 0700776975 \u2014 contact@balanceconsultingci.com';
   const wrapDoc=function(inner){return'<div class="doc-wrap"><div class="doc-margin"><span class="doc-margin-txt">'+MARGIN_TXT+'</span></div>'+inner+'</div>';};
   const Parties=function(cl,a,cn){return'<div class="dp"><div class="dpa"><div class="dpl">Prestataire</div><div class="dpn">'+c.nom+'</div><div class="dpi">'+(c.adresse||'Abidjan, C\u00F4te d\'Ivoire')+'<br>'+(c.rccm?'RCCM\u00A0: '+c.rccm:'')+'</div></div><div class="dpa"><div class="dpl">Client / Destinataire</div><div class="dpn">'+cl+'</div><div class="dpi">'+(a||'\u2014')+'<br>'+(cn||'\u2014')+'</div></div></div>';};
-  const Signs=function(s,q,cl){return'<div class="dfooter"><div><div class="dsl"></div><div class="dslb">Pour '+c.nom+' \u2014 Signature & Cachet</div><div style="height:65px;display:flex;align-items:center;justify-content:flex-start;margin:6px 0;">'+sigImgHtml+'</div><div style="margin-top:2px;font-size:11px;font-weight:600">'+s+'</div><div style="font-size:10px;color:#888">'+q+'</div></div><div><div class="dsl"></div><div class="dslb">Pour '+cl+' \u2014 Bon pour accord</div><div style="height:65px;margin:6px 0;"></div></div></div>';};
+  const Signs=function(s,q,cl){return'<div class="dfooter"><div><div class="dsl"></div><div class="dslb">Pour '+c.nom+' \u2014 Signature & Cachet</div><div class="sig-zone" style="height:65px;margin:6px 0;"></div><div style="margin-top:2px;font-size:11px;font-weight:600">'+s+'</div><div style="font-size:10px;color:#888">'+q+'</div></div><div><div class="dsl"></div><div class="dslb">Pour '+cl+' \u2014 Bon pour accord</div><div style="height:65px;margin:6px 0;"></div></div></div>';};
   const Ments=function(){return'<div class="dments">'+(c.mentions||'Tous droits r\u00E9serv\u00E9s.')+(c.rccm?'\u00A0\u00B7\u00A0RCCM\u00A0: '+c.rccm:'')+'<div class="dments-brand">BALANCE CONSULTING \u2014 SUIVI COMPTABLE \u2014 CR\u00C9ATION D\'ENTREPRISE \u2014 FORMATION \u2014 STRAT\u00C9GIE ADMINISTRATIVE \u2014 '+(c.tel||'+225 0700776975')+' \u2014 '+(c.email||'contact@balanceconsultingci.com')+'</div></div>';};
 
   let html='',montant='';
@@ -1301,7 +1296,7 @@ function sendDocForSignature(){
       <div style="margin-left:auto;font-size:11px;color:${s.signature?'var(--green)':'var(--gold)'}">${s.signature?'✅ Signature configurée':'⚠️ Sans signature'}</div>
     </div>`).join('')}
     <div style="font-size:11px;color:var(--muted);margin-top:8px;background:var(--bg2);border-radius:7px;padding:9px;line-height:1.7">
-      👤 Le signataire doit se connecter et aller dans <strong>Profil → Signatures en attente</strong>
+      📋 Copiez le lien de signature depuis l'historique et partagez-le au signataire pour qu'il signe directement
     </div>`);
 }
 
@@ -1311,8 +1306,8 @@ function confirmSendSig(idx){
   const token=Math.random().toString(36).slice(2,10).toUpperCase()+Date.now().toString(36).toUpperCase();
   const hist=S.g('doc_hist')||[];
   const docIdx=hist.findIndex(d=>d.num===curDoc.num);
-  if(docIdx>=0){hist[docIdx].sigToken=token;hist[docIdx].signed=false;hist[docIdx].refused=false;hist[docIdx].signerName=signer.nom;hist[docIdx].signerRole=signer.role||'';S.s('doc_hist',hist);}
-  curDoc={...curDoc,sigToken:token,signed:false,refused:false,signerName:signer.nom,signerRole:signer.role||''};
+  if(docIdx>=0){hist[docIdx].sigToken=token;hist[docIdx].signed=false;hist[docIdx].refused=false;hist[docIdx].signerName=signer.nom;hist[docIdx].signerRole=signer.role||'';hist[docIdx].signerImgB64=signer.signature||'';S.s('doc_hist',hist);}
+  curDoc={...curDoc,sigToken:token,signed:false,refused:false,signerName:signer.nom,signerRole:signer.role||'',signerImgB64:signer.signature||''};
   createSigNotification(token,signer.nom,curDoc.client,curDoc.num,signer.role||'');
   proposeSigValidation(token,signer.nom,curDoc.client,curDoc.num);
   rDocHist();
@@ -1343,14 +1338,16 @@ function proposeSigValidation(token,signerName,client,docNum){
   showToast(`✍️ Document envoyé à ${signerName} pour signature`);
   const popup=document.createElement('div');
   popup.style.cssText='position:fixed;bottom:80px;right:20px;background:var(--card);border:1px solid var(--acc);border-radius:14px;padding:16px;max-width:300px;z-index:600;box-shadow:0 8px 32px rgba(0,0,0,.4)';
-  popup.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"><div style="font-size:13px;font-weight:700;color:var(--w)">✍️ En attente de signature</div><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">×</button></div><div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px">Le document <strong style="color:var(--acc3)">${docNum}</strong> attend la signature de<br><strong style="color:var(--w)">${signerName}</strong></div><div style="font-size:11px;background:var(--bg2);border-radius:7px;padding:9px;color:var(--text);line-height:1.7">👤 Le signataire doit se connecter<br>📍 Aller dans <strong>Profil → Signatures en attente</strong></div>`;
+  popup.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"><div style="font-size:13px;font-weight:700;color:var(--w)">✍️ En attente de signature</div><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">×</button></div><div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px">Le document <strong style="color:var(--acc3)">${docNum}</strong> attend la signature de<br><strong style="color:var(--w)">${signerName}</strong></div><div style="font-size:11px;background:var(--bg2);border-radius:7px;padding:9px;color:var(--text);line-height:1.7">📋 Copiez le lien de signature depuis l'historique<br>et partagez-le avec le signataire</div>`;
   document.body.appendChild(popup);setTimeout(()=>popup.remove(),10000);
 }
 
 function updateSigBadge(){
   const pending=(S.g('sig_notifs')||[]).filter(n=>!n.signed&&!n.refused);
-  const btn=document.getElementById('nb-profil');
-  if(btn&&pending.length>0){const ex=btn.querySelector('.cnt');if(ex)ex.textContent=pending.length;else btn.innerHTML+=` <span class="cnt">${pending.length}</span>`;}
+  const btn=document.getElementById('nb-docs');
+  const cntEl=document.getElementById('cnt-sigs');
+  if(cntEl){cntEl.style.display=pending.length?'inline':'none';cntEl.textContent=pending.length;}
+  if(btn&&pending.length>0&&!cntEl){const ex=btn.querySelector('.cnt-sigs');if(ex)ex.textContent=pending.length;else btn.innerHTML+=` <span class="cnt cnt-sigs" id="cnt-sigs">${pending.length}</span>`;}
 }
 
 function checkSignatureRequest(){
@@ -1367,44 +1364,12 @@ function showSignValidation(token,doc){
   const overlay=document.createElement('div');
   overlay.id='signOverlay';
   overlay.style.cssText='position:fixed;inset:0;background:#04080A;z-index:9999;overflow-y:auto;padding:20px;font-family:Inter,sans-serif;';
-  overlay.innerHTML=`<div style="max-width:860px;margin:0 auto">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #1E2E33">
-      <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#1A56DB,#3B9EFF);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff">BC</div>
-      <div><div style="font-size:16px;font-weight:700;color:#fff">Validation de signature</div><div style="font-size:11px;color:#4A7C8E">BALANCE CONSULTING</div></div>
-    </div>
-    <div style="background:#0D1517;border:1px solid #1E2E33;border-radius:12px;padding:16px;margin-bottom:16px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
-        <div><span style="color:#4A7C8E">Document :</span> <strong style="color:#fff">${doc.num}</strong></div>
-        <div><span style="color:#4A7C8E">Type :</span> <strong style="color:#fff">${doc.type}</strong></div>
-        <div><span style="color:#4A7C8E">Client :</span> <strong style="color:#fff">${doc.client}</strong></div>
-        <div><span style="color:#4A7C8E">Date :</span> <strong style="color:#fff">${doc.date}</strong></div>
-        <div><span style="color:#4A7C8E">Signataire :</span> <strong style="color:#90E0EF">${doc.signerName}</strong></div>
-        <div><span style="color:#4A7C8E">Qualité :</span> <strong style="color:#fff">${doc.signerRole||'—'}</strong></div>
-      </div>
-    </div>
-    <div style="background:#fff;border-radius:8px;margin-bottom:16px;overflow:hidden">${doc.html}</div>
-    <div style="background:#0D1517;border:1px solid #2A3E45;border-radius:12px;padding:20px;margin-bottom:16px">
-      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">✍️ Votre signature</div>
-      <div style="font-size:12px;color:#4A7C8E;margin-bottom:14px">En validant ce document, vous certifiez l'avoir lu et approuvé dans son intégralité.</div>
-      <div id="sigValidZone">
-        <div style="position:relative;border:2px solid #2A3E45;border-radius:8px;background:#fff;margin-bottom:12px;touch-action:none">
-          <canvas id="validSigCanvas" width="600" height="160" style="display:block;width:100%;cursor:crosshair;border-radius:6px"></canvas>
-          <div style="position:absolute;bottom:6px;right:10px;font-size:10px;color:#ccc;font-style:italic">Signez ici</div>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:14px">
-          <button onclick="clearValidCanvas()" style="background:transparent;border:1px solid #2A3E45;border-radius:7px;padding:7px 12px;color:#CAE9F5;cursor:pointer;font-family:Inter,sans-serif;font-size:12px">🗑️ Effacer</button>
-        </div>
-      </div>
-      <div style="background:#10B98118;border:1px solid #10B98144;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:#6EE7B7;line-height:1.7">
-        ✅ En cliquant "Valider et Signer", vous confirmez :<br>
-        • Avoir pris connaissance de l'intégralité du document<br>
-        • Approuver le contenu sans réserve<br>
-        • Date et heure : <strong>${new Date().toLocaleString('fr-FR')}</strong>
-      </div>
-      <button id="signBtn" onclick="applySignature('${token}')" style="width:100%;background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">✅ Valider et Signer le document</button>
-      <button onclick="refuseSignature('${token}')" style="width:100%;background:transparent;border:1px solid #EF4444;color:#FCA5A5;border-radius:10px;padding:10px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;margin-top:8px">✕ Refuser de signer</button>
-    </div>
-  </div>`;
+  const hasSaved=!!(doc.signerImgB64);
+  window._sigMode=hasSaved?'saved':'canvas';
+  const savedBlock=hasSaved
+    ?'<div id="svdCard" onclick="window._sigMode=\'saved\';document.getElementById(\'svdCard\').style.borderColor=\'#10B981\';document.getElementById(\'cvsCard\').style.borderColor=\'#2A3E45\';" style="border:2px solid #10B981;border-radius:8px;padding:12px;cursor:pointer;margin-bottom:8px;background:#0A1A1C;display:flex;align-items:center;justify-content:space-between;gap:12px"><div><div style="font-size:12px;font-weight:700;color:#6EE7B7;margin-bottom:3px">✅ Ma signature enregistrée</div><div style="font-size:10px;color:#4A7C8E">Cliquez pour l\'utiliser</div></div><img src="'+doc.signerImgB64+'" style="height:44px;max-width:130px;object-fit:contain;background:#fff;padding:4px;border-radius:5px;flex-shrink:0"/></div><div style="text-align:center;color:#4A7C8E;font-size:11px;margin:8px 0">\u2014\u00a0ou signer manuellement\u00a0\u2014</div><div id="cvsCard" onclick="window._sigMode=\'canvas\';document.getElementById(\'cvsCard\').style.borderColor=\'#10B981\';document.getElementById(\'svdCard\').style.borderColor=\'#2A3E45\';" style="border:2px solid #2A3E45;border-radius:8px;padding:8px 12px;cursor:pointer;margin-bottom:10px;background:#0A1A1C"><div style="font-size:12px;font-weight:600;color:#CAE9F5">✏️ Dessiner ma signature ci-dessous</div></div>'
+    :'';
+  overlay.innerHTML='<div style="max-width:860px;margin:0 auto"><div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #1E2E33"><div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#1A56DB,#3B9EFF);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff">BC</div><div><div style="font-size:16px;font-weight:700;color:#fff">Validation de signature</div><div style="font-size:11px;color:#4A7C8E">BALANCE CONSULTING</div></div></div><div style="background:#0D1517;border:1px solid #1E2E33;border-radius:12px;padding:16px;margin-bottom:16px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px"><div><span style="color:#4A7C8E">Document :</span> <strong style="color:#fff">'+doc.num+'</strong></div><div><span style="color:#4A7C8E">Type :</span> <strong style="color:#fff">'+doc.type+'</strong></div><div><span style="color:#4A7C8E">Client :</span> <strong style="color:#fff">'+doc.client+'</strong></div><div><span style="color:#4A7C8E">Date :</span> <strong style="color:#fff">'+doc.date+'</strong></div><div><span style="color:#4A7C8E">Signataire :</span> <strong style="color:#90E0EF">'+doc.signerName+'</strong></div><div><span style="color:#4A7C8E">Qualit\u00e9 :</span> <strong style="color:#fff">'+(doc.signerRole||'\u2014')+'</strong></div></div></div><div style="background:#fff;border-radius:8px;margin-bottom:16px;overflow:hidden">'+doc.html+'</div><div style="background:#0D1517;border:1px solid #2A3E45;border-radius:12px;padding:20px;margin-bottom:16px"><div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">\u270d\ufe0f Votre signature</div><div style="font-size:12px;color:#4A7C8E;margin-bottom:14px">En validant ce document, vous certifiez l\'avoir lu et approuv\u00e9 dans son int\u00e9gralit\u00e9.</div>'+savedBlock+'<div id="sigValidZone"><div style="position:relative;border:2px solid #2A3E45;border-radius:8px;background:#fff;margin-bottom:12px;touch-action:none"><canvas id="validSigCanvas" width="600" height="160" style="display:block;width:100%;cursor:crosshair;border-radius:6px"></canvas><div style="position:absolute;bottom:6px;right:10px;font-size:10px;color:#ccc;font-style:italic">Signez ici</div></div><div style="display:flex;gap:8px;margin-bottom:14px"><button onclick="clearValidCanvas()" style="background:transparent;border:1px solid #2A3E45;border-radius:7px;padding:7px 12px;color:#CAE9F5;cursor:pointer;font-family:Inter,sans-serif;font-size:12px">\ud83d\uddd1\ufe0f Effacer</button></div></div><div style="background:#10B98118;border:1px solid #10B98144;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:#6EE7B7;line-height:1.7">\u2705 En cliquant "Valider et Signer", vous confirmez :<br>\u2022 Avoir pris connaissance de l\'int\u00e9gralit\u00e9 du document<br>\u2022 Approuver le contenu sans r\u00e9serve<br>\u2022 Date et heure : <strong>'+new Date().toLocaleString('fr-FR')+'</strong></div><button id="signBtn" onclick="applySignature(\''+token+'\')" style="width:100%;background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">\u2705 Valider et Signer le document</button><button onclick="refuseSignature(\''+token+'\')" style="width:100%;background:transparent;border:1px solid #EF4444;color:#FCA5A5;border-radius:10px;padding:10px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;margin-top:8px">\u2715 Refuser de signer</button></div></div>';
   document.body.appendChild(overlay);
   setTimeout(initValidCanvas,200);
   history.replaceState(null,'',location.pathname);
