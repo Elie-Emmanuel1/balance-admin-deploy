@@ -198,7 +198,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .dtbl tr:nth-child(even) td{background:#f8f9fa;}
 .dtb{width:260px;margin-left:auto;margin-bottom:13px;}
 .dtr{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid #eee;}
-.dtr.fin{font-size:12.5px;font-weight:700;color:#08080F;border-top:2px solid #08080F;border-bottom:2px solid #08080F;padding:5px 0;margin-top:3px;}
+.dtr.fin{font-size:12.5px;font-weight:700;color:var(--w);border-top:2px solid var(--border2);border-bottom:2px solid var(--border2);padding:5px 0;margin-top:3px;}
 .dtr.ret{background:#fff3cd;padding:3px 7px;border-radius:4px;margin:2px 0;}
 .dhl{background:#f0fff7;border:2px solid #059669;border-radius:7px;padding:12px;margin:12px 0;}
 .dha{font-size:21px;font-weight:700;color:#08080F;font-family:'Space Mono',monospace;}
@@ -1209,20 +1209,22 @@ function rDocForm(t){
 function genDoc(t){
   const c=getDocCfg();const doc=DOC_TYPES.find(d=>d.id===t);
   const num=gv('dc_num')||nDoc(doc?.pfx||'DOC');const date=gv('dc_date')||TODAY;
-  const client=gv('dc_cl')||gv('dc_art');if(!client){alert('Client / Bénéficiaire obligatoire');return;}
+  const client=gv('dc_cl')||gv('dc_art');if(!client){showToast('Client / Bénéficiaire obligatoire',false);return;}
   const sign=gv('dc_sign')?.split('|')[0]||c.sigs?.[0]?.nom||'—';const qual=gv('dc_qual')||c.sigs?.[0]?.role||'—';
   const adr=gv('dc_adr')||'',cnt=gv('dc_cnt')||'';
-  const _u=curU();
-  const _canUseSig=_u&&(_u.fullName===sign||_u.role==='superadmin');
-  const selectedSig=_canUseSig?(c.sigs?.find(sig=>sig.nom===sign)?.signature||''):'';
-  const abbr2=(c.nom||'BC').replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
-  const logoBox=c.logo?`<div class="dh-logo-wrap"><img src="${c.logo}" alt="logo" crossorigin="anonymous"/></div>`:`<div class="dh-logo-wrap"><span class="dh-logo-initials">${abbr2}</span></div>`;
-  const Hdr=()=>`<div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||'Expert-comptable · Conseil fiscal · Gestion'}</div><div class="din">${c.adresse||'Abidjan, Côte d\'Ivoire'}<br>Tél : ${c.tel||''}${c.email?' &nbsp;·&nbsp; '+c.email:''}<br>${c.rccm?'RCCM : '+c.rccm+' &nbsp;·&nbsp; ':''} ${c.ncc?'NCC : '+c.ncc:''}</div></div></div><div style="text-align:right"><div class="dbd">${doc?.lbl?.toUpperCase()||t.toUpperCase()}</div><div class="dnum">N° ${num}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Date : ${fmtD(date)}</div></div></div>`;
-  const MARGIN_TXT='BALANCE CONSULTING — SUIVI COMPTABLE — CRÉATION D\'ENTREPRISE — FORMATION — STRATÉGIE ADMINISTRATIVE — +225 0700776975 — contact@balanceconsultingci.com';
-  const wrapDoc=(inner)=>`<div class="doc-wrap"><div class="doc-margin"><span class="doc-margin-txt">${MARGIN_TXT}</span></div>${inner}</div>`;
-  const Parties=(cl,a,cn)=>`<div class="dp"><div class="dpa"><div class="dpl">Prestataire</div><div class="dpn">${c.nom}</div><div class="dpi">${c.adresse||'Abidjan, Côte d\'Ivoire'}<br>${c.rccm?'RCCM : '+c.rccm:''}</div></div><div class="dpa"><div class="dpl">Client / Destinataire</div><div class="dpn">${cl}</div><div class="dpi">${a||'—'}<br>${cn||'—'}</div></div></div>`;
-  const Signs=(s,q,cl)=>`<div class="dfooter"><div><div class="dsl"></div><div class="dslb">Pour ${c.nom} — Signature & Cachet</div><div style="height:65px;display:flex;align-items:center;justify-content:flex-start;margin:6px 0;">${selectedSig?`<img src="${selectedSig}" style="height:55px;max-width:160px;object-fit:contain;display:block"/>`:''}</div><div style="margin-top:2px;font-size:11px;font-weight:600">${s}</div><div style="font-size:10px;color:#888">${q}</div></div><div><div class="dsl"></div><div class="dslb">Pour ${cl} — Bon pour accord</div><div style="height:65px;margin:6px 0;"></div></div></div>`;
-  const Ments=()=>`<div class="dments">${c.mentions||'Tous droits réservés.'}${c.rccm?' &nbsp;·&nbsp; RCCM : '+c.rccm:''}<div class="dments-brand">BALANCE CONSULTING — SUIVI COMPTABLE — CRÉATION D'ENTREPRISE — FORMATION — STRATÉGIE ADMINISTRATIVE — ${c.tel||'+225 0700776975'} — ${c.email||'contact@balanceconsultingci.com'}</div></div>`;
+  const _auth=S.g('auth');
+  const _canUseSig=_auth&&(_auth.displayName===sign||_auth.role==='superadmin');
+  const _sigObj=_canUseSig?c.sigs?.find(function(sig){return sig.nom===sign;}):null;
+  const selectedSig=(_sigObj&&_sigObj.signature)||'';
+  const sigImgHtml=selectedSig?('<img src="'+selectedSig+'" style="height:55px;max-width:160px;object-fit:contain;display:block"/>'):'';
+  const abbr2=(c.nom||'BC').replace(/[^A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]/g,' ').trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'BC';
+  const logoBox=c.logo?'<div class="dh-logo-wrap"><img src="'+c.logo+'" alt="logo" crossorigin="anonymous"/></div>':'<div class="dh-logo-wrap"><span class="dh-logo-initials">'+abbr2+'</span></div>';
+  const Hdr=function(){return'<div class="dh"><div class="dh-left">'+logoBox+'<div><div class="dfn">'+c.nom+'</div><div class="dsb">'+(c.slogan||'Expert-comptable \u00B7 Conseil fiscal \u00B7 Gestion')+'</div><div class="din">'+(c.adresse||'Abidjan, C\u00F4te d\'Ivoire')+'<br>T\u00E9l\u00A0: '+(c.tel||'')+(c.email?'\u00A0\u00B7\u00A0'+c.email:'')+'<br>'+(c.rccm?'RCCM\u00A0: '+c.rccm+'\u00A0\u00B7\u00A0':'')+(c.ncc?'NCC\u00A0: '+c.ncc:'')+'</div></div></div><div style="text-align:right"><div class="dbd">'+(doc?doc.lbl.toUpperCase():t.toUpperCase())+'</div><div class="dnum">N\u00B0 '+num+'</div><div style="font-size:9.5px;color:#666;margin-top:2px">Date\u00A0: '+fmtD(date)+'</div></div></div>';};
+  const MARGIN_TXT='BALANCE CONSULTING \u2014 SUIVI COMPTABLE \u2014 CR\u00C9ATION D\'ENTREPRISE \u2014 FORMATION \u2014 STRAT\u00C9GIE ADMINISTRATIVE \u2014 +225 0700776975 \u2014 contact@balanceconsultingci.com';
+  const wrapDoc=function(inner){return'<div class="doc-wrap"><div class="doc-margin"><span class="doc-margin-txt">'+MARGIN_TXT+'</span></div>'+inner+'</div>';};
+  const Parties=function(cl,a,cn){return'<div class="dp"><div class="dpa"><div class="dpl">Prestataire</div><div class="dpn">'+c.nom+'</div><div class="dpi">'+(c.adresse||'Abidjan, C\u00F4te d\'Ivoire')+'<br>'+(c.rccm?'RCCM\u00A0: '+c.rccm:'')+'</div></div><div class="dpa"><div class="dpl">Client / Destinataire</div><div class="dpn">'+cl+'</div><div class="dpi">'+(a||'\u2014')+'<br>'+(cn||'\u2014')+'</div></div></div>';};
+  const Signs=function(s,q,cl){return'<div class="dfooter"><div><div class="dsl"></div><div class="dslb">Pour '+c.nom+' \u2014 Signature & Cachet</div><div style="height:65px;display:flex;align-items:center;justify-content:flex-start;margin:6px 0;">'+sigImgHtml+'</div><div style="margin-top:2px;font-size:11px;font-weight:600">'+s+'</div><div style="font-size:10px;color:#888">'+q+'</div></div><div><div class="dsl"></div><div class="dslb">Pour '+cl+' \u2014 Bon pour accord</div><div style="height:65px;margin:6px 0;"></div></div></div>';};
+  const Ments=function(){return'<div class="dments">'+(c.mentions||'Tous droits r\u00E9serv\u00E9s.')+(c.rccm?'\u00A0\u00B7\u00A0RCCM\u00A0: '+c.rccm:'')+'<div class="dments-brand">BALANCE CONSULTING \u2014 SUIVI COMPTABLE \u2014 CR\u00C9ATION D\'ENTREPRISE \u2014 FORMATION \u2014 STRAT\u00C9GIE ADMINISTRATIVE \u2014 '+(c.tel||'+225 0700776975')+' \u2014 '+(c.email||'contact@balanceconsultingci.com')+'</div></div>';};
 
   let html='',montant='';
 
@@ -1329,9 +1331,9 @@ function createSigNotification(token,signerName,client,docNum,signerRole){
 }
 
 function getPendingSigsForUser(){
-  const u=curU();if(!u)return[];
+  const auth=S.g('auth');if(!auth)return[];
   const pending=S.g('pending_sigs')||{};
-  return Object.values(pending).filter(d=>!d.signed&&!d.refused&&d.signerName&&(d.signerName===u.fullName||u.role==='superadmin'||u.role==='admin'));
+  return Object.values(pending).filter(d=>!d.signed&&!d.refused&&d.signerName&&(d.signerName===auth.displayName||auth.role==='superadmin'||auth.role==='admin'));
 }
 
 function proposeSigValidation(token,signerName,client,docNum){
