@@ -1212,7 +1212,9 @@ function genDoc(t){
   const client=gv('dc_cl')||gv('dc_art');if(!client){alert('Client / Bénéficiaire obligatoire');return;}
   const sign=gv('dc_sign')?.split('|')[0]||c.sigs?.[0]?.nom||'—';const qual=gv('dc_qual')||c.sigs?.[0]?.role||'—';
   const adr=gv('dc_adr')||'',cnt=gv('dc_cnt')||'';
-  const selectedSig=c.sigs?.find(sig=>sig.nom===sign)?.signature||'';
+  const _u=curU();
+  const _canUseSig=_u&&(_u.fullName===sign||_u.role==='superadmin');
+  const selectedSig=_canUseSig?(c.sigs?.find(sig=>sig.nom===sign)?.signature||''):'';
   const abbr2=(c.nom||'BC').replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
   const logoBox=c.logo?`<div class="dh-logo-wrap"><img src="${c.logo}" alt="logo" crossorigin="anonymous"/></div>`:`<div class="dh-logo-wrap"><span class="dh-logo-initials">${abbr2}</span></div>`;
   const Hdr=()=>`<div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||'Expert-comptable · Conseil fiscal · Gestion'}</div><div class="din">${c.adresse||'Abidjan, Côte d\'Ivoire'}<br>Tél : ${c.tel||''}${c.email?' &nbsp;·&nbsp; '+c.email:''}<br>${c.rccm?'RCCM : '+c.rccm+' &nbsp;·&nbsp; ':''} ${c.ncc?'NCC : '+c.ncc:''}</div></div></div><div style="text-align:right"><div class="dbd">${doc?.lbl?.toUpperCase()||t.toUpperCase()}</div><div class="dnum">N° ${num}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Date : ${fmtD(date)}</div></div></div>`;
