@@ -1,75 +1,1996 @@
-const https = require('https');
-const { URL } = require('url');
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BALANCE CONSULTING — Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link rel="icon" id="favicon-link" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%231A56DB%22/%3E%3Ctext x=%2250%22 y=%2266%22 font-family=%22Arial%22 font-weight=%22800%22 font-size=%2238%22 fill=%22white%22 text-anchor=%22middle%22%3EBC%3C/text%3E%3C/svg%3E"/>
+<meta name="theme-color" content="#1A56DB"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="BC Platform"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#04080F;--bg2:#080F12;--card:#0D1517;--card2:#111A1E;
+  --border:#1A2A30;--border2:#253C44;
+  --text:#CAE9F5;--w:#FFFFFF;--muted:#4A7C8E;
+  --acc:#1A56DB;--acc2:#1344C0;--acc3:#6B9FFF;--blue-light:#3B9EFF;
+  --green:#10B981;--gold:#F59E0B;--gold2:#FCD34D;
+  --red:#EF4444;--blue:#3B82F6;--cyan:#06B6D4;
+  --purple:#8B5CF6;--orange:#F97316;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow-x:hidden;}
 
-const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycby3Pun1groPnmQ6FcNbmqIxaq69FURdLMcgaLxIdc54jc5N4XBA2sTHi1CHp2RHjT52cw/exec';
-const ADMIN_KEY = process.env.ADMIN_KEY || 'BC2026Platform';
+/* ── SIDEBAR ── */
+#sidebar{width:225px;min-height:100vh;background:linear-gradient(180deg,#04091A,#060C1E 60%,#050A18);border-right:1px solid #1A2D50;flex-shrink:0;display:flex;flex-direction:column;}
+.sb-logo{padding:16px 14px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-logo-mark{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--acc),var(--blue-light));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0;overflow:hidden;box-shadow:0 4px 12px #1A56DB40;}
+.sb-logo-mark img{width:100%;height:100%;object-fit:contain;}
+.sb-logo-info{}
+.sb-logo-title{font-size:12px;font-weight:700;color:var(--w);line-height:1.2;}
+.sb-logo-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+.sb-badge{display:inline-block;background:var(--purple);color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;margin-top:3px;}
+.sb-nav{flex:1;padding:8px 6px;overflow-y:auto;}
+.sb-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 8px 3px;}
+.nb{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:7px;font-size:11.5px;font-family:'Inter',sans-serif;text-align:left;transition:all .15s;}
+.nb:hover{background:var(--card);color:var(--text);}
+.nb.active{background:linear-gradient(90deg,var(--acc)22,var(--acc)08,transparent);color:#fff;font-weight:700;border-left:3px solid var(--acc);padding-left:7px;}
+.nb .ni{font-size:14px;flex-shrink:0;width:18px;text-align:center;}
+.nb .cnt{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;}
+.sb-footer{padding:10px 14px;border-top:1px solid var(--border);}
+.sb-user{font-size:10px;color:var(--muted);margin-bottom:6px;}
+.sb-user strong{color:var(--text);display:block;font-size:11px;}
 
-module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Content-Type', 'application/json');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;min-width:0;}
+#topbar{height:50px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;}
+#topbar input{flex:1;max-width:300px;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:6px 11px;color:var(--text);font-size:11.5px;font-family:'Inter',sans-serif;}
+#topbar input:focus{outline:none;border-color:var(--acc);}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+#content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.pg{display:none;padding:22px;}
+.pg.active{display:block;}
 
-  try {
-    // Lire le body
-    let body = {};
-    try {
-      body = typeof req.body === 'object' && req.body !== null
-        ? req.body : JSON.parse(req.body || '{}');
-    } catch(e) {}
-    if (!body.admin_key) body.admin_key = ADMIN_KEY;
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:1fr 1fr;}}
+@media(max-width:768px){#sidebar{display:none!important;} #main{width:100%;} .g4{grid-template-columns:1fr 1fr;} .g2,.g3{grid-template-columns:1fr;} .pg{padding:14px 12px;}}
 
-    // Envoyer en GET — méthode qui fonctionne avec Apps Script
-    // Les données complexes (row, data) sont encodées en base64
-    const url = new URL(APPS_SCRIPT_URL);
-    Object.entries(body).forEach(([k, v]) => {
-      if (typeof v === 'object' && v !== null) {
-        // Encoder les objets en base64 pour éviter les problèmes d'URL
-        url.searchParams.set(k, Buffer.from(JSON.stringify(v)).toString('base64'));
-        url.searchParams.set(k + '__b64', '1');
-      } else {
-        url.searchParams.set(k, String(v ?? ''));
-      }
-    });
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.ct{font-size:11px;font-weight:700;color:var(--acc3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;}
 
-    const text = await getFollowRedirect(url.toString());
+/* ── KPI ── */
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--kc,var(--acc)),transparent);}
+.kl{font-size:10px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.kv{font-size:20px;font-weight:700;color:var(--w);font-family:'Space Mono',monospace;}
+.ks{font-size:10px;color:var(--muted);margin-top:2px;}
 
-    // Valider JSON
-    try {
-      JSON.parse(text);
-      return res.status(200).send(text);
-    } catch(e) {
-      // Si HTML → le script n'est pas public
-      if (text.includes('<!DOCTYPE') || text.includes('<html')) {
-        return res.status(502).json({ 
-          error: 'Apps Script non-public. Vérifiez le déploiement : Accès = Tout le monde' 
-        });
-      }
-      return res.status(502).json({ error: 'Réponse invalide', preview: text.slice(0,100) });
-    }
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;background:var(--acc2);color:#fff;border:none;border-radius:7px;padding:7px 13px;cursor:pointer;font-size:11.5px;font-weight:600;font-family:'Inter',sans-serif;transition:all .15s;}
+.btn:hover{background:var(--acc);transform:translateY(-1px);}
+.btsm{padding:4px 9px;font-size:10.5px;border-radius:5px;}
+.btgh{background:var(--card2);color:var(--text);border:1px solid var(--border2);border-radius:7px;padding:6px 11px;cursor:pointer;font-size:11.5px;font-family:'Inter',sans-serif;transition:all .15s;}
+.btgh:hover{border-color:var(--acc);color:var(--acc3);}
+.btg{background:var(--green)22;color:var(--green);border:1px solid var(--green)44;}
+.btg:hover{background:var(--green)33;}
+.btr{background:var(--red)22;color:var(--red);border:1px solid var(--red)44;}
+.btp{background:var(--purple)22;color:#C4B5FD;border:1px solid var(--purple)44;}
+.btgold{background:var(--gold);color:#000;}
 
-  } catch(err) {
-    return res.status(500).json({ error: err.message });
-  }
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:var(--bg2);color:var(--acc3);padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+.tbl td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tbl tr:hover td{background:var(--card2);}
+
+/* ── BADGES ── */
+.b{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;}
+.bg{background:var(--green)20;color:var(--green);border:1px solid var(--green)40;}
+.br{background:var(--red)20;color:var(--red);border:1px solid var(--red)40;}
+.bo{background:var(--gold)20;color:var(--gold2);border:1px solid var(--gold)40;}
+.bc{background:var(--cyan)20;color:var(--acc3);border:1px solid var(--cyan)40;}
+.bp{background:var(--purple)20;color:#C4B5FD;border:1px solid var(--purple)40;}
+.bgr{background:#64748B18;color:var(--muted);border:1px solid #64748B44;}
+
+/* ── FORMS ── */
+.f{display:flex;flex-direction:column;gap:3px;margin-bottom:9px;}
+.f label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.f input,.f select,.f textarea{background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 9px;color:var(--text);font-size:12px;font-family:'Inter',sans-serif;}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--acc);}
+.f textarea{resize:vertical;min-height:55px;}
+.sep{height:1px;background:var(--border);margin:11px 0;}
+
+/* ── MODAL ── */
+#modalOverlay{display:none;position:fixed;inset:0;background:#00000090;z-index:500;align-items:center;justify-content:center;}
+#modalOverlay.open{display:flex;}
+#modal{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:22px;max-width:580px;width:92%;max-height:90vh;overflow-y:auto;}
+#modalTitle{font-size:14px;font-weight:700;color:var(--w);margin-bottom:14px;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--card2);border:1px solid var(--border2);border-radius:9px;padding:9px 15px;font-size:12.5px;color:var(--w);z-index:900;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;}
+#toast.show{opacity:1;transform:translateY(0);}
+
+/* ── LOGIN ── */
+#loginScr{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:800;background-image:radial-gradient(ellipse 70% 50% at 50% 0%,#1A56DB12,transparent);}
+.lbox{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:30px;width:360px;}
+.ltitle{font-size:17px;font-weight:700;color:var(--w);margin-bottom:3px;}
+.lsub{font-size:11px;color:var(--muted);margin-bottom:18px;}
+.lbtn{width:100%;padding:11px;background:linear-gradient(135deg,#1A56DB,#3B9EFF);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;transition:all .2s;}
+.lerr{font-size:11px;color:var(--red);margin-top:6px;min-height:16px;}
+.app-icon{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.rh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.st{font-size:17px;font-weight:700;color:var(--w);}
+.ss{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* ── BC CRM SPECIFIC (balance-consulting styles) ── */
+.item{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:5px;transition:border-color .15s;}
+.item:hover{border-color:var(--border2);}
+.il{flex:1;min-width:0;}
+.in{font-size:12.5px;font-weight:600;}
+.is{font-size:10.5px;color:var(--muted);margin-top:2px;}
+.ir{display:flex;gap:5px;align-items:center;flex-shrink:0;}
+.badge{border-radius:18px;padding:2px 8px;font-size:10px;font-weight:600;border:1px solid;}
+.catb{border-radius:4px;padding:2px 6px;font-size:9.5px;font-weight:700;margin-right:4px;}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:9px;transition:border-color .2s;}
+.cc:hover{border-color:var(--border2);}
+.todo{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:9px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:4px;transition:all .15s;}
+.todo:hover{border-color:var(--border2);}
+.todo.done{opacity:.55;text-decoration:line-through;}
+.chk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.chk.done{background:var(--acc);border-color:var(--acc);}
+.tl{font-size:11.5px;flex:1;}
+.mc{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:14px;}
+.mav{width:40px;height:40px;border-radius:9px;background:var(--acc)22;border:1px solid var(--acc)44;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--acc3);margin-bottom:8px;}
+.dcr{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);}
+.urg{background:var(--red)08;border:1px solid var(--red)22;border-radius:9px;padding:10px 13px;margin-bottom:5px;}
+.un{font-size:12.5px;font-weight:600;color:var(--w);}
+.us{font-size:10.5px;color:var(--muted);margin-top:1px;}
+
+/* ── DOCUMENT STYLES ── */
+.doc-wrap{position:relative;background:#fff;}
+.doc-margin{
+  position:absolute;left:0;top:0;bottom:0;width:9mm;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.doc-margin-txt{
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+  font-size:6px;font-family:'Inter',sans-serif;
+  color:#bbb;letter-spacing:.4px;white-space:nowrap;
+  line-height:1;
+}
+.docpg{
+  background:#fff;color:#000;
+  width:100%;max-width:760px;
+  margin:0 auto;
+  padding:28px 38px 28px 48px; /* left padding = marge texte */
+  font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.6;
+  border-radius:4px;
+}
+/* En-tête : logo + infos société | badge + numéro */
+.dh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:13px;border-bottom:3px solid #08080F;}
+.dh-left{display:flex;align-items:center;gap:11px;}
+.dh-logo-wrap{width:44px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1A56DB,#3B9EFF);}
+.dh-logo-wrap img{width:100%;height:100%;object-fit:contain;}
+.dh-logo-initials{font-size:13px;font-weight:800;color:#fff;}
+.dfn{font-size:15px;font-weight:800;color:#08080F;letter-spacing:-.2px;}
+.dsb{font-size:8px;color:#666;letter-spacing:1.5px;text-transform:uppercase;margin-top:1px;}
+.din{font-size:10.5px;color:#555;line-height:1.8;margin-top:2px;}
+.dbd{background:#08080F;color:#C4B5FD;padding:5px 11px;border-radius:5px;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.dnum{font-size:9.5px;color:#666;font-family:'Space Mono',monospace;margin-top:2px;text-align:right;}
+.dp{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:18px;}
+.dpa{background:#f8f9fa;border-radius:7px;padding:10px 12px;border-left:3px solid #08080F;}
+.dpl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:3px;}
+.dpn{font-size:12.5px;font-weight:700;color:#08080F;}
+.dpi{font-size:10px;color:#555;line-height:1.7;margin-top:2px;}
+.dtbl{width:100%;border-collapse:collapse;margin-bottom:12px;}
+.dtbl th{background:#08080F;color:#fff;padding:7px 9px;text-align:left;font-size:10.5px;font-weight:600;}
+.dtbl th:last-child,.dtbl td:last-child{text-align:right;}
+.dtbl td{padding:7px 9px;border-bottom:1px solid #eee;font-size:11px;}
+.dtbl tr:nth-child(even) td{background:#f8f9fa;}
+.dtb{width:260px;margin-left:auto;margin-bottom:13px;}
+.dtr{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid #eee;}
+.dtr.fin{font-size:12.5px;font-weight:700;color:var(--w);border-top:2px solid var(--border2);border-bottom:2px solid var(--border2);padding:5px 0;margin-top:3px;}
+.dtr.ret{background:#fff3cd;padding:3px 7px;border-radius:4px;margin:2px 0;}
+.dhl{background:#f0fff7;border:2px solid #059669;border-radius:7px;padding:12px;margin:12px 0;}
+.dha{font-size:21px;font-weight:700;color:#08080F;font-family:'Space Mono',monospace;}
+.dfooter{margin-top:20px;padding-top:11px;border-top:1px solid #eee;display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.dsl{width:100%;height:1px;background:#ccc;margin:28px 0 4px;}
+.dslb{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.5px;}
+.dstamp{width:72px;height:72px;border-radius:50%;border:3px solid #059669;display:flex;align-items:center;justify-content:center;margin:0 auto;color:#059669;font-size:7.5px;font-weight:700;text-align:center;line-height:1.4;text-transform:uppercase;}
+.dart{font-size:12px;font-weight:700;color:#08080F;margin:9px 0 2px;}
+.darb{font-size:11px;color:#333;line-height:1.8;}
+/* PIED DE PAGE DOCUMENT */
+.dments{
+  font-size:8.5px;color:#999;line-height:1.7;
+  margin-top:14px;padding-top:8px;
+  border-top:1px solid #ddd;
+  text-align:center;
+}
+.dments-brand{
+  font-size:6px;color:#bbb;letter-spacing:.3px;margin-top:4px;
+  border-top:1px dashed #eee;padding-top:4px;
+}
+
+/* ── PRINT HEADER / FOOTER désactivés (remplacés par html2pdf) ── */
+#print-header,#print-footer{display:none!important;}
+
+/* ── DOC PREVIEW ── */
+.pov{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:600;display:flex;flex-direction:column;align-items:center;padding:13px;overflow-y:auto;}
+.ptb{display:flex;align-items:center;gap:7px;margin-bottom:12px;width:100%;max-width:820px;flex-wrap:wrap;}
+.ptl{font-size:12.5px;font-weight:600;color:#fff;flex:1;}
+
+/* Création d'entreprise */
+.crea-step{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 15px;display:flex;align-items:center;gap:11px;margin-bottom:5px;transition:border-color .15s;}
+.crea-step:hover{border-color:var(--border2);}
+.crea-num{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;}
+.crea-icon{font-size:16px;flex-shrink:0;}
+.crea-info{flex:1;min-width:0;}
+.crea-lbl{font-size:12px;font-weight:600;color:var(--w);}
+.crea-desc{font-size:10px;color:var(--muted);margin-top:1px;}
+.crea-date{font-size:9.5px;color:var(--muted);margin-top:3px;}
+.crea-ctrl{display:flex;gap:5px;flex-shrink:0;align-items:center;}
+.crea-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:9px;}
+.crea-bar-fill{height:100%;border-radius:3px;transition:width .4s;}
+
+/* ── DOC FORM STYLES ── */
+.fbox{background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:11px;margin-bottom:11px;}
+.fboxt{font-size:9px;font-weight:700;color:var(--acc3);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+.cr{display:flex;align-items:center;gap:6px;margin-bottom:5px;cursor:pointer;}
+.cr input[type=checkbox]{accent-color:var(--acc2);width:13px;height:13px;}
+.pw{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.pb2{height:100%;border-radius:2px;background:var(--green);}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScr">
+  <div class="lbox">
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:18px">
+      <div id="login-logo" style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#1A56DB,#3B9EFF);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0;overflow:hidden;box-shadow:0 4px 14px #1A56DB50;"></div>
+      <div>
+        <div class="ltitle">BALANCE CONSULTING</div>
+        <div class="lsub">Platform · Tour de contrôle unifié</div>
+      </div>
+    </div>
+    <div class="f"><label>Identifiant</label><input id="adm_u" placeholder="admin" autocomplete="username"/></div>
+    <div class="f"><label>Mot de passe</label><input id="adm_p" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="lbtn" onclick="doLogin()">Connexion</button>
+    <div class="lerr" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar" style="display:none">
+  <div class="sb-logo">
+    <div class="sb-logo-mark" id="sidebar-logo">BC</div>
+    <div class="sb-logo-info">
+      <div class="sb-logo-title">BALANCE CONSULTING</div>
+      <div class="sb-logo-sub">Platform Admin</div>
+      <span class="sb-badge">TOUR DE CONTRÔLE</span>
+    </div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Vue globale</div>
+    <button class="nb active" id="nb-dash" onclick="goTo('dash')"><span class="ni">📊</span>Dashboard</button>
+
+    <div class="sb-section">Platform Admin</div>
+    <button class="nb" id="nb-apps" onclick="goTo('apps')"><span class="ni">🚀</span>Applications<span id="cnt-apps" class="cnt" style="display:none"></span></button>
+    <button class="nb" id="nb-clients" onclick="goTo('clients')"><span class="ni">👥</span>Clients</button>
+    <button class="nb" id="nb-licences" onclick="goTo('licences')"><span class="ni">🔑</span>Licences<span id="cnt-lic" class="cnt" style="display:none"></span></button>
+    <button class="nb" id="nb-payments" onclick="goTo('payments')"><span class="ni">💰</span>Paiements</button>
+    <button class="nb" id="nb-facturation" onclick="goTo('facturation')"><span class="ni">📑</span>Facturation</button>
+    <button class="nb" id="nb-emails" onclick="goTo('emails')"><span class="ni">📧</span>Emails<span id="cnt-email" class="cnt" style="display:none"></span></button>
+
+    <div class="sb-section">CRM Comptable</div>
+    <button class="nb" id="nb-crm-dash" onclick="goTo('crm-dash')"><span class="ni">🧮</span>CRM Tableau de bord</button>
+    <button class="nb" id="nb-crm-clients" onclick="goTo('crm-clients')"><span class="ni">🏢</span>Dossiers clients</button>
+    <button class="nb" id="nb-crm-ech" onclick="goTo('crm-ech')"><span class="ni">📅</span>Échéances fiscales<span id="cnt-ech" class="cnt" style="display:none"></span></button>
+    <button class="nb" id="nb-crm-fac" onclick="goTo('crm-fac')"><span class="ni">🧾</span>Factures honoraires</button>
+    <button class="nb" id="nb-crm-acti" onclick="goTo('crm-acti')"><span class="ni">✅</span>Suivi activités</button>
+    <button class="nb" id="nb-crm-equipe" onclick="goTo('crm-equipe')"><span class="ni">👤</span>Équipe</button>
+
+    <div class="sb-section">Documents</div>
+    <button class="nb" id="nb-docs" onclick="goTo('docs')"><span class="ni">📄</span>Générateur docs</button>
+    <button class="nb" id="nb-creation" onclick="goTo('creation')"><span class="ni">🏗️</span>Création d'entreprise<span id="cnt-creation" class="cnt" style="display:none"></span></button>
+
+    <div class="sb-section">Système</div>
+    <button class="nb" id="nb-logs" onclick="goTo('logs')"><span class="ni">📋</span>Activité</button>
+    <button class="nb" id="nb-users" onclick="goTo('users')"><span class="ni">🔒</span>Utilisateurs</button>
+    <button class="nb" id="nb-config" onclick="goTo('config')"><span class="ni">⚙️</span>Configuration</button>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-user"><strong id="sb-username">Admin</strong>BALANCE CONSULTING</div>
+    <button class="btgh btsm" style="width:100%" onclick="doLogout()">Déconnexion</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+  <div id="topbar">
+    <input id="globalSearch" placeholder="🔍  Rechercher un client, une app, une licence..." oninput="globalSearch(this.value)"/>
+    <div class="tb-right">
+      <button class="btn btsm" style="background:var(--green)22;color:var(--green);border:1px solid var(--green)44;" onclick="syncAll()">🔄 Sync</button>
+      <span id="syncStatus" style="font-size:10.5px;color:var(--muted)">—</span>
+      <span id="tb-date" style="font-size:10.5px;color:var(--muted)"></span>
+    </div>
+  </div>
+  <div id="content">
+    <div class="pg active" id="pg-dash"></div>
+    <div class="pg" id="pg-apps"></div>
+    <div class="pg" id="pg-clients"></div>
+    <div class="pg" id="pg-licences"></div>
+    <div class="pg" id="pg-payments"></div>
+    <div class="pg" id="pg-facturation"></div>
+    <div class="pg" id="pg-emails"></div>
+    <!-- CRM modules -->
+    <div class="pg" id="pg-crm-dash"></div>
+    <div class="pg" id="pg-crm-clients"></div>
+    <div class="pg" id="pg-crm-ech"></div>
+    <div class="pg" id="pg-crm-fac"></div>
+    <div class="pg" id="pg-crm-acti"></div>
+    <div class="pg" id="pg-crm-equipe"></div>
+    <!-- Docs -->
+    <div class="pg" id="pg-docs"></div>
+    <div class="pg" id="pg-creation"></div>
+    <!-- System -->
+    <div class="pg" id="pg-logs"></div>
+    <div class="pg" id="pg-users"></div>
+    <div class="pg" id="pg-config"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div id="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div id="modalTitle">—</div>
+      <button onclick="closeModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1">×</button>
+    </div>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<!-- DOC PREVIEW -->
+<div id="pov" style="display:none" class="pov">
+  <div class="ptb">
+    <div class="ptl" id="povTit">Aperçu</div>
+    <button id="btnDlPdf" onclick="downloadPDF(false)" class="btn" style="background:var(--green);color:#fff">🖨️ Imprimer / PDF A4</button>
+    <button id="btnDlPdfStamp" onclick="downloadPDF(true)" class="btn" style="background:var(--purple);color:#fff">🔏 Imprimer avec cachet</button>
+    <button onclick="sendDocForSignature()" class="btn" style="background:var(--acc);color:#fff">✍️ Envoyer pour signature</button>
+    <button onclick="closePov()" class="btgh">✕ Fermer</button>
+  </div>
+  <div id="povC" style="width:100%;max-width:820px;"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ══ STORAGE ══════════════════════════════════════════════════════
+const S={
+  g(k){try{return JSON.parse(localStorage.getItem('bc_'+k));}catch(e){return null;}},
+  s(k,v){try{localStorage.setItem('bc_'+k,JSON.stringify(v));}catch(e){}},
+  d(k){localStorage.removeItem('bc_'+k);}
 };
 
-function getFollowRedirect(urlStr, depth) {
-  depth = depth || 0;
-  if (depth > 5) return Promise.reject(new Error('Trop de redirections'));
-  return new Promise((resolve, reject) => {
-    https.get(urlStr, (r) => {
-      if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
-        r.resume();
-        const next = r.headers.location.startsWith('http')
-          ? r.headers.location
-          : new URL(r.headers.location, urlStr).toString();
-        getFollowRedirect(next, depth + 1).then(resolve).catch(reject);
-        return;
-      }
-      let data = '';
-      r.on('data', c => data += c);
-      r.on('end', () => resolve(data));
-    }).on('error', reject);
-  });
+const TODAY=new Date().toISOString().slice(0,10);
+function fmt(n){return new Intl.NumberFormat('fr-FR').format(+n||0)+' FCFA';}
+function fmt2(n){return new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(+n||0);}
+function fmtD(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d;}}
+function uid(){return Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();}
+function daysLeft(exp){if(!exp||exp==='DEV')return 9999;return Math.ceil((new Date(exp)-Date.now())/86400000);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function gv(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function gb(id){const e=document.getElementById(id);return e?e.checked:false;}
+
+// ══ PLATFORM DATA ═════════════════════════════════════════════
+const CACHE={};
+const SERVER_URL='';
+const DEFAULT_ADMIN_KEY='BC2026Platform';
+
+function getApiUrl(){return S.g('server_url')||SERVER_URL||'';}
+function getAdminKey(){return S.g('admin_key')||DEFAULT_ADMIN_KEY||'';}
+function getCompanyInfo(){return S.g('company_info')||{};}
+function saveCompanyInfoData(d){S.s('company_info',d);}
+
+function getApps(){return CACHE.apps||S.g('apps')||[];}
+function getClients(){return CACHE.clients||S.g('clients')||[];}
+function getLicences(){return CACHE.licences||S.g('licences')||[];}
+function getPayments(){return CACHE.payments||S.g('payments')||[];}
+function getEmailLog(){return CACHE.email_log||[];}
+function getAllPayLinks(){return S.g('pay_links')||{};}
+function getPayLinks(appId){const all=getAllPayLinks();return all[appId]||all['_global']||{wave:{},om:{}};}
+
+function getUsers(){return S.g('admin_users')||[
+  {id:'1',nom:'Admin',email:'admin',role:'superadmin',actif:true,password:btoa('BC2026Admin!'),created_at:'2026-01-01'}
+];}
+function saveUsers(d){S.s('admin_users',d);if(getApiUrl())apiCall('saveAdminData',{module:'admin_users',data:d}).catch(()=>{});}
+
+const ROLES={superadmin:{label:'Super Admin',color:'var(--gold2)',access:'Accès complet'},admin:{label:'Admin',color:'var(--acc3)',access:'Clients, licences, paiements'},viewer:{label:'Lecteur',color:'var(--muted)',access:'Consultation uniquement'}};
+
+// ══ CRM DATA (balance-consulting) ════════════════════════════
+const REG=['Réel Normal (RN)','Réel Simplifié (RS)','Taxe Employeur et Employé (TEE)','Microentreprises','Forfait'];
+const SEC=['Prestations de services','Commerce / Négoce','Production / Industrie'];
+const STE=['À faire','En cours','Transmis','Validé','En retard'];
+const STF=['Brouillon','Envoyée','Payée','En retard'];
+const POS=['Associé','Expert-comptable','Comptable','Fiscaliste','Juriste','Assistant','Stagiaire','Autre'];
+const CC={'DGI':'#3B82F6','CNPS':'#10B981','SYSCOHADA':'#F59E0B','Mairie':'#8B5CF6','Autre':'#6B7280'};
+const MF=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+const MS=['J','F','M','A','M','J','J','A','S','O','N','D'];
+const ACT=[
+  {id:'a1',l:'Saisie comptable',p:'M',r:'Cabinet'},{id:'a2',l:'Déclaration TVA',p:'M',r:'Cabinet'},
+  {id:'a3',l:'ITS / Contributions',p:'M',r:'Cabinet'},{id:'a4',l:'TSE',p:'M',r:'Cabinet'},
+  {id:'a5',l:'CNPS cotisations',p:'M',r:'Cabinet'},{id:'a6',l:'Rapprochement bancaire',p:'M',r:'Cabinet'},
+  {id:'a7',l:'Transmission déclaration client',p:'M',r:'Client'},{id:'a8',l:'Paiement impôts',p:'M',r:'Client'},
+  {id:'a9',l:'Revue trimestrielle',p:'T',r:'Cabinet'},{id:'a10',l:'Acomptes BIC',p:'T',r:'Client'},
+  {id:'a11',l:'Bilan annuel / États financiers',p:'A',r:'Cabinet'},{id:'a12',l:'Déclaration BIC/BNC',p:'A',r:'Cabinet'},
+  {id:'a13',l:'Patente',p:'A',r:'Client'},{id:'a14',l:'CNPS annuel',p:'A',r:'Cabinet'},
+  {id:'a15',l:'Conseil fiscal',p:'P',r:'Cabinet'}
+];
+
+let nid=Date.now();
+function crmUid(){return nid++;}
+
+function getCrmClients(){return S.g('crm_clients')||[];}
+function saveCrmClients(d){S.s('crm_clients',d);syncCrmToApi('crm_clients',d);}
+function getCrmEcheances(){return S.g('crm_echeances')||[];}
+function saveCrmEcheances(d){S.s('crm_echeances',d);syncCrmToApi('crm_echeances',d);}
+function getCrmFactures(){return S.g('crm_factures')||[];}
+function saveCrmFactures(d){S.s('crm_factures',d);syncCrmToApi('crm_factures',d);}
+function getCrmEquipe(){return S.g('crm_equipe')||[];}
+function saveCrmEquipe(d){S.s('crm_equipe',d);}
+function getCrmTodos(){return S.g('crm_todos')||{};}
+function saveCrmTodos(d){S.s('crm_todos',d);}
+
+async function syncCrmToApi(k,d){if(getApiUrl())try{await apiCall('saveModule',{module:k,data:d});}catch(e){}}
+
+function fmCrm(n){return new Intl.NumberFormat('fr-FR').format(n||0)+' FCFA';}
+function fdCrm(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d;}}
+function jrCrm(d){if(!d)return null;return Math.ceil((new Date(d)-new Date())/86400000);}
+function gcCrm(id){return getCrmClients().find(c=>c.id==id);}
+function tdCrm(){return new Date().toISOString().slice(0,10);}
+function showTCrm(msg){showToast(msg);}
+function bstCrm(v){const m={'Actif':'bg','En attente':'bo','Suspendu':'br','Clôturé':'bgr','À faire':'bc','En cours':'bo','Transmis':'bg','Validé':'bg','En retard':'br','Brouillon':'bgr','Envoyée':'bc','Payée':'bg'};return`<span class="b ${m[v]||'bgr'}">${v}</span>`;}
+function cbCrm(cat){const c=CC[cat]||'#6B7280';return`<span class="catb" style="background:${c}18;color:${c}">${cat}</span>`;}
+function progCrm(cId,m){const todos=getCrmTodos();const a=ACT.filter(x=>x.p==='M'),d=a.filter(x=>(todos[cId+'_'+m]||{})[x.id]).length;return{d,t:a.length,p:Math.round(d/a.length*100)};}
+let crmCurTab='dash',crmAv='todo';
+
+// ══ API ══════════════════════════════════════════════════════════
+async function apiCall(action,params={}){
+  const proxyUrl='/api/proxy';
+  const body={action,admin_key:getAdminKey(),...params};
+  const r=await fetch(proxyUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const txt=await r.text();
+  try{const d=JSON.parse(txt);if(d.error)throw new Error(d.error);return d;}
+  catch(e){if(e.message!==txt)throw e;return{raw:txt};}
 }
+
+function showSync(state){
+  const el=document.getElementById('syncStatus');if(!el)return;
+  if(state==='syncing'){el.textContent='🔄 Sync...';el.style.color='var(--muted)';}
+  else if(state==='ok'){el.textContent='✅ '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});el.style.color='var(--green)';}
+  else if(state==='err'){el.textContent='⚠️ Hors ligne';el.style.color='var(--gold)';}
+  else if(state==='loading'){el.textContent='⏳ Chargement...';el.style.color='var(--muted)';}
+}
+
+async function loadAllData(){
+  showSync('loading');
+  try{
+    const d=await apiCall('adminDash');
+    if(d.error){showSync('err');showToast('❌ '+d.error,false);return false;}
+    CACHE.apps=d.apps||CACHE.apps||[];
+    CACHE.clients=d.clients||CACHE.clients||[];
+    CACHE.licences=d.licences||CACHE.licences||[];
+    CACHE.payments=d.payments||CACHE.payments||[];
+    CACHE.email_log=d.email_log||CACHE.email_log||[];
+    showSync('ok');return true;
+  }catch(e){showSync('err');showToast('❌ Connexion impossible : '+e.message,false);return false;}
+}
+
+// ── ROW MUTATIONS ─────────────────────────────────────────────
+async function _addRow(module,row){
+  if(CACHE[module])CACHE[module].unshift(row);
+  showSync('syncing');
+  try{const r=await apiCall('addAdminRow',{module,row});if(r&&r.error){showSync('err');return;}showSync('ok');}
+  catch(e){showSync('err');}
+}
+async function _updateRow(module,idField,idValue,data){
+  if(CACHE[module]){const i=CACHE[module].findIndex(r=>String(r[idField])===String(idValue));if(i>=0)CACHE[module][i]={...CACHE[module][i],...data};}
+  showSync('syncing');
+  try{const r=await apiCall('updateAdminRow',{module,idField,idValue,data});if(r&&r.error){showSync('err');return;}showSync('ok');}
+  catch(e){showSync('err');}
+}
+async function _deleteRow(module,idField,idValue){
+  if(CACHE[module])CACHE[module]=CACHE[module].filter(r=>String(r[idField])!==String(idValue));
+  showSync('syncing');
+  try{const r=await apiCall('deleteAdminRow',{module,idField,idValue});if(r&&r.error){showSync('err');return;}showSync('ok');}
+  catch(e){showSync('err');}
+}
+const addApp=r=>_addRow('apps',r);
+const updateApp=(id,d)=>_updateRow('apps','id',id,d);
+const addClient=r=>_addRow('clients',r);
+const updateClient=(nom,d)=>_updateRow('clients','nom',nom,d);
+const addLicence=r=>_addRow('licences',r);
+const updateLicence=(id,d)=>_updateRow('licences','id',id,d);
+const deleteLicenceRow=(id)=>_deleteRow('licences','id',id);
+const addPayment=r=>_addRow('payments',r);
+function saveApps(d){CACHE.apps=d;}
+function saveClients(d){CACHE.clients=d;}
+function saveLicences(d){CACHE.licences=d;}
+function savePayments(d){CACHE.payments=d;}
+
+function addEmailLog(entry){
+  const l=(CACHE.email_log||[]);l.unshift({...entry,id:uid(),ts:new Date().toISOString()});
+  CACHE.email_log=l.slice(0,500);
+  if(getApiUrl())apiCall('addAdminRow',{module:'email_log',row:l[0]}).catch(()=>{});
+}
+
+// ══ UI HELPERS ═══════════════════════════════════════════════
+let _toastTimer;
+function showToast(msg,ok=true){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.borderColor=ok?'var(--green)':'var(--red)';
+  el.style.color=ok?'var(--green)':'var(--red)';
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'),3000);
+}
+function openModal(title,html){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('mBody').innerHTML=html;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+
+// ══ AUTH ════════════════════════════════════════════════════
+function doLogin(){
+  var u=document.getElementById('adm_u').value.trim();
+  var p=document.getElementById('adm_p').value;
+  var err=document.getElementById('loginErr');
+  var users=getUsers();
+  var found=users.find(function(x){return x.email===u||x.nom.toLowerCase()===u.toLowerCase();});
+  var ok=false,displayName=u,role='superadmin';
+  if(found&&found.actif){try{if(btoa(p)===found.password){ok=true;displayName=found.nom;role=found.role;}}catch(e){}}
+  if(!ok&&u==='admin'&&p==='BC2026Admin!'){ok=true;displayName='Admin';role='superadmin';}
+  if(ok){
+    S.s('auth',{user:found?found.email:u,displayName:displayName,role:role,expires:Date.now()+8*3600000});
+    document.getElementById('sb-username').textContent=displayName;
+    showApp();
+  }else{
+    err.textContent='Identifiants incorrects';
+    setTimeout(function(){err.textContent='';},3000);
+  }
+}
+async function doLogout(){S.d('auth');Object.keys(CACHE).forEach(k=>delete CACHE[k]);location.reload();}
+function checkAuth(){const auth=S.g('auth');return auth&&auth.expires>Date.now();}
+
+async function showApp(){
+  document.getElementById('loginScr').style.display='none';
+  document.getElementById('sidebar').style.display='flex';
+  document.getElementById('main').style.display='flex';
+  document.getElementById('tb-date').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  applyCompanyBrand();
+  if(getApiUrl())await loadAllData();
+  goTo('dash');
+}
+
+function applyCompanyBrand(){
+  var ci=getCompanyInfo();
+  var abbr=(ci.nom||'BC').replace(/[^A-Za-z]/g,' ').trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'BC';
+  var col=ci.couleur_principale||'#1A56DB';
+  var colEnc=col.replace('#','%23');
+  var sbL=document.getElementById('sidebar-logo');
+  if(sbL){if(ci.logo_url){sbL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain"/>';}else{sbL.textContent=abbr;sbL.style.background='linear-gradient(135deg,'+col+','+col+'99)';}}
+  var lgL=document.getElementById('login-logo');
+  if(lgL){if(ci.logo_url){lgL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain"/>';}else{lgL.textContent=abbr;}}
+  document.documentElement.style.setProperty('--acc',col);
+  document.documentElement.style.setProperty('--acc2',col);
+  document.title=(ci.nom||'BALANCE CONSULTING')+' — Platform';
+  var fs=abbr.length===1?52:38;
+  var svgF='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22'+colEnc+'%22/%3E%3Ctext x=%2250%22 y=%2266%22 font-family=%22Arial%22 font-weight=%22800%22 font-size=%22'+fs+'%22 fill=%22white%22 text-anchor=%22middle%22%3E'+abbr+'%3C/text%3E%3C/svg%3E';
+  var fav=document.getElementById('favicon-link');if(fav)fav.href=svgF;
+}
+
+// ══ ROUTER ══════════════════════════════════════════════════
+const PAGES={
+  dash:rDash,apps:rApps,clients:rClients,licences:rLicences,
+  payments:rPayments,facturation:rFacturation,emails:rEmails,
+  'crm-dash':rCrmDash,'crm-clients':rCrmClients,'crm-ech':rCrmEch,
+  'crm-fac':rCrmFac,'crm-acti':rCrmActi,'crm-equipe':rCrmEquipe,
+  docs:rDocs,logs:rLogs,users:rUsers,config:rConfig,creation:rCreation
+};
+function goTo(p){
+  document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('active',b.id==='nb-'+p));
+  document.querySelectorAll('.pg').forEach(pg=>pg.classList.toggle('active',pg.id==='pg-'+p));
+  PAGES[p]?.();
+}
+async function syncAll(){
+  const loaded=await loadAllData();
+  const cur=document.querySelector('.nb.active')?.id.replace('nb-','')||'dash';
+  PAGES[cur]?.();
+  if(loaded)showToast('✅ Données synchronisées depuis le serveur');
+  else showToast('❌ Synchronisation échouée',false);
+}
+
+// ══ PLATFORM DASHBOARD ══════════════════════════════════════
+function rDash(){
+  const apps=getApps().filter(a=>a.actif),clients=getClients(),lics=getLicences(),pays=getPayments();
+  const actifs=lics.filter(l=>l.active&&daysLeft(l.expiration)>0);
+  const expSoon=lics.filter(l=>l.active&&daysLeft(l.expiration)<=30&&daysLeft(l.expiration)>0);
+  const expired=lics.filter(l=>l.active&&daysLeft(l.expiration)<=0);
+  const caTotal=pays.filter(p=>p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+  const caMois=pays.filter(p=>p.statut==='success'&&p.date?.startsWith(TODAY.slice(0,7))).reduce((s,p)=>s+(+p.montant||0),0);
+  const cntLic=document.getElementById('cnt-lic');if(cntLic){cntLic.style.display=expSoon.length?'inline':'none';cntLic.textContent=expSoon.length;}
+  const cntEmail=document.getElementById('cnt-email');if(cntEmail){cntEmail.style.display=(expSoon.length+expired.length)?'inline':'none';cntEmail.textContent=expSoon.length+expired.length;}
+  // CRM counts
+  const crmEch=getCrmEcheances().filter(e=>!['Validé','Transmis'].includes(e.statut)&&jrCrm(e.dateLimit)!==null&&jrCrm(e.dateLimit)<=10);
+  const cntEch=document.getElementById('cnt-ech');if(cntEch){cntEch.style.display=crmEch.length?'inline':'none';cntEch.textContent=crmEch.length;}
+  document.getElementById('pg-dash').innerHTML=`
+  <div class="rh">
+    <div><div class="st">Dashboard Platform</div><div class="ss">${new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div>
+    <div style="display:flex;gap:7px"><button class="btgh btsm" onclick="syncAll()">🔄 Actualiser</button><button class="btn btsm" onclick="goTo('clients')">+ Client</button></div>
+  </div>
+  ${!getApiUrl()?`<div style="background:var(--gold)10;border:1px solid var(--gold)30;border-radius:9px;padding:10px 14px;margin-bottom:13px;font-size:12px;color:var(--gold2)">
+    ⚙️ Serveur non configuré — allez dans <strong>Config</strong> pour connecter votre Apps Script.
+  </div>`:''}
+  ${expired.length?`<div style="background:var(--red)10;border:1px solid var(--red)30;border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--red);display:flex;justify-content:space-between;align-items:center">
+    <span>🚨 <strong>${expired.length} licence(s) expirée(s)</strong></span>
+    <button class="btn btsm" style="background:var(--red);color:#fff" onclick="sendBulkRenewal('expired')">📧 Relancer</button>
+  </div>`:''}
+  ${expSoon.length?`<div style="background:var(--gold)10;border:1px solid var(--gold)30;border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--gold2);display:flex;justify-content:space-between;align-items:center">
+    <span>⚠️ <strong>${expSoon.length} licence(s)</strong> expirent dans &lt;30j</span>
+    <button class="btn btsm btgold" onclick="sendBulkRenewal('soon')">📧 Relancer</button>
+  </div>`:''}
+  <div class="g4" style="margin-bottom:16px">
+    <div class="kpi" style="--kc:var(--acc)"><div class="kl">Apps actives</div><div class="kv">${apps.length}</div><div class="ks">${getApps().length} disponibles</div></div>
+    <div class="kpi" style="--kc:var(--purple)"><div class="kl">Clients platform</div><div class="kv">${clients.length}</div><div class="ks">${actifs.length} lic. actives</div></div>
+    <div class="kpi" style="--kc:var(--gold)"><div class="kl">CA ce mois</div><div class="kv" style="font-size:14px">${fmt(caMois)}</div><div class="ks">Total : ${fmt(caTotal)}</div></div>
+    <div class="kpi" style="--kc:${expSoon.length||expired.length?'var(--red)':'var(--green)'}"><div class="kl">À renouveler</div><div class="kv" style="color:${expSoon.length||expired.length?'var(--red)':'var(--green)'}">${expSoon.length+expired.length}</div><div class="ks">${expired.length} exp. · ${expSoon.length} bientôt</div></div>
+  </div>
+  <div class="g2" style="margin-bottom:13px">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+        <div class="ct" style="margin:0">Applications actives</div><button class="btgh btsm" onclick="goTo('apps')">Gérer →</button>
+      </div>
+      ${apps.length===0?'<div style="color:var(--muted);text-align:center;padding:20px">Aucune app activée</div>':
+      apps.map(app=>{const appLics=lics.filter(l=>l.app_id===app.id&&l.active);const appCA=pays.filter(p=>p.app_id===app.id&&p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);return`<div style="display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--border)"><div class="app-icon" style="background:${app.couleur}22;border:1px solid ${app.couleur}44"><span style="color:${app.couleur}">${app.emoji}</span></div><div style="flex:1"><div style="font-size:12.5px;font-weight:600;color:var(--w)">${app.nom}</div><div style="font-size:10px;color:var(--muted)">${appLics.length} client(s) · ${fmt(appCA)}</div></div><span class="b bg" style="font-size:9px">ACTIF</span></div>`;}).join('')}
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+        <div class="ct" style="margin:0">Renouvellements urgents</div><button class="btgh btsm" onclick="goTo('licences')">Voir tout →</button>
+      </div>
+      ${[...expired,...expSoon].slice(0,5).map(l=>{const d=daysLeft(l.expiration);const col=d<=0?'var(--red)':d<=7?'var(--red)':d<=15?'var(--gold)':'var(--text)';const app=getApps().find(a=>a.id===l.app_id);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:12px;font-weight:600;color:var(--w)">${esc(l.client)}</div><div style="font-size:10px;color:var(--muted)">${app?.emoji||'📦'} ${app?.nom||l.app_id} · ${l.type}</div></div><div style="display:flex;align-items:center;gap:5px"><span style="font-size:12px;font-weight:700;color:${col}">${d<=0?'Exp.':d+'j'}</span><button class="btn btsm btgold" style="font-size:9px;padding:2px 7px" onclick="openRenewModal('${l.id}','${esc(l.client)}','${l.app_id}','${l.type}','${l.expiration}')">📧</button></div></div>`;}).join('')||'<div style="color:var(--green);text-align:center;padding:20px">✅ Tout est à jour</div>'}
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+        <div class="ct" style="margin:0">💰 Derniers paiements</div><button class="btgh btsm" onclick="goTo('payments')">Voir tout →</button>
+      </div>
+      ${pays.slice(0,5).map(p=>{const app=getApps().find(a=>a.id===p.app_id);const mi=p.moyen==='Wave'?'🌊':p.moyen==='Orange Money'?'🟠':'💳';return`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:11.5px"><div>${mi} <strong style="color:var(--w)">${esc(p.client)}</strong><div style="font-size:10px;color:var(--muted)">${app?.emoji||''} ${app?.nom||p.app_id||''} · ${fmtD(p.date)}</div></div><div style="font-family:'Space Mono',monospace;color:var(--gold)">${fmt(p.montant)}</div></div>`;}).join('')||'<div style="color:var(--muted);text-align:center;padding:20px">Aucun paiement</div>'}
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+        <div class="ct" style="margin:0">🧮 Échéances CRM urgentes</div><button class="btgh btsm" onclick="goTo('crm-ech')">Voir tout →</button>
+      </div>
+      ${crmEch.slice(0,5).map(e=>{const j=jrCrm(e.dateLimit);const cl=gcCrm(e.clientId);return`<div class="urg"><div class="un">${e.type}</div><div class="us">${cl?.nom||'—'} · ${fdCrm(e.dateLimit)}</div><div style="font-size:10px;font-weight:600;color:${j<0?'var(--red)':'var(--gold)'}">${j<0?'⚠️ '+Math.abs(j)+'j retard':j===0?'🔴 Aujourd\'hui':'⏰ J-'+j}</div></div>`;}).join('')||'<div style="color:var(--green);text-align:center;padding:20px">✅ Aucune urgence</div>'}
+    </div>
+  </div>`;
+}
+
+// ══ PLATFORM — APPS ══════════════════════════════════════════
+function rApps(){
+  const apps=getApps();
+  document.getElementById('pg-apps').innerHTML=`
+  <div class="rh"><div><div class="st">Applications</div><div class="ss">${apps.length} app(s)</div></div><button class="btn" onclick="openAppForm(null)">+ Nouvelle app</button></div>
+  <div class="g3" id="appsGrid">${apps.length===0?'<div style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1">Aucune application</div>':apps.map(app=>{
+    const lics=getLicences().filter(l=>l.app_id===app.id&&l.active);
+    const ca=getPayments().filter(p=>p.app_id===app.id&&p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+    return`<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div class="app-icon" style="background:${app.couleur}22;border:2px solid ${app.couleur}44"><span style="color:${app.couleur};font-size:24px">${app.emoji}</span></div>
+      <div><div style="font-weight:700;color:var(--w);font-size:14px">${esc(app.nom)}</div><div style="font-size:10px;color:var(--muted)">${app.desc||''}</div></div>
+      <span class="b ${app.actif?'bg':'br'}" style="margin-left:auto">${app.actif?'Actif':'Off'}</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:9px">Licences actives : <strong style="color:var(--w)">${lics.length}</strong> · CA : <strong style="color:var(--gold)">${fmt(ca)}</strong></div>
+    <div style="font-size:10.5px;color:var(--muted);margin-bottom:10px">Mensuel: ${fmt(app.tarifs?.MOIS)} · Annuel: ${fmt(app.tarifs?.ANNU)}</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btsm" style="flex:1;background:${app.couleur}" onclick="toggleApp('${app.id}')">${app.actif?'⏸ Désactiver':'▶ Activer'}</button>
+      <button class="btgh btsm" onclick="openAppForm('${app.id}')">✏</button>
+    </div></div>`;
+  }).join('')}</div>`;
+}
+async function toggleApp(id){const app=getApps().find(a=>a.id===id);if(!app)return;await updateApp(id,{actif:!app.actif});showToast(app.nom+' '+(app.actif?'désactivée':'activée'));rApps();}
+function openAppForm(id){
+  const app=id?getApps().find(a=>a.id===id):null;
+  openModal(app?'Modifier '+app.nom:'Nouvelle application',`
+    <div class="g2"><div class="f"><label>Emoji</label><input id="af_emoji" value="${app?.emoji||'🚀'}" style="font-size:22px;text-align:center"/></div><div class="f"><label>Identifiant</label><input id="af_id" value="${app?.id||''}" placeholder="monapp" ${id?'readonly':''}/></div></div>
+    <div class="f"><label>Nom</label><input id="af_nom" value="${app?.nom||''}" placeholder="Ex: StudioPro"/></div>
+    <div class="f"><label>Description</label><input id="af_desc" value="${app?.desc||''}" placeholder="Ex: Gestion audiovisuelle"/></div>
+    <div class="f"><label>Couleur</label><input id="af_col" type="color" value="${app?.couleur||'#6D28D9'}"/></div>
+    <div class="sep"></div>
+    <div style="font-size:10px;font-weight:700;color:var(--acc3);margin-bottom:7px">TARIFS (FCFA)</div>
+    <div class="g3"><div class="f"><label>Mensuel</label><input id="af_mois" type="number" value="${app?.tarifs?.MOIS||15000}"/></div><div class="f"><label>Trimestriel</label><input id="af_trim" type="number" value="${app?.tarifs?.TRIM||40000}"/></div><div class="f"><label>Annuel</label><input id="af_annu" type="number" value="${app?.tarifs?.ANNU||150000}"/></div></div>
+    <button class="btn" style="width:100%;background:var(--gold);color:#000" onclick="saveApp('${id||''}')">💾 Sauvegarder</button>`);
+}
+async function saveApp(id){
+  const newApp={id:id||gv('af_id').toLowerCase().replace(/\s+/g,'_'),nom:gv('af_nom'),emoji:gv('af_emoji'),desc:gv('af_desc'),couleur:document.getElementById('af_col')?.value||'#6D28D9',actif:true,tarifs:{MOIS:+gv('af_mois')||15000,TRIM:+gv('af_trim')||40000,ANNU:+gv('af_annu')||150000}};
+  if(!newApp.id||!newApp.nom){showToast('ID et nom obligatoires',false);return;}
+  if(id){await updateApp(id,newApp);}else{if(getApps().find(a=>a.id===newApp.id)){showToast('ID déjà utilisé',false);return;}await addApp(newApp);}
+  closeModal();showToast('Application sauvegardée ✓');rApps();
+}
+
+// ══ PLATFORM — CLIENTS ════════════════════════════════════
+function rClients(){
+  const clients=getClients();
+  document.getElementById('pg-clients').innerHTML=`
+  <div class="rh"><div><div class="st">Clients</div><div class="ss">${clients.length} client(s)</div></div><button class="btn" onclick="openClientForm(null)">+ Nouveau client</button></div>
+  <div style="margin-bottom:12px"><input placeholder="Rechercher..." style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:7px 11px;color:var(--text);font-size:11.5px;width:280px" oninput="filterClients(this.value)"/></div>
+  <div id="clientsList">${renderClientsList(clients)}</div>`;
+}
+function renderClientsList(clients){
+  if(!clients.length)return'<div style="text-align:center;color:var(--muted);padding:40px">Aucun client. <button class="btn btsm" onclick="openClientForm(null)">+ Créer</button></div>';
+  const lics=getLicences(),pays=getPayments(),apps=getApps();
+  return`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Client</th><th>Contact</th><th>Apps</th><th>CA total</th><th>Inscription</th><th>Actions</th></tr></thead>
+  <tbody>${clients.map(c=>{const cL=lics.filter(l=>l.client===c.nom&&l.active);const cCA=pays.filter(p=>p.client===c.nom&&p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);const badges=cL.map(l=>{const app=apps.find(a=>a.id===l.app_id);const d=daysLeft(l.expiration);return`<span class="b ${d>30?'bg':d>0?'bo':'br'}" style="font-size:9px;margin-right:2px">${app?.emoji||'📦'}</span>`;}).join('');return`<tr><td><div style="font-weight:700;color:var(--w)">${esc(c.nom)}</div><div style="font-size:9.5px;color:var(--muted)">${c.secteur||'—'}</div></td><td style="font-size:10.5px">${c.email?'✉ '+esc(c.email)+'<br>':''}${c.tel?'📞 '+esc(c.tel):''}</td><td>${badges||'<span style="color:var(--muted)">Aucune</span>'}</td><td style="font-family:'Space Mono',monospace;color:var(--gold);font-size:11px">${fmt(cCA)}</td><td style="font-size:10px;color:var(--muted)">${fmtD(c.date_inscription)}</td><td><div style="display:flex;gap:3px"><button class="btn btsm" onclick="openClient360('${esc(c.nom)}')">360°</button><button class="btgh btsm" onclick="openClientForm('${esc(c.nom)}')">✏</button><button class="btn btsm" style="background:var(--green)22;color:var(--green);border:1px solid var(--green)44" onclick="openAddLicence('${esc(c.nom)}')">+ Lic.</button></div></td></tr>`;}).join('')}</tbody></table></div>`;
+}
+function filterClients(q){const clients=getClients().filter(c=>!q||(c.nom||'').toLowerCase().includes(q.toLowerCase())||(c.email||'').toLowerCase().includes(q.toLowerCase()));document.getElementById('clientsList').innerHTML=renderClientsList(clients);}
+function openClientForm(nom){
+  const c=nom?getClients().find(x=>x.nom===nom):null;
+  openModal(c?'Modifier '+c.nom:'Nouveau client',`
+    <div class="f"><label>Nom entreprise *</label><input id="cf_nom" value="${c?.nom||''}" placeholder="Ex: STUDIO 3D"/></div>
+    <div class="g2"><div class="f"><label>Email</label><input id="cf_email" type="email" value="${c?.email||''}"/></div><div class="f"><label>Téléphone</label><input id="cf_tel" value="${c?.tel||''}" placeholder="+225 ..."/></div></div>
+    <div class="g2"><div class="f"><label>Secteur</label><input id="cf_secteur" value="${c?.secteur||''}"/></div><div class="f"><label>Ville</label><input id="cf_ville" value="${c?.ville||''}"/></div></div>
+    <div class="f"><label>Notes</label><textarea id="cf_notes" rows="2">${c?.notes||''}</textarea></div>
+    <button class="btn" style="width:100%;background:var(--gold);color:#000" onclick="saveClient('${nom||''}')">💾 Sauvegarder</button>`);
+}
+async function saveClient(oldNom){
+  const nom=gv('cf_nom');if(!nom){showToast('Nom obligatoire',false);return;}
+  const entry={nom,email:gv('cf_email'),tel:gv('cf_tel'),secteur:gv('cf_secteur'),ville:gv('cf_ville'),notes:gv('cf_notes'),date_inscription:oldNom?getClients().find(c=>c.nom===oldNom)?.date_inscription:TODAY,actif:true};
+  if(oldNom){await updateClient(oldNom,entry);}else{if(getClients().find(c=>c.nom===nom)){showToast('Client déjà existant',false);return;}await addClient(entry);}
+  closeModal();showToast('Client sauvegardé ✓');rClients();
+}
+function openClient360(nom){
+  const client=getClients().find(c=>c.nom===nom)||{nom};const lics=getLicences().filter(l=>l.client===nom);const pays=getPayments().filter(p=>p.client===nom);const apps=getApps();const caTotal=pays.filter(p=>p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+  openModal('360° — '+nom,`<div style="display:flex;align-items:center;gap:11px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="width:42px;height:42px;border-radius:50%;background:var(--acc)22;border:2px solid var(--acc)44;display:flex;align-items:center;justify-content:center;font-size:18px">🏢</div><div><div style="font-size:15px;font-weight:700;color:var(--w)">${esc(nom)}</div><div style="font-size:11px;color:var(--muted)">${client.secteur||'—'} · ${client.email||'—'}</div></div><div style="margin-left:auto;text-align:right"><div style="font-family:'Space Mono',monospace;font-weight:700;color:var(--gold)">${fmt(caTotal)}</div><div style="font-size:9px;color:var(--muted)">CA total</div></div></div>
+  <div style="font-size:10px;font-weight:700;color:var(--acc3);text-transform:uppercase;letter-spacing:1px;margin-bottom:9px">Abonnements</div>
+  ${lics.length===0?'<div style="color:var(--muted);text-align:center;padding:12px">Aucune licence</div>':lics.map(l=>{const app=apps.find(a=>a.id===l.app_id);const d=daysLeft(l.expiration);return`<div style="display:flex;align-items:center;gap:9px;padding:9px;background:var(--bg2);border-radius:7px;margin-bottom:5px"><span style="font-size:18px">${app?.emoji||'📦'}</span><div style="flex:1"><div style="font-size:12.5px;font-weight:600;color:var(--w)">${app?.nom||l.app_id}</div><div style="font-size:10px;color:var(--muted)">${l.type} · ${l.domaine||'—'}</div></div><span class="b ${d>30?'bg':d>0?'bo':'br'}">${d>0?d+'j':'Expirée'}</span></div>`;}).join('')}
+  <div style="display:flex;gap:7px;margin-top:13px">
+    <button class="btn btsm" style="flex:1" onclick="closeModal();openAddLicence('${esc(nom)}')">+ Licence</button>
+    <button class="btn btsm" style="flex:1;background:var(--gold);color:#000" onclick="closeModal();openAddPayment('${esc(nom)}')">+ Paiement</button>
+    <button class="btgh btsm" onclick="closeModal();openClientForm('${esc(nom)}')">✏ Modifier</button>
+  </div>`);
+}
+
+// ══ LICENCES ════════════════════════════════════════════════
+function rLicences(){
+  const lics=getLicences(),apps=getApps();
+  document.getElementById('pg-licences').innerHTML=`
+  <div class="rh"><div><div class="st">Licences</div><div class="ss">${lics.length} licence(s) · ${lics.filter(l=>l.active&&daysLeft(l.expiration)>0).length} actives</div></div><button class="btn" onclick="openAddLicence(null)">+ Nouvelle</button></div>
+  <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
+    <select id="licFilterApp" onchange="filterLicences()" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-size:11.5px"><option value="">Toutes apps</option>${apps.map(a=>`<option value="${a.id}">${a.emoji} ${a.nom}</option>`).join('')}</select>
+    <select id="licFilterStatus" onchange="filterLicences()" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-size:11.5px"><option value="">Tous statuts</option><option value="active">Actives</option><option value="expiring">Bientôt</option><option value="expired">Expirées</option></select>
+  </div>
+  <div id="licTable">${renderLicTable(lics)}</div>`;
+}
+function renderLicTable(lics){
+  const apps=getApps();if(!lics.length)return'<div style="text-align:center;color:var(--muted);padding:40px">Aucune licence</div>';
+  return`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Client</th><th>App</th><th>Clé</th><th>Type</th><th>Domaine</th><th>Expiration</th><th>Actions</th></tr></thead>
+  <tbody>${lics.map(l=>{const d=daysLeft(l.expiration);const app=apps.find(a=>a.id===l.app_id);return`<tr><td style="font-weight:600;color:var(--w)">${esc(l.client)}</td><td>${app?`${app.emoji} ${app.nom}`:'—'}</td><td style="font-family:'Space Mono',monospace;font-size:9.5px;color:var(--acc3)">${l.cle||'—'}</td><td><span class="b bc">${l.type}</span></td><td style="font-size:10px;color:var(--muted)">${l.domaine||'—'}</td><td><span class="b ${d>30?'bg':d>0?'bo':'br'}">${l.expiration==='DEV'?'Illimitée':d>0?fmtD(l.expiration):'Expirée'}</span></td><td><div style="display:flex;gap:3px">${d<=30&&d>0?`<button class="btn btsm btgold" style="font-size:9px" onclick="openRenewModal('${l.id}','${esc(l.client)}','${l.app_id}','${l.type}','${l.expiration}')">📧</button>`:''}<button class="btgh btsm" onclick="toggleLicActive('${l.id}')">${l.active?'⏸':'▶'}</button><button class="btgh btsm" onclick="deleteLic('${l.id}')">✕</button></div></td></tr>`;}).join('')}</tbody></table></div>`;
+}
+function filterLicences(){const appF=gv('licFilterApp');const stF=gv('licFilterStatus');let lics=getLicences();if(appF)lics=lics.filter(l=>l.app_id===appF);if(stF==='active')lics=lics.filter(l=>l.active&&daysLeft(l.expiration)>30);if(stF==='expiring')lics=lics.filter(l=>l.active&&daysLeft(l.expiration)<=30&&daysLeft(l.expiration)>0);if(stF==='expired')lics=lics.filter(l=>daysLeft(l.expiration)<=0);document.getElementById('licTable').innerHTML=renderLicTable(lics);}
+function openAddLicence(clientNom){
+  const apps=getApps().filter(a=>a.actif),clients=getClients();
+  openModal('+ Nouvelle licence',`
+    <div class="g2"><div class="f"><label>Client *</label><select id="lf_client"><option value="">— Choisir —</option>${clients.map(c=>`<option value="${esc(c.nom)}" ${c.nom===clientNom?'selected':''}>${esc(c.nom)}</option>`).join('')}</select></div>
+    <div class="f"><label>Application *</label><select id="lf_app"><option value="">— Choisir —</option>${apps.map(a=>`<option value="${a.id}">${a.emoji} ${a.nom}</option>`).join('')}</select></div></div>
+    <div class="g2"><div class="f"><label>Type</label><select id="lf_type"><option value="MOIS">Mensuel</option><option value="TRIM">Trimestriel</option><option value="ANNU" selected>Annuel</option></select></div><div class="f"><label>Domaine</label><input id="lf_domaine" placeholder="site.com"/></div></div>
+    <div class="g2"><div class="f"><label>Date début</label><input id="lf_debut" type="date" value="${TODAY}"/></div><div class="f"><label>Date fin *</label><input id="lf_fin" type="date"/></div></div>
+    <div class="f"><label>Clé (auto si vide)</label><input id="lf_cle" placeholder="Générée automatiquement"/></div>
+    <button class="btn" style="width:100%;background:var(--gold);color:#000" onclick="saveLicence()">💾 Créer la licence</button>`);
+}
+async function saveLicence(){
+  const client=gv('lf_client');const appId=gv('lf_app');const fin=gv('lf_fin');if(!client||!appId||!fin){showToast('Client, app et date de fin obligatoires',false);return;}
+  const cle=gv('lf_cle')||'LIC-'+uid();const type=gv('lf_type');const debut=gv('lf_debut')||TODAY;
+  await addLicence({id:uid(),client,app_id:appId,cle,type,domaine:gv('lf_domaine'),debut,expiration:fin,active:true,auto_renew:false,created_at:new Date().toISOString()});
+  closeModal();showToast('Licence créée ✓');rLicences();
+}
+async function toggleLicActive(id){const l=getLicences().find(x=>x.id===id);if(!l)return;await updateLicence(id,{active:!l.active});showToast('Licence '+(l.active?'suspendue':'réactivée')+'  ✓');rLicences();}
+async function deleteLic(id){if(!confirm('Supprimer cette licence ?'))return;await deleteLicenceRow(id);showToast('Licence supprimée');rLicences();}
+
+// ══ PAIEMENTS ═══════════════════════════════════════════════
+function rPayments(){
+  const pays=getPayments(),apps=getApps();const caTotal=pays.filter(p=>p.statut==='success').reduce((s,p)=>s+(+p.montant||0),0);
+  document.getElementById('pg-payments').innerHTML=`
+  <div class="rh"><div><div class="st">Paiements</div><div class="ss">CA total : <strong style="color:var(--gold)">${fmt(caTotal)}</strong></div></div><button class="btn" onclick="openAddPayment(null)">+ Enregistrer paiement</button></div>
+  <div class="card">
+  ${pays.length===0?'<div style="text-align:center;color:var(--muted);padding:40px">Aucun paiement — connectez le serveur</div>':`<table class="tbl"><thead><tr><th>Date</th><th>Client</th><th>App</th><th>Montant</th><th>Moyen</th><th>Statut</th><th>Réf</th></tr></thead>
+  <tbody>${pays.slice(0,50).map(p=>{const app=apps.find(a=>a.id===p.app_id);const mi=p.moyen==='Wave'?'🌊':p.moyen==='Orange Money'?'🟠':'💳';return`<tr><td style="font-size:10.5px;color:var(--muted)">${fmtD(p.date)}</td><td style="font-weight:600;color:var(--w)">${esc(p.client)}</td><td>${app?`${app.emoji} ${app.nom}`:'—'}</td><td style="font-family:'Space Mono',monospace;color:var(--gold)">${fmt(p.montant)}</td><td>${mi} ${p.moyen}</td><td><span class="b ${p.statut==='success'?'bg':'br'}">${p.statut==='success'?'✅ OK':'Échec'}</span></td><td style="font-size:9.5px;color:var(--muted)">${p.reference||'—'}</td></tr>`;}).join('')}</tbody></table>`}
+  </div>`;
+}
+function openAddPayment(clientNom){
+  const clients=getClients(),apps=getApps().filter(a=>a.actif);
+  openModal('+ Enregistrer un paiement',`
+    <div class="g2"><div class="f"><label>Client *</label><select id="pf_client" onchange="updatePayTarif()"><option value="">— Choisir —</option>${clients.map(c=>`<option value="${esc(c.nom)}" ${c.nom===clientNom?'selected':''}>${esc(c.nom)}</option>`).join('')}</select></div>
+    <div class="f"><label>Application *</label><select id="pf_app" onchange="updatePayTarif()"><option value="">— Choisir —</option>${apps.map(a=>`<option value="${a.id}">${a.emoji} ${a.nom}</option>`).join('')}</select></div></div>
+    <div class="g2"><div class="f"><label>Type licence</label><select id="pf_type" onchange="updatePayTarif()"><option value="MOIS">Mensuel</option><option value="TRIM">Trimestriel</option><option value="ANNU" selected>Annuel</option></select></div><div class="f"><label>Montant (FCFA) *</label><input id="pf_montant" type="number" placeholder="150000"/></div></div>
+    <div class="g2"><div class="f"><label>Moyen de paiement</label><select id="pf_moyen"><option value="Wave">🌊 Wave CI</option><option value="Orange Money">🟠 Orange Money CI</option><option value="Virement">🏦 Virement</option><option value="Espèces">💵 Espèces</option></select></div><div class="f"><label>Date</label><input id="pf_date" type="date" value="${TODAY}"/></div></div>
+    <div class="f"><label>Référence</label><input id="pf_ref" placeholder="Ex: Wave-TXN-XXXXXX"/></div>
+    <div style="background:var(--green)10;border:1px solid var(--green)30;border-radius:7px;padding:9px;margin-bottom:10px;font-size:11.5px;color:var(--green)">✅ Ce paiement renouvellera automatiquement la licence.</div>
+    <button class="btn" style="width:100%;background:var(--gold);color:#000" onclick="savePayment()">💾 Enregistrer + Renouveler</button>`);
+  updatePayTarif();
+}
+function updatePayTarif(){const appId=gv('pf_app');const type=gv('pf_type');const app=getApps().find(a=>a.id===appId);const el=document.getElementById('pf_montant');if(app&&type&&el&&!el.value)el.value=app.tarifs?.[type]||'';}
+async function savePayment(){
+  const client=gv('pf_client');const appId=gv('pf_app');const type=gv('pf_type');const montant=+gv('pf_montant');const moyen=gv('pf_moyen');const date=gv('pf_date')||TODAY;const ref=gv('pf_ref')||'MAN-'+uid();
+  if(!client||!montant){showToast('Client et montant obligatoires',false);return;}
+  const pay={id:uid(),client,app_id:appId,montant,moyen,type_lic:type,date,reference:ref,statut:'success',source:'manual'};
+  await addPayment(pay);
+  const lic=getLicences().find(l=>l.client===client&&l.app_id===appId&&l.active);
+  if(lic){const days=type==='MOIS'?30:type==='TRIM'?90:365;const curExp=new Date(lic.expiration);const base=curExp>new Date()?curExp:new Date();const newExp=new Date(base.getTime()+days*86400000).toISOString().slice(0,10);await updateLicence(lic.id,{expiration:newExp,type});}
+  addEmailLog({type:'PAYMENT_CONFIRM',client,app_id:appId,montant,moyen,statut:'sent'});
+  closeModal();showToast('Paiement enregistré + licence renouvelée ✓');rPayments();
+}
+function openRenewModal(licId,client,appId,type,expiration){
+  const app=getApps().find(a=>a.id===appId);const links=getPayLinks(appId);const d=daysLeft(expiration);const montant=app?.tarifs?.[type]||0;const waveLink=links.wave?.[type]||'';const omLink=links.om?.[type]||'';
+  openModal('📧 Relance — '+client,`
+    <div style="background:var(--bg2);border-radius:7px;padding:11px;margin-bottom:13px;font-size:11.5px;line-height:1.8">${app?`${app.emoji} <strong style="color:var(--w)">${app.nom}</strong> · `:''}<strong style="${d<=0?'color:var(--red)':d<=7?'color:var(--red)':'color:var(--gold)'}">${d<=0?'⚠️ Expirée':'Expire dans '+d+' j'}</strong> · <strong style="color:var(--gold)">${fmt(montant)}</strong></div>
+    ${waveLink?`<a href="${waveLink}" target="_blank" style="display:block;background:#1DA462;color:#fff;text-align:center;padding:11px;border-radius:7px;text-decoration:none;font-weight:700;margin-bottom:7px">🌊 Payer par Wave — ${fmt(montant)}</a>`:'<div style="color:var(--muted);font-size:11px;margin-bottom:7px">⚠️ Lien Wave non configuré</div>'}
+    ${omLink?`<a href="${omLink}" target="_blank" style="display:block;background:#FF6900;color:#fff;text-align:center;padding:11px;border-radius:7px;text-decoration:none;font-weight:700;margin-bottom:7px">🟠 Payer par Orange Money — ${fmt(montant)}</a>`:''}
+    <div class="sep"></div>
+    <button class="btn" style="width:100%;background:var(--gold);color:#000;margin-top:9px" onclick="closeModal();openAddPayment('${client}')">+ Enregistrer paiement reçu</button>`);
+}
+function sendBulkRenewal(type){
+  const lics=getLicences();const concerned=type==='expired'?lics.filter(l=>l.active&&daysLeft(l.expiration)<=0):lics.filter(l=>l.active&&daysLeft(l.expiration)<=30&&daysLeft(l.expiration)>0);
+  if(!concerned.length){showToast('Aucun client concerné',false);return;}
+  openModal('📧 Relances — '+concerned.length+' client(s)',`<div style="margin-bottom:12px;font-size:12.5px">${concerned.length} email(s) de relance :</div>${concerned.map(l=>{const app=getApps().find(a=>a.id===l.app_id);const d=daysLeft(l.expiration);return`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:11.5px"><div><strong>${esc(l.client)}</strong> · ${app?.emoji||''} ${app?.nom||l.app_id}</div><span class="b ${d<=0?'br':'bo'}">${d<=0?'Expirée':d+'j'}</span></div>`;}).join('')}<button class="btn" style="width:100%;margin-top:12px;background:var(--gold);color:#000" onclick="confirmBulkSend(${JSON.stringify(concerned.map(l=>l.id))})">📧 Envoyer ${concerned.length} relance(s)</button>`);
+}
+async function confirmBulkSend(ids){
+  const lics=getLicences();
+  for(const id of ids){const l=lics.find(x=>x.id===id);if(!l)continue;addEmailLog({type:'RENEWAL_REMINDER',client:l.client,app_id:l.app_id,statut:'sent'});if(getApiUrl()){try{await apiCall('sendRenewalEmail',{data:{client:l.client,type:l.type,expiration:l.expiration,app_id:l.app_id}});}catch(e){}}}
+  closeModal();showToast(ids.length+' relances envoyées ✓');
+}
+
+// ══ FACTURATION ══════════════════════════════════════════════
+function rFacturation(){
+  const clients=getClients(),lics=getLicences(),pays=getPayments(),apps=getApps();
+  document.getElementById('pg-facturation').innerHTML=`
+  <div class="rh"><div><div class="st">Facturation</div><div class="ss">Rapports mensuels automatiques</div></div><button class="btn" onclick="sendMonthlyAll()">📧 Envoyer rapports</button></div>
+  <div class="card" style="margin-bottom:13px">
+    <div class="ct">Séquence renouvellement</div>
+    <div style="display:flex;align-items:center;gap:0;padding:14px 0;overflow-x:auto">
+      ${['J-30','J-15','J-7','J-3','J0 Suspend','Paiement → ✅'].map((l,i)=>`<div style="flex-shrink:0;text-align:center;min-width:75px"><div style="width:32px;height:32px;border-radius:50%;margin:0 auto 5px;display:flex;align-items:center;justify-content:center;font-size:12px;background:${i<3?'var(--acc)18':i===3?'var(--red)18':i===4?'var(--red)18':'var(--green)18'};border:2px solid ${i<3?'var(--acc)44':i===3?'var(--red)44':i===4?'var(--red)44':'var(--green)44'}">📧</div><div style="font-size:9px;color:var(--muted)">${l}</div></div>${i<5?'<div style="font-size:16px;color:var(--muted);flex-shrink:0;padding:0 2px;margin-bottom:16px">→</div>':''}`).join('')}
+    </div>
+  </div>
+  <div class="card"><div class="ct">Récap par client</div>
+  <table class="tbl"><thead><tr><th>Client</th><th>Apps actives</th><th>Prochain renouvellement</th><th>Estimation</th><th>Actions</th></tr></thead>
+  <tbody>${clients.map(c=>{const cL=lics.filter(l=>l.client===c.nom&&l.active&&daysLeft(l.expiration)>0);const nextPay=cL.reduce((min,l)=>daysLeft(l.expiration)<min?daysLeft(l.expiration):min,9999);const estim=cL.reduce((s,l)=>{const app=apps.find(a=>a.id===l.app_id);return s+(app?.tarifs?.[l.type]||0);},0);return`<tr><td style="font-weight:600;color:var(--w)">${esc(c.nom)}</td><td>${cL.map(l=>{const app=apps.find(a=>a.id===l.app_id);return app?.emoji||'📦';}).join(' ')||'—'}</td><td>${nextPay<9999?nextPay+' jours':'—'}</td><td style="font-family:'Space Mono',monospace;color:var(--gold)">${estim?fmt(estim):'—'}</td><td><button class="btn btsm" onclick="openClient360('${esc(c.nom)}')">360°</button></td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:25px">Aucun client</td></tr>'}</tbody></table></div>`;
+}
+async function sendMonthlyAll(){if(getApiUrl()){try{await apiCall('sendMonthlyReports');showToast('Rapports mensuels envoyés ✓');}catch(e){showToast('Erreur: '+e.message,false);}}else showToast('Serveur non configuré',false);}
+
+// ══ EMAILS ═══════════════════════════════════════════════════
+function rEmails(){
+  const logs=getEmailLog();const labels={RENEWAL_REMINDER:'Relance renouvellement',PAYMENT_CONFIRM:'Confirmation paiement',MONTHLY_REPORT:'Rapport mensuel',BULK_RENEWAL:'Relance en masse'};
+  document.getElementById('pg-emails').innerHTML=`
+  <div class="rh"><div><div class="st">Emails</div><div class="ss">${logs.length} email(s) envoyé(s)</div></div><button class="btn" onclick="sendBulkRenewal('soon')">📧 Relances auto</button></div>
+  <div class="card">${logs.length===0?'<div style="text-align:center;color:var(--muted);padding:40px">Aucun email — les emails apparaissent après chaque relance</div>':`<table class="tbl"><thead><tr><th>Date</th><th>Type</th><th>Client</th><th>App</th><th>Statut</th></tr></thead><tbody>${logs.slice(0,50).map(l=>{const app=getApps().find(a=>a.id===l.app_id);return`<tr><td style="color:var(--muted);font-size:10px">${l.ts?new Date(l.ts).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</td><td style="font-size:10.5px">${labels[l.type]||l.type}</td><td style="font-weight:600;color:var(--w)">${l.client||'—'}</td><td>${app?app.emoji+' '+app.nom:'—'}</td><td><span class="b ${l.statut==='sent'?'bg':'br'}">${l.statut==='sent'?'✅':'Erreur'}</span></td></tr>`;}).join('')}</tbody></table>`}</div>`;
+}
+
+// ══ CRM — DASHBOARD ══════════════════════════════════════════
+function rCrmDash(){
+  const clients=getCrmClients(),echeances=getCrmEcheances(),factures=getCrmFactures();
+  const tH=clients.filter(c=>c.statut==='Actif').reduce((s,c)=>s+(+c.honoraires||0),0);
+  const tP=factures.filter(f=>f.statut==='Payée').reduce((s,f)=>s+(+f.mt||0),0);
+  const tA=factures.filter(f=>['Envoyée','En retard'].includes(f.statut)).reduce((s,f)=>s+(+f.mt||0),0);
+  const ret=factures.filter(f=>f.statut==='En retard').length;
+  document.getElementById('pg-crm-dash').innerHTML=`
+  <div class="rh"><div><div class="st">CRM Comptable — Tableau de bord</div><div class="ss">Gestion clients, échéances et honoraires</div></div><button class="btn" onclick="openCrmClientForm(0)">+ Nouveau dossier</button></div>
+  <div class="g4" style="margin-bottom:16px">
+    <div class="kpi" style="--kc:var(--green)"><div class="kl">Clients actifs</div><div class="kv">${clients.filter(c=>c.statut==='Actif').length}</div><div class="ks">${clients.length} total</div></div>
+    <div class="kpi" style="--kc:var(--blue)"><div class="kl">Honoraires /mois</div><div class="kv" style="font-size:14px">${fmCrm(tH)}</div><div class="ks">Récurrent mensuel</div></div>
+    <div class="kpi" style="--kc:var(--green)"><div class="kl">Encaissé</div><div class="kv" style="font-size:14px">${fmCrm(tP)}</div><div class="ks" style="color:var(--green)">Factures payées</div></div>
+    <div class="kpi" style="--kc:${ret>0?'var(--red)':'var(--gold)'}"><div class="kl">En attente</div><div class="kv" style="font-size:14px">${fmCrm(tA)}</div><div class="ks" style="color:${ret>0?'var(--red)':'var(--gold)'}">${ret>0?ret+' retard(s)':'À encaisser'}</div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px"><div class="ct" style="margin:0">⏰ Urgences 10 jours</div><span id="ubadge"></span></div><div id="urgDiv"></div></div>
+    <div class="card"><div class="ct">Portefeuille clients</div><div id="cliDash"></div></div>
+  </div>`;
+  const urg=echeances.filter(e=>!['Validé','Transmis'].includes(e.statut)&&jrCrm(e.dateLimit)!==null&&jrCrm(e.dateLimit)<=10);
+  document.getElementById('ubadge').innerHTML=urg.length?`<span class="b br">${urg.length}</span>`:'';
+  document.getElementById('urgDiv').innerHTML=urg.length===0?'<div style="color:var(--muted);font-size:12.5px;text-align:center;padding:18px">✅ Aucune urgence</div>':urg.slice(0,5).map(e=>{const j=jrCrm(e.dateLimit);const cl=gcCrm(e.clientId);return`<div class="urg"><div class="un">${e.type}</div><div class="us">${cl?.nom||'—'} · ${fdCrm(e.dateLimit)}</div><div style="font-size:10px;font-weight:600;color:${j<0?'var(--red)':'var(--gold)'}">${j<0?'⚠️ '+Math.abs(j)+'j retard':j===0?'🔴 Aujourd\'hui !':'⏰ J-'+j}</div></div>`;}).join('');
+  document.getElementById('cliDash').innerHTML=clients.map(c=>{const p=progCrm(c.id,new Date().getMonth());return`<div class="dcr"><div><div style="font-size:12.5px;font-weight:600">${c.nom}</div><div style="font-size:10px;color:var(--muted)">${c.regime}</div></div><div style="text-align:right;min-width:110px">${bstCrm(c.statut)}<div style="font-size:10px;color:var(--muted);margin-top:2px">${fmCrm(c.honoraires)}/mois</div><div style="display:flex;align-items:center;gap:5px;margin-top:3px"><div class="pw" style="flex:1"><div class="pb2" style="width:${p.p}%"></div></div><span style="font-size:9px;color:var(--muted)">${p.d}/${p.t}</span></div></div></div>`;}).join('')||'<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">Aucun client CRM</div>';
+}
+
+// ══ CRM — CLIENTS ════════════════════════════════════════════
+function rCrmClients(){
+  const clients=getCrmClients();
+  document.getElementById('pg-crm-clients').innerHTML=`
+  <div class="rh"><div><div class="st">Dossiers clients</div><div class="ss">${clients.length} dossier(s)</div></div><button class="btn" onclick="openCrmClientForm(0)">+ Nouveau dossier</button></div>
+  <div id="cliList">${renderCrmClientList(clients)}</div>`;
+}
+function renderCrmClientList(clients){
+  if(!clients.length)return'<div style="text-align:center;color:var(--muted);padding:40px">Aucun dossier client. <button class="btn btsm" onclick="openCrmClientForm(0)">+ Créer</button></div>';
+  return clients.map(c=>`<div class="cc"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:9px"><div style="flex:1"><div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px"><span style="font-size:14px;font-weight:700;color:var(--w)">${c.nom}</span>${bstCrm(c.statut)}<span class="b bc" style="font-size:9px">${c.regime}</span></div><div style="font-size:11px;color:var(--muted);margin-bottom:5px">${c.secteur||'—'}</div>${c.notes?`<div style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:5px">${c.notes}</div>`:''}<div style="display:flex;gap:14px;font-size:11px;flex-wrap:wrap"><span><span style="color:var(--muted)">Honoraires : </span><strong style="color:var(--green)">${fmCrm(c.honoraires)}/mois</strong></span><span><span style="color:var(--muted)">Échéances : </span><strong>${getCrmEcheances().filter(e=>e.clientId===c.id&&!['Validé','Transmis'].includes(e.statut)).length} actives</strong></span></div></div><div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0"><button class="btn btsm" style="font-size:10px" onclick="genCrmCal(${c.id})">🗓️ Calendrier</button><div style="display:flex;gap:4px"><button class="btgh btsm" onclick="openCrmClientForm(${c.id})">✏️</button><button class="btgh btsm" onclick="delCrmClient(${c.id})">🗑️</button></div></div></div></div>`).join('');
+}
+function delCrmClient(id){if(confirm('Supprimer ce dossier ?')){const cl=getCrmClients().filter(c=>c.id!==id);saveCrmClients(cl);rCrmClients();rCrmDash();showToast('🗑️ Dossier supprimé');}}
+function openCrmClientForm(id){
+  const clients=getCrmClients();const c=clients.find(x=>x.id===id)||{};
+  openModal(id?'Modifier le dossier':'Nouveau dossier client',`
+    <div class="f"><label>Nom *</label><input id="fn" value="${c.nom||''}" placeholder="Ex: STUDIO 3D SARL"/></div>
+    <div class="g2"><div class="f"><label>Statut</label><select id="fst">${['Actif','En attente','Suspendu','Clôturé'].map(s=>`<option${s===(c.statut||'Actif')?' selected':''}>${s}</option>`).join('')}</select></div><div class="f"><label>Honoraires FCFA/mois</label><input id="fh" type="number" value="${c.honoraires||''}"/></div></div>
+    <div class="f"><label>Secteur d'activité</label><input id="fs" value="${c.secteur||''}"/></div>
+    <div class="g2"><div class="f"><label>Régime fiscal *</label><select id="fr">${REG.map(r=>`<option${r===(c.regime||REG[0])?' selected':''}>${r}</option>`).join('')}</select></div><div class="f"><label>Secteur fiscal</label><select id="fsf">${SEC.map(s=>`<option${s===(c.secteurFiscal||SEC[0])?' selected':''}>${s}</option>`).join('')}</select></div></div>
+    <div class="f"><label>Contact</label><input id="fc" value="${c.contact||''}"/></div>
+    <div class="f"><label>Notes</label><textarea id="fno">${c.notes||''}</textarea></div>
+    <button class="btn" style="width:100%;padding:11px;background:var(--green);color:#060C06" onclick="saveCrmClient(${id||0})">Enregistrer</button>`);
+}
+function saveCrmClient(id){
+  const nom=gv('fn');if(!nom){alert('Nom obligatoire');return;}
+  const o={id:id||crmUid(),nom,statut:gv('fst'),honoraires:+gv('fh')||0,secteur:gv('fs'),regime:gv('fr'),secteurFiscal:gv('fsf'),contact:gv('fc'),notes:gv('fno')};
+  const clients=getCrmClients();
+  if(id){saveCrmClients(clients.map(c=>c.id===id?o:c));}else{saveCrmClients([...clients,o]);}
+  closeModal();rCrmClients();rCrmDash();
+  document.getElementById('cnt-ech')&&updateCrmBadges();
+  showToast(id?'✅ Dossier mis à jour':'✅ Dossier créé !');
+}
+
+function genCrmCal(cId){
+  const c=getCrmClients().find(x=>x.id===cId);if(!c)return;
+  const iT=c.regime.includes('TEE'),iM=c.regime.includes('Micro'),iR=!iT&&!iM,iS=c.secteurFiscal==='Prestations de services',d=iS?'20':'15';
+  const arr=[];let id=Date.now();const add=(ty,dl,cat='DGI')=>arr.push({id:id++,clientId:cId,type:ty,dateLimit:dl,statut:'À faire',categorie:cat,notes:''});
+  const yr=new Date().getFullYear();
+  if(iT){add('TEE - Déclaration annuelle',yr+'-01-15');for(let m=1;m<=12;m++){const mo=String(m).padStart(2,'0');add(`TEE - Paiement ${mo}/${yr}`,yr+'-'+mo+'-10');}}
+  if(iM){add('Microentreprises - Déclaration',yr+'-01-15');for(let m=1;m<=12;m++){const mo=String(m).padStart(2,'0');add(`Microentreprises - Paiement ${mo}/${yr}`,yr+'-'+mo+'-10');}}
+  if(iR){for(let m=1;m<=12;m++){const mo=String(m).padStart(2,'0');add(`TVA - Déclaration ${mo}/${yr}`,yr+'-'+mo+'-'+d);add(`ITS/Contributions ${mo}/${yr}`,yr+'-'+mo+'-15');add(`TSE ${mo}/${yr}`,yr+'-'+mo+'-'+d);}add('ITS - Régularisation',yr+'-02-'+d);add('Patente - 1ère moitié',yr+'-03-'+d);add('Patente - 2ème moitié',yr+'-07-'+d);add('BIC/BNC - Déclaration',yr+'-05-30');add('États financiers SYSCOHADA',yr+'-05-30','SYSCOHADA');add('Contributions - Récap. annuel',yr+'-04-30');add('BIC - 1er acompte',yr+'-04-'+d);add('BIC - 2ème acompte',yr+'-06-'+d);add('BIC - 3ème acompte',yr+'-09-'+d);}
+  for(let m=1;m<=12;m++){const mo=String(m).padStart(2,'0');add(`CNPS - Cotisations ${mo}/${yr}`,yr+'-'+mo+'-15','CNPS');}
+  add('CNPS - Déclaration annuelle',yr+'-04-30','CNPS');
+  const existingEch=getCrmEcheances().filter(e=>e.clientId!==cId);saveCrmEcheances([...existingEch,...arr]);
+  updateCrmBadges();showToast(`✅ ${arr.length} échéances générées pour ${c.nom}`);
+}
+
+// ══ CRM — ÉCHÉANCES ══════════════════════════════════════════
+function rCrmEch(){
+  const echeances=getCrmEcheances(),clients=getCrmClients();
+  document.getElementById('pg-crm-ech').innerHTML=`
+  <div class="rh"><div><div class="st">Échéances fiscales</div><div class="ss" id="eCount">${echeances.length} échéance(s)</div></div><button class="btn" onclick="openCrmEchForm(null)">+ Nouvelle</button></div>
+  <div style="display:flex;gap:7px;margin-bottom:13px;flex-wrap:wrap">
+    <select id="fEC" onchange="rCrmEchList()" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-size:11.5px"><option value="">Tous clients</option>${clients.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('')}</select>
+    <select id="fECat" onchange="rCrmEchList()" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-size:11.5px"><option value="">Toutes catégories</option>${['DGI','CNPS','SYSCOHADA','Mairie','Autre'].map(c=>`<option>${c}</option>`).join('')}</select>
+    <select id="fEM" onchange="rCrmEchList()" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-size:11.5px"><option value="">Tous mois</option>${MF.map((m,i)=>`<option value="${i}">${m}</option>`).join('')}</select>
+  </div>
+  <div id="eList"></div>`;
+  rCrmEchList();
+}
+function rCrmEchList(){
+  const echeances=getCrmEcheances();const fC=gv('fEC'),fCat=gv('fECat'),fM=gv('fEM');
+  const list=echeances.filter(e=>{if(fC&&String(e.clientId)!==fC)return false;if(fCat&&e.categorie!==fCat)return false;if(fM!==''&&new Date(e.dateLimit).getMonth()!==+fM)return false;return true;}).sort((a,b)=>new Date(a.dateLimit)-new Date(b.dateLimit));
+  const ec=document.getElementById('eCount');if(ec)ec.textContent=list.length+' / '+echeances.length+' échéance(s)';
+  const sc={'À faire':'var(--blue)','En cours':'var(--gold)','Transmis':'var(--green)','Validé':'var(--green)','En retard':'var(--red)'};
+  document.getElementById('eList').innerHTML=list.length===0?`<div style="text-align:center;padding:40px;color:var(--muted)">📅 Aucune échéance — générez un calendrier depuis les dossiers clients</div>`:list.map(e=>{const cl=gcCrm(e.clientId);const j=jrCrm(e.dateLimit);const c=sc[e.statut]||'var(--muted)';return`<div class="item" style="border-left:3px solid ${c}"><div class="il"><div class="in">${cbCrm(e.categorie||'DGI')}${e.type}</div><div class="is">${cl?.nom||'—'} · ${fdCrm(e.dateLimit)}${j!==null?` <span style="font-weight:600;color:${j<0?'var(--red)':j<=5?'var(--gold)':'var(--muted)'}">${j<0?'('+Math.abs(j)+'j retard)':j===0?'(Aujourd\'hui!)':'(J-'+j+')'}</span>`:''}</div></div><div class="ir"><select class="ctrl" style="font-size:11px;padding:3px 6px" onchange="changeCrmEchStatus(${e.id},this.value)">${STE.map(s=>`<option${s===e.statut?' selected':''}>${s}</option>`).join('')}</select><button class="btgh btsm" onclick="openCrmEchForm(${e.id})">✏️</button><button class="btgh btsm" onclick="delCrmEch(${e.id})">🗑️</button></div></div>`;}).join('');
+}
+function changeCrmEchStatus(id,val){const ech=getCrmEcheances().map(e=>e.id===id?{...e,statut:val}:e);saveCrmEcheances(ech);rCrmEchList();updateCrmBadges();}
+function delCrmEch(id){saveCrmEcheances(getCrmEcheances().filter(e=>e.id!==id));rCrmEchList();updateCrmBadges();showToast('🗑️ Supprimé');}
+function openCrmEchForm(id){
+  const echeances=getCrmEcheances();const e=id?echeances.find(x=>x.id===id):null;const clients=getCrmClients();
+  openModal(id?'Modifier l\'échéance':'Nouvelle échéance',`
+    <div class="f"><label>Client *</label><select id="fcl"><option value="">Choisir...</option>${clients.map(c=>`<option value="${c.id}"${e&&e.clientId==c.id?' selected':''}>${c.nom}</option>`).join('')}</select></div>
+    <div class="f"><label>Catégorie</label><select id="fcat">${['DGI','CNPS','SYSCOHADA','Mairie','Autre'].map(c=>`<option${c===(e?.categorie||'DGI')?' selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="f"><label>Type d'obligation *</label><input id="fty" value="${e?.type||''}"/></div>
+    <div class="g2"><div class="f"><label>Date limite *</label><input id="fdl" type="date" value="${e?.dateLimit||''}"/></div><div class="f"><label>Statut</label><select id="fst">${STE.map(s=>`<option${s===(e?.statut||'À faire')?' selected':''}>${s}</option>`).join('')}</select></div></div>
+    <div class="f"><label>Notes</label><textarea id="fno">${e?.notes||''}</textarea></div>
+    <button class="btn" style="width:100%;padding:11px;background:var(--green);color:#060C06" onclick="saveCrmEch(${id||0})">Enregistrer</button>`);
+}
+function saveCrmEch(id){
+  const cId=+document.getElementById('fcl').value,ty=gv('fty'),dl=gv('fdl');if(!cId||!ty||!dl){alert('Client, type et date obligatoires');return;}
+  const o={id:id||crmUid(),clientId:cId,type:ty,dateLimit:dl,statut:gv('fst'),categorie:gv('fcat'),notes:gv('fno')};
+  const ech=getCrmEcheances();saveCrmEcheances(id?ech.map(e=>e.id===id?o:e):[...ech,o]);
+  closeModal();rCrmEchList();updateCrmBadges();showToast(id?'✅ Mis à jour':'✅ Échéance ajoutée !');
+}
+function updateCrmBadges(){const urg=getCrmEcheances().filter(e=>!['Validé','Transmis'].includes(e.statut)&&jrCrm(e.dateLimit)!==null&&jrCrm(e.dateLimit)<=10).length;const cntEch=document.getElementById('cnt-ech');if(cntEch){cntEch.style.display=urg?'inline':'none';cntEch.textContent=urg;}}
+
+// ══ CRM — FACTURES ═══════════════════════════════════════════
+function rCrmFac(){
+  const factures=getCrmFactures();const tP=factures.filter(f=>f.statut==='Payée').reduce((s,f)=>s+(+f.mt||0),0);const tA=factures.filter(f=>['Envoyée','En retard'].includes(f.statut)).reduce((s,f)=>s+(+f.mt||0),0);
+  document.getElementById('pg-crm-fac').innerHTML=`
+  <div class="rh"><div><div class="st">Factures d'honoraires</div><div class="ss">Encaissé : <strong style="color:var(--green)">${fmCrm(tP)}</strong> &nbsp;·&nbsp; En attente : <strong style="color:var(--gold)">${fmCrm(tA)}</strong></div></div><button class="btn" onclick="openCrmFacForm(null)">+ Nouvelle facture</button></div>
+  <div id="fList">${renderCrmFacList(factures)}</div>`;
+}
+function renderCrmFacList(factures){
+  if(!factures.length)return'<div style="text-align:center;color:var(--muted);padding:40px">Aucune facture</div>';
+  return factures.sort((a,b)=>new Date(b.dateEmission)-new Date(a.dateEmission)).map(f=>{const cl=gcCrm(f.clientId);const mc=f.statut==='Payée'?'var(--green)':f.statut==='En retard'?'var(--red)':'var(--text)';return`<div class="item"><div class="il"><div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:2px"><span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--green)">${f.num}</span>${bstCrm(f.statut)}<span style="font-size:11px;color:var(--muted)">${cl?.nom||'—'}</span></div><div style="font-size:11px;color:var(--muted)">${f.desc}</div><div style="font-size:10px;color:var(--muted)">Émise ${fdCrm(f.dateEmission)} · Éch. ${fdCrm(f.dateEcheance)}</div></div><div class="ir"><div style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:${mc}">${fmCrm(f.mt)}</div><select style="background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:10.5px;padding:2px 5px" onchange="changeCrmFacStatus(${f.id},this.value)">${STF.map(s=>`<option${s===f.statut?' selected':''}>${s}</option>`).join('')}</select><button class="btgh btsm" onclick="openCrmFacForm(${f.id})">✏️</button><button class="btgh btsm" onclick="delCrmFac(${f.id})">🗑️</button></div></div>`;}).join('');
+}
+function changeCrmFacStatus(id,val){saveCrmFactures(getCrmFactures().map(f=>f.id===id?{...f,statut:val}:f));rCrmFac();}
+function delCrmFac(id){saveCrmFactures(getCrmFactures().filter(f=>f.id!==id));rCrmFac();showToast('🗑️ Supprimé');}
+function openCrmFacForm(id){
+  const factures=getCrmFactures();const f=id?factures.find(x=>x.id===id):null;const clients=getCrmClients();const cl=clients.map(c=>`<option value="${c.id}"${f&&f.clientId==c.id?' selected':''}>${c.nom}</option>`).join('');
+  openModal(id?'Modifier la facture':'Nouvelle facture',`
+    <div class="f"><label>Client *</label><select id="fcl"><option value="">Choisir...</option>${cl}</select></div>
+    <div class="f"><label>Description</label><input id="fde" value="${f?.desc||''}"/></div>
+    <div class="g2"><div class="f"><label>Montant FCFA *</label><input id="fmt2" type="number" value="${f?.mt||''}"/></div><div class="f"><label>Statut</label><select id="fst">${STF.map(s=>`<option${s===(f?.statut||'Brouillon')?' selected':''}>${s}</option>`).join('')}</select></div></div>
+    <div class="g2"><div class="f"><label>Date d'émission</label><input id="femi" type="date" value="${f?.dateEmission||tdCrm()}"/></div><div class="f"><label>Date d'échéance</label><input id="fec" type="date" value="${f?.dateEcheance||''}"/></div></div>
+    <button class="btn" style="width:100%;padding:11px;background:var(--green);color:#060C06" onclick="saveCrmFac(${id||0})">Enregistrer</button>`);
+}
+function saveCrmFac(id){
+  const cId=+document.getElementById('fcl').value,mt=+gv('fmt2');if(!cId||!mt){alert('Client et montant obligatoires');return;}
+  const num=id?(getCrmFactures().find(f=>f.id===id)?.num||''):('FAC-'+new Date().getFullYear()+'-'+String(getCrmFactures().length+1).padStart(3,'0'));
+  const o={id:id||crmUid(),clientId:cId,num,mt,desc:gv('fde'),statut:gv('fst'),dateEmission:gv('femi'),dateEcheance:gv('fec')};
+  const facs=getCrmFactures();saveCrmFactures(id?facs.map(f=>f.id===id?o:f):[...facs,o]);
+  closeModal();rCrmFac();showToast(id?'✅ Mis à jour':'✅ Facture créée !');
+}
+
+// ══ CRM — ACTIVITÉS ══════════════════════════════════════════
+function rCrmActi(){
+  const clients=getCrmClients();
+  document.getElementById('pg-crm-acti').innerHTML=`
+  <div class="rh"><div><div class="st">Suivi des activités</div><div class="ss">Checklist mensuelle par client</div></div></div>
+  <div style="display:flex;gap:7px;margin-bottom:13px;flex-wrap:wrap">
+    <select id="sAC" onchange="rCrmActiList()" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-size:11.5px">${clients.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('')}</select>
+    <select id="sAM" onchange="rCrmActiList()" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-size:11.5px">${MF.map((m,i)=>`<option value="${i}"${i===new Date().getMonth()?' selected':''}>${m} ${new Date().getFullYear()}</option>`).join('')}</select>
+    <div style="display:flex;gap:4px">
+      <button id="bTd" class="btgh btsm active" onclick="setAV('todo')">📋 Checklist</button>
+      <button id="bCh" class="btgh btsm" onclick="setAV('chrono')">📆 Chronogramme</button>
+    </div>
+  </div>
+  <div id="aC"></div>`;
+  rCrmActiList();
+}
+function setAV(v){crmAv=v;document.getElementById('bTd').classList.toggle('active',v==='todo');document.getElementById('bCh').classList.toggle('active',v==='chrono');rCrmActiList();}
+function rCrmActiList(){
+  const clients=getCrmClients();if(!clients.length){document.getElementById('aC').innerHTML='<div style="text-align:center;color:var(--muted);padding:40px">Aucun client — créez des dossiers d\'abord</div>';return;}
+  const cId=+gv('sAC')||clients[0]?.id;const m=+(document.getElementById('sAM')?.value??new Date().getMonth());const todos=getCrmTodos();const div=document.getElementById('aC');
+  if(!div)return;
+  if(crmAv==='todo'){
+    div.innerHTML=[['M','Mensuel'],['T','Trimestriel'],['A','Annuel'],['P','Ponctuel']].map(([p,pl])=>{const acts=ACT.filter(a=>a.p===p);const dn=acts.filter(a=>(todos[cId+'_'+m]||{})[a.id]).length;return`<div style="display:flex;align-items:center;gap:8px;margin:14px 0 7px"><span class="b bc" style="font-size:10px">${pl}</span><span style="font-size:10.5px;color:var(--muted)">${dn}/${acts.length} · ${Math.round(dn/acts.length*100)}%</span><div style="flex:1;height:1px;background:var(--border)"></div></div>`+acts.map(a=>{const done=(todos[cId+'_'+m]||{})[a.id];return`<div class="todo${done?' done':''}" onclick="toggleCrmTodo(${cId},${m},'${a.id}')"><div class="chk${done?' done':''}">${done?'<svg width="9" height="7" viewBox="0 0 9 7"><polyline points="1,3.5 3,5.5 8,1" fill="none" stroke="#060C06" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div><div class="tl">${a.l}</div><span style="font-size:10px;font-weight:600;color:${a.r==='Client'?'var(--gold)':'var(--acc3)'}">${a.r}</span></div>`;}).join('');}).join('');
+  }else{
+    const hdrs=MS.map((mx,mi)=>`<th style="padding:6px 2px;font-size:9.5px;color:${mi===m?'var(--text)':'var(--muted)'};font-weight:${mi===m?700:400};min-width:26px;text-align:center;background:${mi===m?'var(--border)':'transparent'}">${mx}</th>`).join('');
+    const rows=ACT.map((a,idx)=>{const cells=MS.map((_,mi)=>{const act=(a.p==='M')||(a.p==='T'&&mi%3===2)||(a.p==='A'&&mi===11)||(a.p==='P'&&mi===0);const dn=act&&(todos[cId+'_'+mi]||{})[a.id];const bg=mi===m?'var(--border)33':'transparent';return act?`<td style="text-align:center;padding:3px 2px;background:${bg};cursor:pointer" onclick="toggleCrmTodo(${cId},${mi},'${a.id}')"><div style="width:14px;height:14px;border-radius:3px;background:${dn?'var(--green)':'var(--border2)'};border:1.5px solid ${dn?'var(--green)':'var(--border2)'};margin:0 auto"></div></td>`:`<td style="text-align:center;padding:3px 2px;background:${bg}"><div style="width:6px;height:1px;background:var(--border);margin:0 auto"></div></td>`;}).join('');return`<tr style="background:${idx%2===0?'var(--card)':'var(--bg2)'}"><td style="padding:5px 11px;font-size:10.5px;position:sticky;left:0;background:${idx%2===0?'var(--card)':'var(--bg2)'};max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.l}</td><td style="text-align:center;padding:5px 2px"><span class="b bc" style="font-size:9px">${a.p}</span></td>${cells}</tr>`;}).join('');
+    div.innerHTML=`<div style="overflow-x:auto;border-radius:9px;border:1px solid var(--border)"><table style="border-collapse:collapse;width:100%;min-width:640px"><thead><tr style="background:var(--bg)"><th style="text-align:left;padding:8px 11px;font-size:10.5px;color:var(--muted);position:sticky;left:0;background:var(--bg);min-width:180px">Activité</th><th style="padding:8px 2px;font-size:9.5px;color:var(--muted)">Pér.</th>${hdrs}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+}
+function toggleCrmTodo(cId,m,aId){const todos=getCrmTodos();const k=cId+'_'+m;if(!todos[k])todos[k]={};todos[k][aId]=!todos[k][aId];saveCrmTodos(todos);rCrmActiList();}
+
+// ══ CRM — ÉQUIPE ═════════════════════════════════════════════
+function rCrmEquipe(){
+  const equipe=getCrmEquipe();
+  document.getElementById('pg-crm-equipe').innerHTML=`
+  <div class="rh"><div><div class="st">Équipe</div><div class="ss">${equipe.length} membre(s)</div></div><button class="btn" onclick="openCrmMemForm(0)">+ Ajouter</button></div>
+  <div class="g3" id="mGrid">${equipe.length===0?'<div style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1">Aucun membre</div>':equipe.map(m=>`<div class="mc"><div style="display:flex;justify-content:space-between;margin-bottom:9px"><div class="mav">${m.nom[0]}${m.prenom?.[0]||''}</div></div><div style="font-size:13px;font-weight:700;color:var(--w)">${m.prenom||''} ${m.nom||''}</div><div style="font-size:11px;color:var(--acc3);font-weight:600;margin-top:2px">${m.poste||'—'}</div>${m.notes?`<div style="font-size:10.5px;color:var(--muted);margin-top:5px;font-style:italic">${m.notes}</div>`:''}<div style="display:flex;gap:5px;margin-top:11px"><button class="btgh btsm" style="flex:1" onclick="openCrmMemForm(${m.id})">✏️ Modifier</button><button class="btgh btsm" onclick="delCrmMem(${m.id})">🗑️</button></div></div>`).join('')}</div>`;
+}
+function delCrmMem(id){if(confirm('Supprimer ?')){saveCrmEquipe(getCrmEquipe().filter(m=>m.id!==id));rCrmEquipe();showToast('🗑️ Supprimé');}}
+function openCrmMemForm(id){
+  const equipe=getCrmEquipe();const m=id?equipe.find(x=>x.id===id):{};
+  openModal(id?'Modifier membre':'Nouveau membre',`
+    <div class="g2"><div class="f"><label>Nom *</label><input id="fn" value="${m.nom||''}"/></div><div class="f"><label>Prénom</label><input id="fpr" value="${m.prenom||''}"/></div></div>
+    <div class="f"><label>Poste</label><select id="fpo">${POS.map(p=>`<option${p===(m.poste||POS[0])?' selected':''}>${p}</option>`).join('')}</select></div>
+    <div class="g2"><div class="f"><label>Email</label><input id="fem" type="email" value="${m.email||''}"/></div><div class="f"><label>Téléphone</label><input id="fph" value="${m.phone||''}"/></div></div>
+    <div class="f"><label>Notes</label><textarea id="fno">${m.notes||''}</textarea></div>
+    <button class="btn" style="width:100%;padding:11px;background:var(--green);color:#060C06" onclick="saveCrmMem(${id||0})">Enregistrer</button>`);
+}
+function saveCrmMem(id){const nom=gv('fn');if(!nom){alert('Nom obligatoire');return;}const o={id:id||crmUid(),nom,prenom:gv('fpr'),poste:gv('fpo'),email:gv('fem'),phone:gv('fph'),notes:gv('fno')};const eq=getCrmEquipe();saveCrmEquipe(id?eq.map(m=>m.id===id?o:m):[...eq,o]);closeModal();rCrmEquipe();showToast(id?'✅ Mis à jour':'✅ Membre ajouté !');}
+
+// ══ DOCUMENT GENERATION ═════════════════════════════════════
+const DOC_TYPES=[
+  {id:'devis',lbl:'Devis',ico:'🎬',pfx:'DEV'},
+  {id:'facture',lbl:'Facture',ico:'🧾',pfx:'FAC'},
+  {id:'proforma',lbl:'Pro Forma',ico:'📋',pfx:'PRO'},
+  {id:'bon_caisse',lbl:'Bon de caisse',ico:'💵',pfx:'BC'},
+  {id:'attestation',lbl:'Attestation paiement',ico:'✅',pfx:'ATT'},
+  {id:'recu',lbl:'Reçu de paiement',ico:'🏦',pfx:'REC'},
+  {id:'contrat_client',lbl:'Contrat prestation',ico:'📝',pfx:'CTR'},
+  {id:'contrat_artiste',lbl:'Contrat artiste/tech.',ico:'🎭',pfx:'CAR'},
+  {id:'bon_commande',lbl:'Bon de commande',ico:'📦',pfx:'BDC'},
+  {id:'note_frais',lbl:'Note de frais',ico:'🧮',pfx:'NF'},
+  {id:'cession_droits',lbl:'Cession de droits',ico:'©️',pfx:'CDR'},
+  {id:'relance',lbl:'Lettre de relance',ico:'📮',pfx:'REL'},
+];
+let curDT='devis',dlIds=[],curDoc=null;
+
+function rDocs(){
+  document.getElementById('pg-docs').innerHTML=`
+  <div class="rh"><div><div class="st">Générateur de documents</div><div class="ss">Devis, factures, contrats, attestations…</div></div></div>
+  <div style="display:grid;grid-template-columns:1fr 220px;gap:15px;align-items:start">
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;color:var(--w);margin-bottom:13px;padding-bottom:11px;border-bottom:1px solid var(--border)" id="dFormTit">🎬 Devis</div>
+      <div id="dFormCnt"></div>
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">Types de documents</div>
+      <div id="dtypeList"></div>
+      <div class="sep"></div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">Historique</div>
+      <input placeholder="🔍 Rechercher..." id="docSearch" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:10.5px;padding:5px 8px;outline:none;margin-bottom:6px" oninput="filterDocHist()"/>
+      <div id="dHistList"></div>
+    </div>
+  </div>`;
+  document.getElementById('dtypeList').innerHTML=DOC_TYPES.map(d=>`<div id="dt_${d.id}" onclick="setDT('${d.id}')" style="background:var(--card);border:1px solid ${curDT===d.id?'var(--acc)':'var(--border)'};border-radius:8px;padding:9px 11px;cursor:pointer;margin-bottom:5px"><div style="font-size:11.5px;font-weight:700;color:${curDT===d.id?'var(--acc3)':'var(--w)'};">${d.ico} ${d.lbl}</div></div>`).join('');
+  setDT(curDT);rDocHist();
+}
+function setDT(t){
+  curDT=t;dlIds=[];
+  DOC_TYPES.forEach(d=>{const e=document.getElementById('dt_'+d.id);if(e){e.style.borderColor=d.id===t?'var(--acc)':'var(--border)';e.querySelector('div').style.color=d.id===t?'var(--acc3)':'var(--w)';}});
+  const doc=DOC_TYPES.find(d=>d.id===t);if(document.getElementById('dFormTit'))document.getElementById('dFormTit').textContent=(doc?.ico||'')+' '+(doc?.lbl||t);
+  rDocForm(t);
+}
+
+function getDocCfg(){
+  const ci=getCompanyInfo();
+  return{
+    nom:ci.nom||'BALANCE CONSULTING',
+    slogan:ci.slogan||'Expert-comptable · Conseil fiscal · Gestion',
+    adresse:ci.adresse||'Abidjan, Côte d\'Ivoire',
+    tel:ci.tel||'+225 07 00 77 69 75',
+    email:ci.email||'contact@balanceconsulting.ci',
+    web:ci.web||'',
+    rccm:ci.rccm||'CI-ABJ-XXXX-B-XXXXX',
+    ncc:ci.ncc||'',
+    ville:ci.ville||'Abidjan',
+    logo:ci.logo_url||'',
+    mentions:ci.mentions||'Tous droits réservés.',
+    sigs:ci.sigs||[{nom:'Directeur Général',role:'Expert-comptable agréé'}],
+    couleur:ci.couleur_principale||'#1A56DB'
+  };
+}
+function pvNum(pfx){const k='nc_'+pfx;const n=(parseInt(S.g(k)||'0')+1);return pfx+'-'+new Date().getFullYear()+'-'+String(n).padStart(4,'0');}
+function nDoc(pfx){const k='nc_'+pfx;const n=(parseInt(S.g(k)||'0')+1);S.s(k,n);return pfx+'-'+new Date().getFullYear()+'-'+String(n).padStart(4,'0');}
+function addDL(desc='',qty=1,pu=0){
+  const id=crmUid();dlIds.push(id);const w=document.getElementById('dlW');if(!w)return;
+  const d=document.createElement('div');d.id='dl_'+id;d.style.cssText='background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:9px;margin-bottom:6px;';
+  d.innerHTML=`<div style="display:grid;grid-template-columns:1fr 50px 110px 100px auto;gap:5px;align-items:end">
+    <div class="f" style="margin:0"><label>Description</label><input placeholder="Prestation..." id="dld_${id}" value="${desc}" oninput="calcD()"/></div>
+    <div class="f" style="margin:0"><label>Qté</label><input type="number" id="dlq_${id}" value="${qty}" min="1" oninput="calcD()"/></div>
+    <div class="f" style="margin:0"><label>P.U. HT</label><input type="number" id="dlp_${id}" value="${pu}" oninput="calcD()"/></div>
+    <div class="f" style="margin:0"><label>Total</label><input id="dlt_${id}" readonly style="color:var(--gold);font-family:'Space Mono',monospace;font-size:11px"/></div>
+    <button onclick="document.getElementById('dl_${id}').remove();dlIds=dlIds.filter(x=>x!==${id});calcD()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding-bottom:4px">×</button>
+  </div>`;
+  w.appendChild(d);calcD();
+}
+function calcD(){
+  const ls=getDLignes();const ht=ls.reduce((s,l)=>s+l.tot,0);
+  dlIds.forEach(id=>{const q=+document.getElementById('dlq_'+id)?.value||1;const p=+document.getElementById('dlp_'+id)?.value||0;const t=document.getElementById('dlt_'+id);if(t)t.value=new Intl.NumberFormat('fr-FR').format(q*p);});
+  const tva=gb('dcb_tva')?Math.round(ht*0.18):0;const brut=ht+tva;const ret=gb('dcb_ret')?Math.round(brut*0.075):0;const net=brut-ret;const acomp=+gv('dcb_acomp')||0;
+  const el=document.getElementById('dSum');
+  if(el)el.innerHTML=`<div class="dtr"><span>Sous-total HT</span><span>${fmt2(ht)}</span></div>${tva?`<div class="dtr"><span>TVA (18%)</span><span>${fmt2(tva)}</span></div>`:''}<div class="dtr"><span>Total brut</span><span>${fmt2(brut)}</span></div>${ret?`<div class="dtr ret"><span>Retenue source (7,5%)</span><span style="color:#b45309">− ${fmt2(ret)}</span></div>`:''}<div class="dtr fin"><span>NET À PAYER</span><span>${fmt2(net)}</span></div>${acomp?`<div class="dtr" style="color:#059669"><span>Acompte versé</span><span>${fmt2(acomp)}</span></div><div class="dtr fin"><span>RESTE DÛ</span><span>${fmt2(net-acomp)}</span></div>`:''}`;
+}
+function getDLignes(){return dlIds.map(id=>({desc:document.getElementById('dld_'+id)?.value||'',qty:+document.getElementById('dlq_'+id)?.value||1,pu:+document.getElementById('dlp_'+id)?.value||0,tot:(+document.getElementById('dlq_'+id)?.value||1)*(+document.getElementById('dlp_'+id)?.value||0)})).filter(l=>l.desc||l.tot>0);}
+function calcAtt(){const mt=+gv('dc_mt')||0,tva=gb('dcb_tva')?Math.round(mt*0.18):0,brut=mt+tva,ret=gb('dcb_ret')?Math.round(brut*0.075):0,net=brut-ret;const el=document.getElementById('dSum');if(el)el.innerHTML=`<div class="dtr"><span>Montant HT</span><span>${fmt2(mt)}</span></div>${tva?`<div class="dtr"><span>TVA 18%</span><span>${fmt2(tva)}</span></div>`:''}<div class="dtr"><span>Total brut</span><span>${fmt2(brut)}</span></div>${ret?`<div class="dtr ret"><span>Retenue source (7,5%)</span><span style="color:#b45309">− ${fmt2(ret)}</span></div>`:''}<div class="dtr fin"><span>NET VERSÉ AU PRESTATAIRE</span><span>${fmt2(net)}</span></div>`;}
+function calcArt(){const mt=+gv('dc_mt')||0,j=+gv('dc_jours')||1,tot=mt*j,ret=gb('dcb_ret')?Math.round(tot*0.075):0,net=tot-ret;const el=document.getElementById('dSum');if(el)el.innerHTML=`<div class="dtr"><span>Tarif × jours</span><span>${fmt2(mt)} × ${j}</span></div><div class="dtr"><span>Total brut</span><span>${fmt2(tot)}</span></div>${ret?`<div class="dtr ret"><span>Retenue BNC (7,5%)</span><span style="color:#b45309">− ${fmt2(ret)}</span></div>`:''}<div class="dtr fin"><span>NET À PAYER</span><span>${fmt2(net)}</span></div>`;}
+
+function fiscBox(showRet=false){return`<div class="fbox"><div class="fboxt">Options fiscales</div><label class="cr"><input type="checkbox" id="dcb_tva" checked onchange="calcD()"/> TVA 18%</label>${showRet?`<label class="cr"><input type="checkbox" id="dcb_ret" onchange="calcD()"/> Retenue source informel (7,5%)</label>`:''}</div>`;}
+function signFld(){
+  const c=getDocCfg();const ds=c.sigs?.[0]||{nom:'Directeur Général',role:'Expert-comptable agréé'};
+  return`<div class="g2"><div class="f"><label>Signataire</label><select id="dc_sign" onchange="autoQ()">${(c.sigs||[ds]).map(s=>`<option value="${s.nom}|${s.role}">${s.nom}</option>`).join('')}</select></div><div class="f"><label>Qualité</label><input id="dc_qual" value="${ds.role}"/></div></div>`;
+}
+function autoQ(){const el=document.getElementById('dc_sign');if(!el)return;const p=el.value.split('|');const q=document.getElementById('dc_qual');if(q&&p[1])q.value=p[1];}
+
+const sumBox=`<div id="dSum" style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:10px;margin-bottom:11px"></div>`;
+
+function rDocForm(t){
+  dlIds=[];
+  const pfx=DOC_TYPES.find(d=>d.id===t)?.pfx||'DOC';
+  const cliF=`<div class="f"><label>Client *</label><input id="dc_cl" placeholder="Nom du client / entreprise"/></div><div class="g2"><div class="f"><label>Adresse client</label><input id="dc_adr" placeholder="Adresse"/></div><div class="f"><label>Contact</label><input id="dc_cnt" placeholder="Tél / Email"/></div></div>`;
+  const numD=`<div class="g2"><div class="f"><label>Numéro</label><input id="dc_num" value="${pvNum(pfx)}"/></div><div class="f"><label>Date</label><input id="dc_date" type="date" value="${TODAY}"/></div></div>`;
+  const genB=l=>`<button class="btn" style="width:100%;padding:10px;margin-top:4px" onclick="genDoc('${t}')">${l}</button>`;
+  const forms={
+    devis:`${cliF}${numD}<div class="f"><label>Objet</label><input id="dc_obj" placeholder="Ex: Prestation comptable 2026"/></div><div class="sep"></div><div id="dlW"></div><button onclick="addDL()" class="btgh btsm" style="width:100%;margin-bottom:9px">+ Ligne</button><div class="f"><label>Acompte (FCFA)</label><input type="number" id="dcb_acomp" oninput="calcD()"/></div>${fiscBox(true)}${sumBox}<div class="f"><label>Validité</label><input id="dc_val" value="30 jours"/></div><div class="f"><label>Conditions</label><textarea id="dc_notes">Acompte 50% à la signature. Facturation mensuelle selon état d'avancement.</textarea></div>${signFld()}${genB('Générer le devis →')}`,
+    facture:`${cliF}${numD}<div class="sep"></div><div id="dlW"></div><button onclick="addDL()" class="btgh btsm" style="width:100%;margin-bottom:9px">+ Ligne</button>${fiscBox(true)}${sumBox}<div class="g2"><div class="f"><label>Échéance</label><input id="dc_ech" type="date"/></div><div class="f"><label>Mode paiement</label><select id="dc_mode"><option>Virement bancaire</option><option>Espèces</option><option>Chèque</option><option>Mobile Money</option></select></div></div><div class="f"><label>Notes</label><textarea id="dc_notes">Paiement à réception. Pénalités de retard : 3%/mois.</textarea></div>${signFld()}${genB('Générer la facture →')}`,
+    proforma:`${cliF}${numD}<div class="sep"></div><div id="dlW"></div><button onclick="addDL()" class="btgh btsm" style="width:100%;margin-bottom:9px">+ Ligne</button>${fiscBox(false)}${sumBox}<div class="f"><label>Validité</label><input id="dc_val" value="30 jours"/></div><div class="f"><label>Notes</label><textarea id="dc_notes">Document pro forma — Non contractuel.</textarea></div>${signFld()}${genB('Générer le pro forma →')}`,
+    bon_caisse:`${cliF}${numD}<div class="f"><label>Montant reçu (FCFA) *</label><input id="dc_mt" type="number" placeholder="Ex: 150000"/></div><div class="f"><label>Montant en lettres</label><input id="dc_let" placeholder="Ex: Cent cinquante mille francs CFA"/></div><div class="f"><label>Motif *</label><input id="dc_mot" placeholder="Ex: Honoraires comptabilité — Mars 2026"/></div><div class="f"><label>Caissier</label><input id="dc_cais" value="${getDocCfg().sigs?.[0]?.nom||''}"/></div>${signFld()}${genB('Générer le bon →')}`,
+    attestation:`${cliF}${numD}<div class="f"><label>Montant payé (FCFA) *</label><input id="dc_mt" type="number" oninput="calcAtt()"/></div>${fiscBox(true)}${sumBox}<div class="f"><label>Réf. facture</label><input id="dc_facref" placeholder="Ex: FAC-2026-0001"/></div><div class="g2"><div class="f"><label>Date du paiement</label><input id="dc_dpmt" type="date" value="${TODAY}"/></div><div class="f"><label>Mode</label><select id="dc_mode"><option>Virement bancaire</option><option>Espèces</option><option>Chèque</option><option>Mobile Money</option></select></div></div><div class="f"><label>Objet</label><input id="dc_obj" placeholder="Ex: Honoraires comptabilité T1 2026"/></div>${signFld()}${genB("Générer l'attestation →")}`,
+    recu:`${cliF}${numD}<div class="f"><label>Montant reçu (FCFA) *</label><input id="dc_mt" type="number"/></div><div class="f"><label>Montant en lettres</label><input id="dc_let" placeholder="Ex: Cent mille francs CFA"/></div><div class="g2"><div class="f"><label>Mode de paiement</label><select id="dc_mode"><option>Virement bancaire</option><option>Espèces</option><option>Chèque</option><option>Mobile Money</option></select></div><div class="f"><label>Réf. transaction</label><input id="dc_ref" placeholder="Ex: VIR-0001"/></div></div><div class="f"><label>Objet du paiement *</label><input id="dc_mot" placeholder="Ex: Règlement facture FAC-2026-0001"/></div>${signFld()}${genB('Générer le reçu →')}`,
+    contrat_client:`${cliF}${numD}<div class="f"><label>Objet de la mission *</label><input id="dc_obj" placeholder="Ex: Mission d'expertise comptable annuelle"/></div><div class="g2"><div class="f"><label>Date début</label><input id="dc_db" type="date" value="${TODAY}"/></div><div class="f"><label>Date fin</label><input id="dc_df" type="date"/></div></div><div class="g2"><div class="f"><label>Montant (FCFA) *</label><input id="dc_mt" type="number"/></div><div class="f"><label>Acompte (FCFA)</label><input id="dc_acomp" type="number"/></div></div><div class="f"><label>Prestations incluses</label><textarea id="dc_svc">Tenue de comptabilité, déclarations fiscales, états financiers annuels, conseil fiscal.</textarea></div><div class="f"><label>Livrables</label><input id="dc_liv" placeholder="Ex: États financiers + liasses fiscales"/></div>${signFld()}${genB('Générer le contrat →')}`,
+    contrat_artiste:`<div class="g2"><div class="f"><label>Nom prestataire *</label><input id="dc_art" placeholder="Nom Prénom"/></div><div class="f"><label>Rôle / Fonction</label><input id="dc_role" placeholder="Ex: Consultant fiscal"/></div></div>${numD}<div class="f"><label>Mission *</label><input id="dc_obj" placeholder="Ex: Mission de conseil fiscal"/></div><div class="g2"><div class="f"><label>Début</label><input id="dc_db" type="date" value="${TODAY}"/></div><div class="f"><label>Fin</label><input id="dc_df" type="date"/></div></div><div class="g2"><div class="f"><label>Tarif (FCFA)</label><input id="dc_mt" type="number" oninput="calcArt()"/></div><div class="f"><label>Unité</label><select id="dc_unite"><option>/jour</option><option>forfait</option><option>/heure</option></select></div></div><div class="f"><label>Nb jours</label><input id="dc_jours" type="number" value="1" min="1" oninput="calcArt()"/></div><div class="fbox"><div class="fboxt">Fiscalité</div><label class="cr"><input type="checkbox" id="dcb_ret" onchange="calcArt()"/> Retenue BNC 7,5%</label></div>${sumBox}<div class="f"><label>Tâches / Livrables</label><textarea id="dc_svc">Conformément aux termes de référence convenus.</textarea></div>${signFld()}${genB('Générer →')}`,
+    bon_commande:`<div class="f"><label>Fournisseur *</label><input id="dc_cl" placeholder="Nom du fournisseur"/></div><div class="f"><label>Contact</label><input id="dc_cnt" placeholder="Tél / Email"/></div>${numD}<div class="sep"></div><div id="dlW"></div><button onclick="addDL()" class="btgh btsm" style="width:100%;margin-bottom:9px">+ Article</button>${fiscBox(false)}${sumBox}<div class="g2"><div class="f"><label>Livraison souhaitée</label><input id="dc_df" type="date"/></div><div class="f"><label>Lieu de livraison</label><input id="dc_lieu" placeholder="Ex: BALANCE CONSULTING"/></div></div>${signFld()}${genB('Générer le bon →')}`,
+    note_frais:`<div class="g2"><div class="f"><label>Présenté par *</label><input id="dc_art" placeholder="Nom Prénom"/></div><div class="f"><label>Fonction</label><input id="dc_role" placeholder="Ex: Consultant"/></div></div>${numD}<div class="g2"><div class="f"><label>Période du</label><input id="dc_db" type="date" value="${TODAY}"/></div><div class="f"><label>Au</label><input id="dc_df" type="date"/></div></div><div class="sep"></div><div id="dlW"></div><button onclick="addDL()" class="btgh btsm" style="width:100%;margin-bottom:9px">+ Dépense</button>${sumBox}<div class="f"><label>Justificatifs joints</label><input id="dc_just" placeholder="Ex: 3 reçus, 1 facture"/></div>${signFld()}${genB('Générer →')}`,
+    cession_droits:`<div class="f"><label>Cessionnaire *</label><input id="dc_cl" placeholder="Nom de l'entreprise / client"/></div><div class="f"><label>Contact</label><input id="dc_cnt" placeholder="Tél / Email"/></div>${numD}<div class="f"><label>Objet *</label><input id="dc_obj" placeholder="Ex: Rapport d'audit fiscal 2026"/></div><div class="g2"><div class="f"><label>Territoire</label><input id="dc_terr" placeholder="Ex: Côte d'Ivoire"/></div><div class="f"><label>Durée de cession</label><input id="dc_durc" placeholder="Ex: 2 ans"/></div></div><div class="f"><label>Contrepartie (FCFA)</label><input id="dc_mt" type="number"/></div>${signFld()}${genB('Générer →')}`,
+    relance:`${cliF}${numD}<div class="g2"><div class="f"><label>Réf. facture impayée</label><input id="dc_facref" placeholder="Ex: FAC-2026-0001"/></div><div class="f"><label>Montant impayé (FCFA)</label><input id="dc_mt" type="number"/></div></div><div class="g2"><div class="f"><label>Date de la facture</label><input id="dc_dfac" type="date"/></div><div class="f"><label>Niveau</label><select id="dc_niv"><option value="1">1ère — Amiable</option><option value="2">2ème — Ferme</option><option value="3">3ème — Mise en demeure</option></select></div></div><div class="f"><label>Notes</label><textarea id="dc_notes"></textarea></div>${signFld()}${genB('Générer la lettre →')}`,
+  };
+  if(document.getElementById('dFormCnt'))document.getElementById('dFormCnt').innerHTML=forms[t]||'';
+  if(['devis','facture','proforma','bon_commande','note_frais'].includes(t)){dlIds=[];addDL();calcD();}
+  if(t==='attestation')calcAtt();
+  if(t==='contrat_artiste')calcArt();
+}
+
+function genDoc(t){
+  const c=getDocCfg();const doc=DOC_TYPES.find(d=>d.id===t);
+  const num=gv('dc_num')||nDoc(doc?.pfx||'DOC');const date=gv('dc_date')||TODAY;
+  const client=gv('dc_cl')||gv('dc_art');if(!client){alert('Client / Bénéficiaire obligatoire');return;}
+  const sign=gv('dc_sign')?.split('|')[0]||c.sigs?.[0]?.nom||'—';const qual=gv('dc_qual')||c.sigs?.[0]?.role||'—';
+  const adr=gv('dc_adr')||'',cnt=gv('dc_cnt')||'';
+  const _auth=S.g('auth');
+  const _canUseSig=_auth&&(_auth.displayName===sign||_auth.role==='superadmin');
+  const selectedSig=_canUseSig?(c.sigs?.find(sig=>sig.nom===sign)?.signature||''):'';
+  const abbr2=(c.nom||'BC').replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
+  const logoBox=c.logo?`<div class="dh-logo-wrap"><img src="${c.logo}" alt="logo" crossorigin="anonymous"/></div>`:`<div class="dh-logo-wrap"><span class="dh-logo-initials">${abbr2}</span></div>`;
+  const Hdr=()=>`<div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||'Expert-comptable · Conseil fiscal · Gestion'}</div><div class="din">${c.adresse||'Abidjan, Côte d\'Ivoire'}<br>Tél : ${c.tel||''}${c.email?' &nbsp;·&nbsp; '+c.email:''}<br>${c.rccm?'RCCM : '+c.rccm+' &nbsp;·&nbsp; ':''} ${c.ncc?'NCC : '+c.ncc:''}</div></div></div><div style="text-align:right"><div class="dbd">${doc?.lbl?.toUpperCase()||t.toUpperCase()}</div><div class="dnum">N° ${num}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Date : ${fmtD(date)}</div></div></div>`;
+  const MARGIN_TXT='BALANCE CONSULTING — SUIVI COMPTABLE — CRÉATION D\'ENTREPRISE — FORMATION — STRATÉGIE ADMINISTRATIVE — +225 0700776975 — contact@balanceconsultingci.com';
+  const wrapDoc=(inner)=>`<div class="doc-wrap"><div class="doc-margin"><span class="doc-margin-txt">${MARGIN_TXT}</span></div>${inner}</div>`;
+  const Parties=(cl,a,cn)=>`<div class="dp"><div class="dpa"><div class="dpl">Prestataire</div><div class="dpn">${c.nom}</div><div class="dpi">${c.adresse||'Abidjan, Côte d\'Ivoire'}<br>${c.rccm?'RCCM : '+c.rccm:''}</div></div><div class="dpa"><div class="dpl">Client / Destinataire</div><div class="dpn">${cl}</div><div class="dpi">${a||'—'}<br>${cn||'—'}</div></div></div>`;
+  const Signs=(s,q,cl)=>`<div class="dfooter"><div><div class="dsl"></div><div class="dslb">Pour ${c.nom} — Signature & Cachet</div><div style="height:65px;display:flex;align-items:center;justify-content:flex-start;margin:6px 0;">${selectedSig?`<img src="${selectedSig}" style="height:55px;max-width:160px;object-fit:contain;display:block"/>`:''}</div><div style="margin-top:2px;font-size:11px;font-weight:600">${s}</div><div style="font-size:10px;color:#888">${q}</div></div><div><div class="dsl"></div><div class="dslb">Pour ${cl} — Bon pour accord</div><div style="height:65px;margin:6px 0;"></div></div></div>`;
+  const Ments=()=>`<div class="dments">${c.mentions||'Tous droits réservés.'}${c.rccm?' &nbsp;·&nbsp; RCCM : '+c.rccm:''}<div class="dments-brand">BALANCE CONSULTING — SUIVI COMPTABLE — CRÉATION D'ENTREPRISE — FORMATION — STRATÉGIE ADMINISTRATIVE — ${c.tel||'+225 0700776975'} — ${c.email||'contact@balanceconsultingci.com'}</div></div>`;
+
+  let html='',montant='';
+
+  if(['devis','facture','proforma','bon_commande'].includes(t)){
+    const ls=getDLignes(),ht=ls.reduce((s,l)=>s+l.tot,0);const tva=gb('dcb_tva')?Math.round(ht*0.18):0,brut=ht+tva,ret=gb('dcb_ret')?Math.round(brut*0.075):0,net=brut-ret;const acomp=+gv('dcb_acomp')||+gv('dc_acomp')||0;montant=fmt(net);
+    const ligH=ls.map(l=>`<tr><td>${l.desc}</td><td style="text-align:center">${l.qty}</td><td style="text-align:right">${new Intl.NumberFormat('fr-FR').format(l.pu)}</td><td>${new Intl.NumberFormat('fr-FR').format(l.tot)}</td></tr>`).join('');
+    html=`<div class="docpg">${Hdr()}${Parties(client,adr,cnt)}${gv('dc_obj')?`<div style="margin-bottom:11px"><strong>Objet :</strong> ${gv('dc_obj')}</div>`:''}<table class="dtbl"><thead><tr><th>Prestation / Article</th><th style="text-align:center;width:50px">Qté</th><th style="width:110px">P.U. HT</th><th style="width:110px">Total HT</th></tr></thead><tbody>${ligH}</tbody></table><div class="dtb"><div class="dtr"><span>Sous-total HT</span><span>${fmt(ht)}</span></div>${tva?`<div class="dtr"><span>TVA (18%)</span><span>${fmt(tva)}</span></div>`:''}<div class="dtr"><span>Total brut</span><span>${fmt(brut)}</span></div>${ret?`<div class="dtr ret"><span>Retenue source (7,5%)</span><span style="color:#b45309">− ${fmt(ret)}</span></div>`:''}<div class="dtr fin"><span>NET À PAYER</span><span>${fmt(net)}</span></div>${acomp?`<div class="dtr" style="color:#059669"><span>Acompte versé</span><span>${fmt(acomp)}</span></div><div class="dtr fin"><span>RESTE DÛ</span><span>${fmt(net-acomp)}</span></div>`:''}</div>${t==='devis'||t==='proforma'?`<div style="text-align:center;margin:9px 0"><span style="background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:4px;padding:3px 12px;font-size:10.5px;font-weight:600">${t==='proforma'?'PRO FORMA — Non contractuel ·':'DEVIS —'} Validité : ${gv('dc_val')||'30 jours'}</span></div>`:''}${t==='facture'?`<div style="font-size:11.5px;color:#555;margin-bottom:9px"><b>Paiement :</b> ${gv('dc_mode')} · <b>Échéance :</b> ${gv('dc_ech')?fmtD(gv('dc_ech')):'À réception'}</div>`:''}${t==='bon_commande'?`<div style="font-size:11.5px;color:#555;margin-bottom:9px"><b>Livraison :</b> ${fmtD(gv('dc_df'))||'—'} · <b>Lieu :</b> ${gv('dc_lieu')||'—'}</div>`:''}${gv('dc_notes')?`<div style="font-size:11.5px;color:#555;background:#f8f9fa;border-radius:5px;padding:9px;margin-bottom:11px">${gv('dc_notes')}</div>`:''} ${Signs(sign,qual,client)}${Ments()}</div>`;
+  }else if(t==='note_frais'){
+    const ls=getDLignes(),ht=ls.reduce((s,l)=>s+l.tot,0);montant=fmt(ht);const ligH=ls.map(l=>`<tr><td>${l.desc}</td><td style="text-align:center">${l.qty}</td><td style="text-align:right">${new Intl.NumberFormat('fr-FR').format(l.pu)}</td><td>${new Intl.NumberFormat('fr-FR').format(l.tot)}</td></tr>`).join('');
+    html=`<div class="docpg">${Hdr()}<div class="dp"><div class="dpa"><div class="dpl">Présenté par</div><div class="dpn">${gv('dc_art')}</div><div class="dpi">${gv('dc_role')}</div></div><div class="dpa"><div class="dpl">Période</div><div class="dpn">${fmtD(gv('dc_db'))} → ${fmtD(gv('dc_df'))}</div></div></div><table class="dtbl"><thead><tr><th>Nature de la dépense</th><th style="text-align:center;width:50px">Qté</th><th style="width:110px">Montant unit.</th><th style="width:110px">Total</th></tr></thead><tbody>${ligH}</tbody></table><div class="dtb"><div class="dtr fin"><span>TOTAL DES FRAIS</span><span>${fmt(ht)}</span></div></div>${gv('dc_just')?`<div style="font-size:11.5px;color:#555;margin-bottom:11px"><b>Justificatifs :</b> ${gv('dc_just')}</div>`:''}<div class="dfooter"><div><div class="dsl"></div><div class="dslb">Signature du déclarant</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${gv('dc_art')}</div></div><div><div class="dsl"></div><div class="dslb">Validé par ${c.nom}</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${sign}</div></div></div>${Ments()}</div>`;
+  }else if(t==='bon_caisse'){
+    const mt=+gv('dc_mt')||0;montant=fmt(mt);
+    html=`<div class="docpg">${Hdr()}<div class="dp"><div class="dpa"><div class="dpl">Reçu de</div><div class="dpn">${client}</div><div class="dpi">${adr||'—'}</div></div><div class="dpa" style="border-left-color:#059669"><div class="dpl">Encaissé par</div><div class="dpn">${c.nom}</div><div class="dpi">Caissier : ${gv('dc_cais')}</div></div></div><div class="dhl"><div style="font-size:10px;color:#555;margin-bottom:3px">Montant reçu</div><div class="dha">${fmt(mt)}</div>${gv('dc_let')?`<div style="font-size:12.5px;color:#333;margin-top:4px;font-style:italic">« ${gv('dc_let')} »</div>`:''}</div><div style="margin-bottom:16px"><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Motif</div><div style="font-size:13px;color:#222;padding:10px;background:#f8f9fa;border-radius:5px">${gv('dc_mot')||'—'}</div></div><div class="dfooter"><div><div class="dsl"></div><div class="dslb">Signature du caissier</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${gv('dc_cais')}</div></div><div style="display:flex;align-items:center;justify-content:center"><div class="dstamp">REÇU<br>PAIEMENT</div></div></div>${Ments()}</div>`;
+  }else if(t==='attestation'){
+    const mt=+gv('dc_mt')||0,tva=gb('dcb_tva')?Math.round(mt*0.18):0,brut=mt+tva,ret=gb('dcb_ret')?Math.round(brut*0.075):0,net=brut-ret;montant=fmt(brut);
+    html=`<div class="docpg">${Hdr()}<div style="margin-bottom:16px"><p style="font-size:12.5px;line-height:1.9;margin-bottom:9px">Je soussigné(e), <b>${sign}</b>, <em>${qual}</em> de <b>${c.nom}</b>, atteste avoir reçu :</p><div class="dhl"><div style="font-size:10px;color:#555;margin-bottom:3px">Montant encaissé (TTC)</div><div class="dha">${fmt(brut)}</div></div></div><div style="font-size:12.5px;line-height:2;margin-bottom:18px"><p>De la part de : <b>${client}</b></p><p>En règlement de : <b>${gv('dc_obj')||'Prestations'}</b></p>${gv('dc_facref')?`<p>Réf. facture : <b>${gv('dc_facref')}</b></p>`:''}<p>Date du paiement : <b>${fmtD(gv('dc_dpmt'))}</b></p><p>Mode : <b>${gv('dc_mode')}</b></p>${tva?`<p>TVA (18%) incluse : <b>${fmt(tva)}</b></p>`:''}${ret?`<p style="background:#fff3cd;border-radius:4px;padding:5px 9px;font-size:11.5px">Retenue à la source (7,5%) : <b style="color:#b45309">− ${fmt(ret)}</b> · Net versé : <b>${fmt(net)}</b></p>`:''}</div><p style="font-size:12.5px;color:#555;margin-bottom:18px">Cette attestation est délivrée pour servir et valoir ce que de droit.</p><div class="dfooter"><div><div style="font-size:11px;color:#888;margin-bottom:3px">Fait à ${c.ville}, le ${fmtD(date)}</div><div class="dsl"></div><div class="dslb">Signature & Cachet</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${sign}</div></div><div style="display:flex;align-items:center;justify-content:center"><div class="dstamp">ATTESTÉ<br>CERTIFIÉ</div></div></div>${Ments()}</div>`;
+  }else if(t==='recu'){
+    const mt=+gv('dc_mt')||0;montant=fmt(mt);
+    html=`<div class="docpg">${Hdr()}${Parties(client,adr,cnt)}<div class="dhl"><div style="font-size:10px;color:#555;margin-bottom:3px">Montant reçu</div><div class="dha">${fmt(mt)}</div>${gv('dc_let')?`<div style="font-size:12.5px;color:#333;margin-top:4px;font-style:italic">« ${gv('dc_let')} »</div>`:''}</div><div style="font-size:12.5px;line-height:2;margin:12px 0"><p><b>Objet :</b> ${gv('dc_mot')||'—'}</p><p><b>Mode :</b> ${gv('dc_mode')}</p>${gv('dc_ref')?`<p><b>Réf. :</b> ${gv('dc_ref')}</p>`:''}<p><b>Date :</b> ${fmtD(date)}</p></div><div class="dfooter"><div><div class="dsl"></div><div class="dslb">Signature & Cachet</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${sign}</div></div><div style="display:flex;align-items:center;justify-content:center"><div class="dstamp">PAIEMENT<br>REÇU</div></div></div>${Ments()}</div>`;
+  }else if(t==='contrat_client'){
+    const mt=+gv('dc_mt')||0,ac=+gv('dc_acomp')||0;montant=fmt(mt);
+    html=`<div class="docpg">${Hdr()}${Parties(client,adr,cnt)}<div class="dart">Article 1 — Objet</div><div class="darb">${c.nom} s'engage à réaliser : <b>${gv('dc_obj')}</b>. Période : du <b>${fmtD(gv('dc_db'))}</b> au <b>${fmtD(gv('dc_df'))}</b>.</div><div class="dart">Article 2 — Prestations & Livrables</div><div class="darb">${gv('dc_svc')}<br>Livrables : <b>${gv('dc_liv')||'Selon termes de référence'}</b></div><div class="dart">Article 3 — Rémunération</div><div class="darb">Montant total : <b>${fmt(mt)}</b>${ac?`. Acompte à la signature : <b>${fmt(ac)}</b>. Solde à la livraison : <b>${fmt(mt-ac)}</b>.`:'. Paiement à la livraison.'}</div><div class="dart">Article 4 — Confidentialité</div><div class="darb">Les parties s'engagent à garder strictement confidentielles toutes informations échangées dans le cadre de la présente mission.</div><div class="dart">Article 5 — Résiliation</div><div class="darb">En cas d'annulation après démarrage, l'acompte reste acquis. Les frais engagés seront facturés au client.</div>${Signs(sign,qual,client)}<div class="dments">Fait à ${c.ville} en deux exemplaires. ${c.mentions}</div></div>`;
+  }else if(t==='contrat_artiste'){
+    const mt=+gv('dc_mt')||0,j=+gv('dc_jours')||1,u=gv('dc_unite'),tot=mt*j,ret=gb('dcb_ret')?Math.round(tot*0.075):0,net=tot-ret;montant=fmt(tot);
+    html=`<div class="docpg">${Hdr()}<div class="dp"><div class="dpa"><div class="dpl">Donneur d'ordre</div><div class="dpn">${c.nom}</div><div class="dpi">${c.adresse}<br>${c.rccm?'RCCM : '+c.rccm:''}<br>Représenté par : ${sign}, ${qual}</div></div><div class="dpa"><div class="dpl">Prestataire</div><div class="dpn">${gv('dc_art')}</div><div class="dpi">Fonction : <b>${gv('dc_role')}</b></div></div></div><div class="dart">Article 1 — Objet et durée</div><div class="darb">Le prestataire est engagé pour : <b>${gv('dc_obj')}</b>. Période : du <b>${fmtD(gv('dc_db'))}</b> au <b>${fmtD(gv('dc_df'))}</b>.</div><div class="dart">Article 2 — Tâches</div><div class="darb">${gv('dc_svc')}</div><div class="dart">Article 3 — Rémunération</div><div class="darb">Tarif : <b>${fmt(mt)} FCFA ${u}</b> × ${j} jour(s) = <b>${fmt(tot)} FCFA</b>${ret?`<br>Retenue à la source BNC (7,5%) : <b style="color:#b45309">− ${fmt(ret)} FCFA</b><br><b>Net à payer : ${fmt(net)} FCFA</b>`:''}</div><div class="dart">Article 4 — Confidentialité</div><div class="darb">Le prestataire s'engage à la stricte confidentialité sur toutes informations clients portées à sa connaissance.</div>${Signs(sign,qual,gv('dc_art'))}<div class="dments">Fait à ${c.ville} en deux exemplaires, le ${fmtD(date)}. ${c.mentions}</div></div>`;
+  }else if(t==='cession_droits'){
+    const mt=+gv('dc_mt')||0;montant=fmt(mt);
+    html=`<div class="docpg">${Hdr()}<div class="dp"><div class="dpa"><div class="dpl">Le Cédant</div><div class="dpn">${c.nom}</div><div class="dpi">${c.adresse}<br>Représenté par : ${sign}, ${qual}</div></div><div class="dpa"><div class="dpl">Le Cessionnaire</div><div class="dpn">${client}</div><div class="dpi">${adr||'—'}<br>${cnt||'—'}</div></div></div><div class="dart">Article 1 — Identification de l'œuvre</div><div class="darb">Objet de la cession : <b>${gv('dc_obj')}</b></div><div class="dart">Article 2 — Étendue des droits cédés</div><div class="darb">Territoire : <b>${gv('dc_terr')}</b> · Durée : <b>${gv('dc_durc')}</b></div><div class="dart">Article 3 — Contrepartie financière</div><div class="darb">Contrepartie : <b>${fmt(mt)}</b>, payable à la signature.</div>${Signs(sign,qual,client)}<div class="dments">Fait à ${c.ville} en deux exemplaires, le ${fmtD(date)}. ${c.mentions}</div></div>`;
+  }else if(t==='relance'){
+    const mt=+gv('dc_mt')||0,niv=+gv('dc_niv')||1;montant=fmt(mt);
+    const intro=niv===1?'Sauf erreur de notre part, nous n\'avons pas reçu votre règlement. Nous vous saurions gré de régulariser cette situation dans les meilleurs délais.':niv===2?'Malgré notre précédente relance, nous constatons que votre facture reste impayée. Nous vous demandons de procéder au règlement sous 8 jours.':'En l\'absence de règlement malgré nos relances, nous vous mettons en demeure de payer sous 48 heures. À défaut, nous nous verrons contraints d\'engager des procédures de recouvrement.';
+    const titre=['','Première relance — Amiable','Deuxième relance — Ferme','Troisième relance — Mise en demeure'][niv];
+    html=`<div class="docpg">${Hdr()}<div style="margin-bottom:14px"><div style="font-size:11px;color:#888;margin-bottom:11px">Abidjan, le ${fmtD(date)}</div><div style="margin-bottom:11px"><b>${client}</b><br>${adr||''}</div><div style="font-size:13px;font-weight:700;margin-bottom:3px">Objet : ${titre} — ${gv('dc_facref')||'Facture impayée'}</div>${niv===3?`<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:3px;padding:3px 11px;font-size:11px;font-weight:600;color:#856404;display:inline-block;margin-top:4px">⚠ MISE EN DEMEURE</div>`:''}</div><div style="font-size:12.5px;line-height:1.9;margin-bottom:16px"><p>Madame, Monsieur,</p><br><p>Nous vous rappelons que la facture <b>${gv('dc_facref')||'—'}</b> du <b>${fmtD(gv('dc_dfac'))}</b> d'un montant de <b>${fmt(mt)}</b> demeure à ce jour impayée.</p><br><p>${intro}</p>${gv('dc_notes')?`<br><p>${gv('dc_notes')}</p>`:''}<br><p>Veuillez agréer nos salutations distinguées.</p></div><div class="dfooter"><div><div class="dsl"></div><div class="dslb">Signature & Cachet</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${sign}</div><div style="font-size:10.5px;color:#888">${qual}</div></div></div>${Ments()}</div>`;
+  }
+
+  const docLbl=doc?.lbl||t;const finalHtml=wrapDoc(html);curDoc={num,type:docLbl,date:fmtD(date),client,html:finalHtml,montant,signerName:sign,signerRole:qual};
+  const h=S.g('doc_hist')||[];h.unshift(curDoc);if(h.length>100)h.pop();S.s('doc_hist',h);
+  nDoc(doc?.pfx||'DOC');showPov(finalHtml,num);rDocHist();
+}
+
+function filterDocHist(){
+  const q=(gv('docSearch')||'').toLowerCase();const h=S.g('doc_hist')||[];
+  const filtered=q?h.filter(d=>d.num?.toLowerCase().includes(q)||d.client?.toLowerCase().includes(q)||d.type?.toLowerCase().includes(q)):h;
+  const el=document.getElementById('dHistList');if(!el)return;
+  el.innerHTML=filtered.slice(0,8).map((d,i)=>{const idx=h.indexOf(d);const statusBadge=getDocStatusBadge(d);const borderColor=d.signed?'var(--green)':d.refused?'var(--red)':d.sigToken?'var(--gold)':'var(--border)';return`<div style="background:var(--card);border:1px solid ${borderColor};border-radius:7px;padding:8px 10px;margin-bottom:4px;cursor:pointer" onclick="reloadDoc(${idx})"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><div style="font-family:'Space Mono',monospace;font-size:9.5px;color:var(--acc3)">${d.num}</div>${statusBadge}</div><div style="font-size:10.5px;color:var(--text)">${d.client}</div><div style="font-size:9.5px;color:var(--muted)">${d.type} · ${d.date}</div>${d.sigToken&&!d.signed&&!d.refused?`<button onclick="event.stopPropagation();copySignLink('${d.sigToken}')" style="background:none;border:none;color:var(--acc3);cursor:pointer;font-size:10px;margin-top:3px;padding:0">📋 Copier lien signature</button>`:''}</div>`;}).join('')||'<div style="font-size:10.5px;color:var(--muted);padding:4px">Aucun résultat</div>';
+}
+function rDocHist(){const el=document.getElementById('dHistList');if(!el)return;filterDocHist();}
+function reloadDoc(i){const h=S.g('doc_hist')||[];if(!h[i])return;curDoc=h[i];showPov(h[i].html,h[i].num);}
+function showPov(html,num){
+  document.getElementById('povC').innerHTML=html;
+  document.getElementById('povTit').textContent='Aperçu — '+num;
+  document.getElementById('pov').style.display='flex';
+}
+function closePov(){const p=document.getElementById('pov');if(p)p.style.display='none';}
+
+// ══ SIGNATURE WORKFLOW ════════════════════════════════════════
+
+function getDocStatusBadge(doc){
+  if(doc.signed)return`<span class="b bg" style="font-size:9px">✅ Signé${doc.signedAt?' · '+new Date(doc.signedAt).toLocaleDateString('fr-FR'):''}</span>`;
+  if(doc.refused)return`<span class="b br" style="font-size:9px">✕ Refusé</span>`;
+  if(doc.sigToken)return`<span class="b bo" style="font-size:9px">⏳ En attente</span>`;
+  return'';
+}
+
+function sendDocForSignature(){
+  if(!curDoc){showToast('Aucun document actif',false);return;}
+  const c=getDocCfg();const sigs=c.sigs||[];
+  if(!sigs.length){showToast('Configurez au moins un signataire dans Config',false);return;}
+  openModal('✍️ Envoyer pour signature',`
+    <div style="font-size:13px;color:var(--text);margin-bottom:14px">Sélectionnez le signataire :</div>
+    ${sigs.map((s,i)=>`<div onclick="confirmSendSig(${i})" style="background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;cursor:pointer;margin-bottom:7px;display:flex;align-items:center;gap:10px" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="width:36px;height:36px;border-radius:8px;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">${(s.nom||'?')[0]}</div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--w)">${s.nom}</div><div style="font-size:11px;color:var(--muted)">${s.role||'—'}</div></div>
+      <div style="margin-left:auto;font-size:11px;color:${s.signature?'var(--green)':'var(--gold)'}">${s.signature?'✅ Signature configurée':'⚠️ Sans signature'}</div>
+    </div>`).join('')}
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;background:var(--bg2);border-radius:7px;padding:9px;line-height:1.7">
+      👤 Le signataire doit se connecter et aller dans <strong>Profil → Signatures en attente</strong>
+    </div>`);
+}
+
+function confirmSendSig(idx){
+  if(!curDoc)return;closeModal();
+  const c=getDocCfg();const signer=c.sigs?.[idx];if(!signer)return;
+  const token=Math.random().toString(36).slice(2,10).toUpperCase()+Date.now().toString(36).toUpperCase();
+  const hist=S.g('doc_hist')||[];
+  const docIdx=hist.findIndex(d=>d.num===curDoc.num);
+  if(docIdx>=0){hist[docIdx].sigToken=token;hist[docIdx].signed=false;hist[docIdx].refused=false;hist[docIdx].signerName=signer.nom;hist[docIdx].signerRole=signer.role||'';S.s('doc_hist',hist);}
+  curDoc={...curDoc,sigToken:token,signed:false,refused:false,signerName:signer.nom,signerRole:signer.role||''};
+  createSigNotification(token,signer.nom,curDoc.client,curDoc.num,signer.role||'');
+  proposeSigValidation(token,signer.nom,curDoc.client,curDoc.num);
+  rDocHist();
+}
+
+function copySignLink(token){
+  const url=location.origin+location.pathname+'?sign='+token;
+  navigator.clipboard?.writeText(url).then(()=>showToast('Lien copié ✓')).catch(()=>showToast('Lien : '+url));
+}
+
+function createSigNotification(token,signerName,client,docNum,signerRole){
+  const pending=S.g('pending_sigs')||{};
+  const hist=S.g('doc_hist')||[];const doc=hist.find(d=>d.sigToken===token);if(!doc)return;
+  pending[token]={...doc,signerName,signerRole,client,createdAt:new Date().toISOString()};
+  S.s('pending_sigs',pending);updateSigBadge();
+}
+
+function getPendingSigsForUser(){
+  const auth=S.g('auth');if(!auth)return[];
+  const pending=S.g('pending_sigs')||{};
+  return Object.values(pending).filter(d=>!d.signed&&!d.refused&&d.signerName&&(d.signerName===auth.displayName||auth.role==='superadmin'||auth.role==='admin'));
+}
+
+function proposeSigValidation(token,signerName,client,docNum){
+  const notifs=S.g('sig_notifs')||[];
+  notifs.unshift({id:token,type:'signature_request',token,docNum,client,signerName,createdAt:new Date().toISOString(),read:false,signed:false,refused:false});
+  S.s('sig_notifs',notifs);updateSigBadge();
+  showToast(`✍️ Document envoyé à ${signerName} pour signature`);
+  const popup=document.createElement('div');
+  popup.style.cssText='position:fixed;bottom:80px;right:20px;background:var(--card);border:1px solid var(--acc);border-radius:14px;padding:16px;max-width:300px;z-index:600;box-shadow:0 8px 32px rgba(0,0,0,.4)';
+  popup.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"><div style="font-size:13px;font-weight:700;color:var(--w)">✍️ En attente de signature</div><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">×</button></div><div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px">Le document <strong style="color:var(--acc3)">${docNum}</strong> attend la signature de<br><strong style="color:var(--w)">${signerName}</strong></div><div style="font-size:11px;background:var(--bg2);border-radius:7px;padding:9px;color:var(--text);line-height:1.7">👤 Le signataire doit se connecter<br>📍 Aller dans <strong>Profil → Signatures en attente</strong></div>`;
+  document.body.appendChild(popup);setTimeout(()=>popup.remove(),10000);
+}
+
+function updateSigBadge(){
+  const pending=(S.g('sig_notifs')||[]).filter(n=>!n.signed&&!n.refused);
+  const btn=document.getElementById('nb-profil');
+  if(btn&&pending.length>0){const ex=btn.querySelector('.cnt');if(ex)ex.textContent=pending.length;else btn.innerHTML+=` <span class="cnt">${pending.length}</span>`;}
+}
+
+function checkSignatureRequest(){
+  const token=new URLSearchParams(location.search).get('sign');if(!token)return;
+  const pending=S.g('pending_sigs')||{};const doc=pending[token];
+  if(!doc){document.body.innerHTML=`<div style="min-height:100vh;background:#04080F;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif"><div style="background:#0D1517;border:1px solid #1A2A30;border-radius:16px;padding:32px;max-width:480px;width:90%;text-align:center"><div style="font-size:48px;margin-bottom:12px">🔐</div><div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:8px">Lien invalide</div><div style="font-size:13px;color:#4A7C8E;line-height:1.7">Ce lien de validation est invalide ou a déjà été utilisé.</div></div></div>`;return;}
+  if(doc.signed){document.body.innerHTML=`<div style="min-height:100vh;background:#04080F;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif"><div style="background:#0D1517;border:2px solid #10B981;border-radius:16px;padding:32px;max-width:480px;width:90%;text-align:center"><div style="font-size:48px;margin-bottom:12px">✅</div><div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:8px">Déjà signé</div><div style="font-size:13px;color:#6EE7B7;line-height:1.7">Ce document a déjà été signé.</div></div></div>`;return;}
+  showSignValidation(token,doc);
+}
+
+function showSignValidation(token,doc){
+  const appW=document.getElementById('appW');if(appW)appW.style.display='none';
+  const loginScr=document.getElementById('loginScr');if(loginScr)loginScr.style.display='none';
+  const overlay=document.createElement('div');
+  overlay.id='signOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:#04080A;z-index:9999;overflow-y:auto;padding:20px;font-family:Inter,sans-serif;';
+  overlay.innerHTML=`<div style="max-width:860px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #1E2E33">
+      <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#1A56DB,#3B9EFF);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff">BC</div>
+      <div><div style="font-size:16px;font-weight:700;color:#fff">Validation de signature</div><div style="font-size:11px;color:#4A7C8E">BALANCE CONSULTING</div></div>
+    </div>
+    <div style="background:#0D1517;border:1px solid #1E2E33;border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+        <div><span style="color:#4A7C8E">Document :</span> <strong style="color:#fff">${doc.num}</strong></div>
+        <div><span style="color:#4A7C8E">Type :</span> <strong style="color:#fff">${doc.type}</strong></div>
+        <div><span style="color:#4A7C8E">Client :</span> <strong style="color:#fff">${doc.client}</strong></div>
+        <div><span style="color:#4A7C8E">Date :</span> <strong style="color:#fff">${doc.date}</strong></div>
+        <div><span style="color:#4A7C8E">Signataire :</span> <strong style="color:#90E0EF">${doc.signerName}</strong></div>
+        <div><span style="color:#4A7C8E">Qualité :</span> <strong style="color:#fff">${doc.signerRole||'—'}</strong></div>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:8px;margin-bottom:16px;overflow:hidden">${doc.html}</div>
+    <div style="background:#0D1517;border:1px solid #2A3E45;border-radius:12px;padding:20px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">✍️ Votre signature</div>
+      <div style="font-size:12px;color:#4A7C8E;margin-bottom:14px">En validant ce document, vous certifiez l'avoir lu et approuvé dans son intégralité.</div>
+      <div id="sigValidZone">
+        <div style="position:relative;border:2px solid #2A3E45;border-radius:8px;background:#fff;margin-bottom:12px;touch-action:none">
+          <canvas id="validSigCanvas" width="600" height="160" style="display:block;width:100%;cursor:crosshair;border-radius:6px"></canvas>
+          <div style="position:absolute;bottom:6px;right:10px;font-size:10px;color:#ccc;font-style:italic">Signez ici</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button onclick="clearValidCanvas()" style="background:transparent;border:1px solid #2A3E45;border-radius:7px;padding:7px 12px;color:#CAE9F5;cursor:pointer;font-family:Inter,sans-serif;font-size:12px">🗑️ Effacer</button>
+        </div>
+      </div>
+      <div style="background:#10B98118;border:1px solid #10B98144;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:#6EE7B7;line-height:1.7">
+        ✅ En cliquant "Valider et Signer", vous confirmez :<br>
+        • Avoir pris connaissance de l'intégralité du document<br>
+        • Approuver le contenu sans réserve<br>
+        • Date et heure : <strong>${new Date().toLocaleString('fr-FR')}</strong>
+      </div>
+      <button id="signBtn" onclick="applySignature('${token}')" style="width:100%;background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">✅ Valider et Signer le document</button>
+      <button onclick="refuseSignature('${token}')" style="width:100%;background:transparent;border:1px solid #EF4444;color:#FCA5A5;border-radius:10px;padding:10px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;margin-top:8px">✕ Refuser de signer</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(initValidCanvas,200);
+  history.replaceState(null,'',location.pathname);
+}
+
+function initValidCanvas(){
+  const canvas=document.getElementById('validSigCanvas');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  ctx.strokeStyle='#1a1a2e';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+  let drawing=false,lastX=0,lastY=0;
+  const rect=()=>canvas.getBoundingClientRect();
+  const sX=()=>canvas.width/rect().width;const sY=()=>canvas.height/rect().height;
+  const pos=e=>{const r=rect();if(e.touches)return{x:(e.touches[0].clientX-r.left)*sX(),y:(e.touches[0].clientY-r.top)*sY()};return{x:(e.clientX-r.left)*sX(),y:(e.clientY-r.top)*sY()};};
+  canvas.onmousedown=canvas.ontouchstart=e=>{e.preventDefault();drawing=true;const p=pos(e);lastX=p.x;lastY=p.y;};
+  canvas.onmousemove=canvas.ontouchmove=e=>{e.preventDefault();if(!drawing)return;const p=pos(e);ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(p.x,p.y);ctx.stroke();lastX=p.x;lastY=p.y;};
+  canvas.onmouseup=canvas.ontouchend=()=>{drawing=false;};
+  canvas.onmouseleave=()=>{drawing=false;};
+}
+
+function clearValidCanvas(){const c=document.getElementById('validSigCanvas');if(c)c.getContext('2d').clearRect(0,0,c.width,c.height);}
+
+async function applySignature(token){
+  const canvas=document.getElementById('validSigCanvas');if(!canvas)return;
+  const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+  const hasContent=data.some((v,i)=>i%4===3&&v>0);
+  if(!hasContent){
+    const zone=document.getElementById('sigValidZone');if(zone)zone.style.border='2px solid #EF4444';
+    const btn=document.getElementById('signBtn');
+    if(btn){btn.style.background='#EF4444';btn.textContent='⚠️ Dessinez d\'abord votre signature';}
+    setTimeout(()=>{if(btn){btn.style.background='';btn.textContent='✅ Valider et Signer le document';}if(zone)zone.style.border='';},2000);
+    return;
+  }
+  const signatureB64=canvas.toDataURL('image/png');const signedAt=new Date().toISOString();
+  const pending=S.g('pending_sigs')||{};const doc=pending[token];if(!doc)return;
+  const signedHtml=doc.html.replace(
+    /(<div class="dsl"[^>]*><\/div>\s*<div class="dslb">Pour [^<]+ — Signature[^<]*<\/div>)/,
+    `$1<img src="${signatureB64}" style="height:50px;max-width:160px;object-fit:contain;margin:4px 0;display:block"/>`
+  );
+  doc.signed=true;doc.signedAt=signedAt;doc.signatureB64=signatureB64;doc.html=signedHtml;
+  pending[token]=doc;S.s('pending_sigs',pending);
+  const hist=S.g('doc_hist')||[];
+  const idx=hist.findIndex(d=>d.sigToken===token);
+  if(idx>=0){hist[idx]={...hist[idx],signed:true,signedAt,html:signedHtml};S.s('doc_hist',hist);}
+  const overlay=document.getElementById('signOverlay');
+  if(overlay)overlay.innerHTML=`<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px"><div style="background:#0D1517;border:2px solid #10B981;border-radius:20px;padding:40px;max-width:480px;width:100%;text-align:center"><div style="font-size:64px;margin-bottom:16px">✅</div><div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:8px">Document signé !</div><div style="font-size:14px;color:#6EE7B7;margin-bottom:20px">Signé par <strong>${doc.signerName}</strong><br>${new Date(signedAt).toLocaleString('fr-FR')}</div><img src="${signatureB64}" style="max-height:60px;max-width:200px;object-fit:contain;background:#fff;padding:8px;border-radius:8px;margin-bottom:16px"/><button onclick="document.getElementById('signOverlay').remove();location.reload()" style="width:100%;background:linear-gradient(135deg,#1A56DB,#3B9EFF);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Retour à l'application</button></div></div>`;
+}
+
+function refuseSignature(token){
+  if(!confirm('Êtes-vous sûr de vouloir refuser de signer ce document ?'))return;
+  const pending=S.g('pending_sigs')||{};
+  if(pending[token]){pending[token].refused=true;pending[token].refusedAt=new Date().toISOString();S.s('pending_sigs',pending);}
+  const overlay=document.getElementById('signOverlay');
+  if(overlay)overlay.innerHTML=`<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px"><div style="background:#0D1517;border:2px solid #EF4444;border-radius:20px;padding:40px;max-width:400px;text-align:center"><div style="font-size:48px;margin-bottom:12px">✕</div><div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:8px">Signature refusée</div><div style="font-size:13px;color:#FCA5A5;margin-bottom:20px">Vous avez refusé de signer ce document.</div><button onclick="location.reload()" style="background:#EF4444;color:#fff;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-family:Inter,sans-serif">Fermer</button></div></div>`;
+}
+
+function openSignModal(token){
+  const doc=(S.g('pending_sigs')||{})[token];
+  if(!doc){showToast('Document introuvable',false);return;}
+  showSignValidation(token,doc);
+}
+
+// ══ FONCTIONS À REMPLACER DANS LE CODE ══════════════════════
+// Remplacer downloadPDF() et buildPrintDocument() par ces versions corrigées
+
+async function downloadPDF(withStamp){
+  if(!curDoc||!curDoc.html){showToast('Aucun document à exporter',false);return;}
+  var btn=document.getElementById('btnDlPdf');
+  if(btn){btn.textContent='⏳ Préparation...';btn.disabled=true;}
+  try{
+    var c=getDocCfg();
+    var num=curDoc.num||'document';
+    var couleur=c.couleur||'#1A56DB';
+    var abbr2=(c.nom||'BC').replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,' ').trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'BC';
+    var logoHtml=c.logo
+      ?'<img src="'+c.logo+'" style="width:44px;height:44px;border-radius:8px;object-fit:contain;display:block;" crossorigin="anonymous"/>'
+      :'<div style="width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,'+couleur+',#3B9EFF);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;">'+abbr2+'</div>';
+
+    var stampUrl=withStamp?(getCompanyInfo().stamp_url||c.stamp_url||""):"";var fullHtml=buildPrintHTML(c,logoHtml,num,couleur,stampUrl);
+
+    // Ouvrir une fenêtre dédiée et imprimer — @page CSS force le format A4
+    var pw=window.open('','_blank','width=860,height=1100');
+    if(!pw){showToast('❌ Autorisez les popups pour ce site',false);return;}
+    pw.document.open();
+    pw.document.write(fullHtml);
+    pw.document.close();
+
+    // Déclencher l'impression après chargement complet
+    pw.onload=function(){
+      setTimeout(function(){
+        pw.focus();
+        pw.print();
+        // Fermer après un délai pour laisser le temps au dialogue d'impression
+        setTimeout(function(){try{pw.close();}catch(e){}},3000);
+      },400);
+    };
+    // Fallback si onload ne se déclenche pas
+    setTimeout(function(){
+      if(!pw.closed){
+        try{pw.focus();pw.print();}catch(e){}
+      }
+    },1500);
+
+    showToast(withStamp?'🔏 Impression avec cachet — choisissez "Enregistrer en PDF"':'🖨️ Dialogue d\'impression ouvert — choisissez "Enregistrer en PDF"');
+  }catch(e){
+    showToast('❌ Erreur : '+e.message,false);
+    console.error('Print Error:',e);
+  }
+  if(btn){btn.textContent='🖨️ Imprimer / PDF A4';btn.disabled=false;}
+}
+
+// ── Construit le HTML complet de la page d'impression ─────────
+function buildPrintHTML(c,logoHtml,num,couleur,stampUrl){
+  var tmp=document.createElement('div');
+  tmp.innerHTML=curDoc.html||'';
+  var docpg=tmp.querySelector('.docpg');
+  var inner=document.createElement('div');
+  inner.innerHTML=docpg?docpg.innerHTML:(tmp.innerHTML||'');
+
+  // Supprimer les décorations du dashboard
+  ['.dh','.dments','.dments-brand','.doc-margin','.doc-margin-txt'].forEach(function(sel){
+    inner.querySelectorAll(sel).forEach(function(el){el.remove();});
+  });
+
+  var bodyContent=inner.innerHTML;
+  var docTypeEntry=DOC_TYPES.find(function(d){return d.id===curDoc.type||d.lbl===curDoc.type;});
+  var docTypeLbl=((docTypeEntry&&docTypeEntry.lbl)||curDoc.type||'Document').toUpperCase();
+  var nomSoc=c.nom||'BALANCE CONSULTING';
+  var slogan=c.slogan||'Expert-comptable \u00b7 Conseil fiscal \u00b7 Gestion';
+  var adresse=c.adresse||'Abidjan, C\u00f4te d\'Ivoire';
+  var tel=c.tel||'+225 07 00 77 69 75';
+  var emailSoc=c.email||'contact@balanceconsulting.ci';
+  var rccm=c.rccm||'CI-ABJ-XXXX-B-XXXXX';
+  var mentions=c.mentions||'Tous droits r\u00e9serv\u00e9s.';
+  var docDate=curDoc.date||'';
+  var mentionsLine=mentions+' \u00b7 RCCM\u00a0: '+rccm;
+
+  return '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/>'
+  +'<title>'+docTypeLbl+' '+num+'</title>'
+  +'<style>'
+  // Reset complet
+  +'*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}'
+  +'html,body{background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;}'
+  // Format A4 avec marges via @page — c'est le navigateur qui pagine correctement
+  +'@page{size:A4 portrait;margin:14mm 15mm 20mm 15mm;}'
+  // Numérotation page X/Y via CSS counter
+  +'body{counter-reset:page-counter;}'
+  +'@page{@bottom-center{content:"Page " counter(page) " / " counter(pages);font-size:7pt;color:#bbb;font-family:Arial,sans-serif;}}'
+  // En-tête fixe sur chaque page
+  +'@page{@top-left{content:"";} @top-right{content:"";}}'
+  // Styles document
+  +'.pdf-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:3px solid '+couleur+';margin-bottom:18px;}'
+  +'.pdf-header-left{display:flex;align-items:flex-start;gap:11px;}'
+  +'.company-name{font-size:15px;font-weight:800;color:#08080F;letter-spacing:-0.2px;}'
+  +'.company-slogan{font-size:7px;color:#777;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}'
+  +'.company-details{font-size:9px;color:#555;line-height:1.8;margin-top:3px;}'
+  +'.pdf-header-right{text-align:right;flex-shrink:0;margin-left:12px;}'
+  +'.doc-badge{background:'+couleur+';color:#fff!important;padding:5px 12px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;display:inline-block;}'
+  +'.doc-num{font-size:10px;color:#333;font-family:monospace;margin-top:5px;font-weight:600;}'
+  +'.doc-date{font-size:9px;color:#777;margin-top:2px;}'
+  +'.dp{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:16px;}'
+  +'.dpa{background:#f8f9fa!important;border-radius:6px;padding:10px 12px;border-left:3px solid '+couleur+';}'
+  +'.dpl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:3px;}'
+  +'.dpn{font-size:12px;font-weight:700;color:#08080F;}'
+  +'.dpi{font-size:9.5px;color:#555;line-height:1.75;margin-top:2px;}'
+  +'.dtbl{width:100%;border-collapse:collapse;margin-bottom:13px;}'
+  +'.dtbl th{background:#08080F!important;color:#fff!important;padding:7px 9px;text-align:left;font-size:10px;font-weight:600;}'
+  +'.dtbl th:last-child,.dtbl td:last-child{text-align:right;}'
+  +'.dtbl td{padding:7px 9px;border-bottom:1px solid #efefef;font-size:10.5px;color:#333;}'
+  +'.dtbl tr:nth-child(even) td{background:#f8f9fa!important;}'
+  +'.dtbl tr{page-break-inside:avoid;}'
+  +'.dtb{width:260px;margin-left:auto;margin-bottom:13px;}'
+  +'.dtr{display:flex;justify-content:space-between;padding:3px 0;font-size:10.5px;border-bottom:1px solid #efefef;color:#555;}'
+  +'.dtr.fin{font-size:12px;font-weight:700;color:#08080F;border-top:2px solid #08080F;border-bottom:2px solid #08080F;padding:5px 0;margin-top:3px;}'
+  +'.dtr.ret{background:#fff9e6!important;padding:3px 7px;border-radius:4px;margin:2px 0;color:#856404;}'
+  +'.dfooter{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px;padding-top:12px;border-top:1px solid #efefef;page-break-inside:avoid;}'
+  +'.dsl{width:100%;height:1px;background:#ccc;margin:28px 0 5px;}'
+  +'.dslb{font-size:8.5px;color:#999;text-transform:uppercase;letter-spacing:.5px;}'
+  +'.dhl{background:#f0fff7!important;border:2px solid #059669;border-radius:7px;padding:12px;margin:12px 0;page-break-inside:avoid;}'
+  +'.dha{font-size:20px;font-weight:800;color:#065f46;font-family:monospace;}'
+  +'.dstamp{width:90px;height:90px;display:flex;align-items:center;justify-content:center;margin:0 auto;}'
+  +'.dstamp-img{width:90px;height:90px;object-fit:contain;}'
+  +'.dstamp-default{width:72px;height:72px;border-radius:50%;border:3px solid #059669;display:flex;align-items:center;justify-content:center;color:#059669;font-size:7px;font-weight:700;text-align:center;line-height:1.4;text-transform:uppercase;}'
+  +'.dart{font-size:12px;font-weight:700;color:#08080F;margin:9px 0 3px;}'
+  +'.darb{font-size:10.5px;color:#444;line-height:1.8;}'
+  +'.no-break{page-break-inside:avoid;}'
+  +'.dh,.dments,.dments-brand,.doc-margin,.doc-margin-txt{display:none!important;}'
+  // Bouton d'impression visible à l'écran, masqué à l'impression
+  +'.print-btn{position:fixed;top:16px;right:16px;background:#1A56DB;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:999;}'
+  +'@media print{.print-btn{display:none!important;}}'
+  +'</style></head><body>'
+  // Bouton imprimer dans la fenêtre
+  +(stampUrl?'<button class="print-btn" onclick="window.print()">🔏 Imprimer avec cachet</button>':'<button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>')
+  // En-tête du document
+  +'<div class="pdf-header">'
+  +'<div class="pdf-header-left">'
+  +logoHtml
+  +'<div>'
+  +'<div class="company-name">'+nomSoc+'</div>'
+  +'<div class="company-slogan">'+slogan+'</div>'
+  +'<div class="company-details">'+adresse+'<br>T\u00e9l\u00a0: '+tel+' \u00b7 '+emailSoc+'<br>'+mentionsLine+'</div>'
+  +'</div>'
+  +'</div>'
+  +'<div class="pdf-header-right">'
+  +'<div class="doc-badge">'+docTypeLbl+'</div>'
+  +'<div class="doc-num">N\u00b0\u00a0'+num+'</div>'
+  +'<div class="doc-date">Date\u00a0: '+docDate+'</div>'
+  +'</div>'
+  +'</div>'
+  // Corps
+  +'<div>'+bodyContent+'</div>'
+  // Cachet : injecté via DOMContentLoaded — URL encodée proprement avec JSON.stringify
+  +(stampUrl
+    ? '<script>window.addEventListener("DOMContentLoaded",function(){var url='+JSON.stringify(stampUrl)+';document.querySelectorAll(".dstamp").forEach(function(s){s.style.cssText="border:none;background:transparent;padding:0;border-radius:0;width:100px;height:100px;display:flex;align-items:center;justify-content:center;margin:0 auto;";var img=document.createElement("img");img.src=url;img.style.cssText="width:100px;height:100px;object-fit:contain;display:block;";img.alt="Cachet";s.innerHTML="";s.appendChild(img);});});<\/script>'
+    : '')
+  +'</body></html>';
+}
+
+// ── Stubs de compatibilité ────────────────────────────────────
+function buildPrintHTMLString(c,logoHtml,num){return '';}
+function buildDocHTML(c,logoHtml,num,couleur){return '';}
+function buildPrintDocument(c,logoHtml,abbr2,num){return document.createElement('div');}
+
+
+
+// ══ LOGS / USERS / CONFIG ════════════════════════════════════
+function rLogs(){document.getElementById('pg-logs').innerHTML=`<div class="rh"><div><div class="st">Journal d'activité</div></div></div><div class="card"><div style="text-align:center;color:var(--muted);padding:40px;line-height:2">Les logs détaillés sont dans Google Sheets → onglet <strong style="color:var(--acc3)">audit_log</strong><br>après configuration du Apps Script.<br><br><button class="btn btsm" onclick="goTo('config')">⚙️ Configurer le serveur</button></div></div>`;}
+
+function rUsers(){
+  const users=getUsers();const roleRows=Object.entries(ROLES).map(function(entry){var k=entry[0],r=entry[1];return'<div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--border)"><span class="b bc" style="color:'+r.color+';min-width:90px">'+r.label+'</span><span style="font-size:11.5px;color:var(--text)">'+r.access+'</span></div>';}).join('');
+  document.getElementById('pg-users').innerHTML=`<div class="rh"><div><div class="st">Utilisateurs</div><div class="ss">Gestion des accès</div></div><button class="btn" onclick="openUserForm(null)">+ Nouvel utilisateur</button></div>
+  <div class="card" style="margin-bottom:13px"><table class="tbl"><thead><tr><th>Nom</th><th>Identifiant</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr></thead>
+  <tbody>${users.map(u=>{const role=ROLES[u.role]||ROLES.viewer;return'<tr><td style="font-weight:600;color:var(--w)">'+esc(u.nom)+'</td><td style="font-size:10.5px;color:var(--muted)">'+esc(u.email)+'</td><td><span class="b bc" style="color:'+role.color+'">'+role.label+'</span></td><td><span class="b '+(u.actif?'bg':'br')+'">'+(u.actif?'Actif':'Inactif')+'</span></td><td><div style="display:flex;gap:3px"><button class="btgh btsm" onclick="openUserForm(\''+u.id+'\')">✏</button>'+(u.id!=='1'?'<button class="btgh btsm" onclick="toggleUser(\''+u.id+'\')">'+( u.actif?'⏸':'▶')+'</button>':'')+'</div></td></tr>';}).join('')}</tbody></table></div>
+  <div class="card"><div class="ct">Niveaux d'accès</div>${roleRows}</div>`;
+}
+function openUserForm(id){
+  const users=getUsers();const u=id?users.find(x=>x.id===id):null;const roleOpts=Object.entries(ROLES).map(function(entry){var k=entry[0],r=entry[1];return'<option value="'+k+'" '+(u&&u.role===k?'selected':'')+'>'+r.label+' - '+r.access+'</option>';}).join('');
+  openModal(u?'Modifier '+u.nom:'Nouvel utilisateur',`
+    <div class="f"><label>Nom complet *</label><input id="uf_nom" value="${u?esc(u.nom):''}" placeholder="Ex: Kouassi Jean"/></div>
+    <div class="f"><label>Identifiant *</label><input id="uf_email" value="${u?esc(u.email):''}" placeholder="jean ou jean@..."/></div>
+    <div class="f"><label>Mot de passe ${id?'(vide = inchangé)':'*'}</label><input id="uf_pass" type="password" placeholder=""/></div>
+    <div class="f"><label>Rôle</label><select id="uf_role">${roleOpts}</select></div>
+    <button class="btn" style="width:100%;background:var(--gold);color:#000" onclick="saveUser('${id||''}')">Sauvegarder</button>`);
+}
+function saveUser(id){
+  const nom=gv('uf_nom');const email=gv('uf_email');const pass=gv('uf_pass');const role=gv('uf_role');if(!nom||!email){showToast('Nom et identifiant obligatoires',false);return;}
+  const users=getUsers();
+  if(id){const idx=users.findIndex(u=>u.id===id);if(idx<0)return;users[idx]={...users[idx],nom,email,role,actif:true};if(pass)users[idx].password=btoa(pass);}else{if(users.find(u=>u.email===email)){showToast('Identifiant déjà utilisé',false);return;}users.push({id:uid(),nom,email,role,actif:true,password:btoa(pass||'BC2026!'),created_at:TODAY});}
+  saveUsers(users);closeModal();showToast('Utilisateur sauvegardé ✓');rUsers();
+}
+function toggleUser(id){const users=getUsers();const idx=users.findIndex(u=>u.id===id);if(idx<0)return;users[idx].actif=!users[idx].actif;saveUsers(users);showToast('Accès '+(users[idx].actif?'réactivé':'suspendu'));rUsers();}
+
+function rConfig(){
+  const ci=getCompanyInfo();const srvUrl=S.g('server_url')||'';const adminKey=S.g('admin_key')||'';const appOpts=getApps().map(function(a){return'<option value="'+a.id+'">'+a.emoji+' '+a.nom+'</option>';}).join('');
+  document.getElementById('pg-config').innerHTML=`
+  <div class="rh"><div><div class="st">Configuration</div><div class="ss">Serveur · Profil · Documents · Paiements</div></div></div>
+  <div class="card" style="margin-bottom:13px"><div class="ct">🔗 Connexion serveur Apps Script</div>
+    <div class="f"><label>URL Apps Script</label><input id="cfg_srv" value="${esc(srvUrl)}" placeholder="https://script.google.com/macros/s/.../exec"/></div>
+    <div class="f"><label>Clé admin</label><input id="cfg_key" type="password" value="${esc(adminKey)}" placeholder="Clé secrète"/></div>
+    <div style="display:flex;gap:7px"><button class="btn" style="flex:1;background:var(--gold);color:#000" onclick="saveServerConfig()">Sauvegarder + Charger</button><button class="btgh btsm" onclick="testConnection()">🔗 Tester</button></div>
+    <div id="cfg_test_msg" style="font-size:11.5px;margin-top:7px"></div>
+  </div>
+  <div class="card" style="margin-bottom:13px"><div class="ct">🏢 Profil BALANCE CONSULTING</div>
+    <div class="f"><label>Logo (fichier image)</label>
+      <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+        <input type="file" id="ci_logo_file" accept="image/*" onchange="handleLogoUpload(this)" style="background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:6px 9px;color:var(--text);font-size:11px;flex:1;min-width:0"/>
+        <div id="ci_logo_preview" style="width:44px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1A56DB,#3B9EFF)">${ci.logo_url?`<img src="${esc(ci.logo_url)}" style="width:100%;height:100%;object-fit:contain"/>`:``}<span style="font-size:12px;font-weight:800;color:#fff">${ci.logo_url?'':'BC'}</span></div>
+        ${ci.logo_url?`<button class="btgh btsm" onclick="clearLogo()" style="color:var(--red)">✕ Supprimer</button>`:''}
+      </div>
+      <input type="hidden" id="ci_logo" value="${esc(ci.logo_url||'')}"/>
+    </div>
+    <div class="f"><label>Cachet / Tampon (PNG transparent recommandé)</label>
+      <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+        <input type="file" id="ci_stamp_file" accept="image/*" onchange="handleStampUpload(this)" style="background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:6px 9px;color:var(--text);font-size:11px;flex:1;min-width:0"/>
+        <div id="ci_stamp_preview" style="width:80px;height:80px;border-radius:8px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:2px dashed var(--border2);background:var(--bg2)">${ci.stamp_url?`<img src="${esc(ci.stamp_url)}" style="width:100%;height:100%;object-fit:contain"/>`:`<span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.4">Cachet<br>PNG</span>`}</div>
+        ${ci.stamp_url?`<button class="btgh btsm" onclick="clearStamp()" style="color:var(--red)">✕ Supprimer</button>`:''}
+      </div>
+      <input type="hidden" id="ci_stamp" value="${esc(ci.stamp_url||'')}"/>
+      <div style="font-size:9.5px;color:var(--muted);margin-top:3px">Le cachet sera ajouté automatiquement lors de l'impression avec cachet.</div>
+    </div>
+    <div class="g2"><div class="f"><label>Nom société</label><input id="ci_nom" value="${esc(ci.nom||'BALANCE CONSULTING')}"/></div><div class="f"><label>Couleur principale</label><input id="ci_color" type="color" value="${ci.couleur_principale||'#1A56DB'}"/></div></div>
+    <div class="f"><label>Slogan</label><input id="ci_slogan" value="${esc(ci.slogan||'')}" placeholder="Expert-comptable · Conseil fiscal · Gestion"/></div>
+    <div class="g2"><div class="f"><label>Email</label><input id="ci_email" type="email" value="${esc(ci.email||'')}"/></div><div class="f"><label>Téléphone</label><input id="ci_tel" value="${esc(ci.tel||'')}"/></div></div>
+    <div class="g2"><div class="f"><label>Adresse</label><input id="ci_addr" value="${esc(ci.adresse||'')}"/></div><div class="f"><label>Ville</label><input id="ci_ville" value="${esc(ci.ville||'Abidjan')}"/></div></div>
+    <div class="g2"><div class="f"><label>RCCM</label><input id="ci_rccm" value="${esc(ci.rccm||'')}"/></div><div class="f"><label>NCC / NIF</label><input id="ci_ncc" value="${esc(ci.ncc||'')}"/></div></div>
+    <div class="f"><label>Mentions légales (documents)</label><textarea id="ci_mentions" rows="2">${esc(ci.mentions||'Tous droits réservés.')}</textarea></div>
+    <div class="sep"></div>
+    <div style="font-size:10px;font-weight:700;color:var(--acc3);margin-bottom:7px">SIGNATAIRES DOCUMENTS</div>
+    <div id="sigArea">${(ci.sigs||[]).map((s,i)=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:9px;margin-bottom:7px"><div class="g2"><div class="f" style="margin:0"><label>Nom</label><input id="sig_nom_${i}" value="${esc(s.nom||'')}"/></div><div class="f" style="margin:0"><label>Rôle</label><input id="sig_role_${i}" value="${esc(s.role||'')}"/></div></div><div style="margin-top:8px;display:flex;align-items:center;gap:10px"><div style="width:80px;height:36px;border:1px solid var(--border);border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0" id="sig_prev_${i}">${s.signature?`<img src="${s.signature}" style="max-width:100%;max-height:100%;object-fit:contain"/>`:''}</div><div style="flex:1"><label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px">Signature (image PNG/JPG)</label><input type="file" accept="image/*" onchange="handleSigImgUpload(this,${i})" style="font-size:10.5px;color:var(--text);width:100%"/><input type="hidden" id="sig_signature_${i}" value="${esc(s.signature||'')}"/></div>${s.signature?`<button onclick="clearSigImg(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;flex-shrink:0">×</button>`:''}</div></div>`).join('')||'<div style="font-size:11px;color:var(--muted)">Aucun signataire configuré</div>'}</div>
+    <button class="btn" style="width:100%;background:var(--gold);color:#000;margin-top:4px" onclick="saveCompanyInfoFull()">💾 Sauvegarder le profil</button>
+  </div>
+  <div class="card" style="margin-bottom:13px"><div class="ct">Liens de paiement par application</div>
+    <div class="f"><label>Application</label><select id="paylink_app" onchange="loadPayLinksForApp()" style="background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 9px;color:var(--text);font-size:12px"><option value="_global">Toutes les apps (global)</option>${appOpts}</select></div>
+    <div style="font-size:10.5px;font-weight:700;color:var(--acc3);margin-bottom:5px">Wave CI</div>
+    <div class="g3"><div class="f"><label>Mensuel</label><input id="wl_mois" placeholder="https://pay.wave.com/..."/></div><div class="f"><label>Trimestriel</label><input id="wl_trim" placeholder="https://pay.wave.com/..."/></div><div class="f"><label>Annuel</label><input id="wl_annu" placeholder="https://pay.wave.com/..."/></div></div>
+    <div style="font-size:10.5px;font-weight:700;color:var(--gold);margin:7px 0 5px">Orange Money CI</div>
+    <div class="g3"><div class="f"><label>Mensuel</label><input id="ol_mois"/></div><div class="f"><label>Trimestriel</label><input id="ol_trim"/></div><div class="f"><label>Annuel</label><input id="ol_annu"/></div></div>
+    <button class="btn" style="width:100%;background:var(--gold);color:#000;margin-top:7px" onclick="savePayLinks()">Sauvegarder les liens</button>
+  </div>
+  <div class="card"><div class="ct">Triggers automatiques</div>
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:11px;line-height:1.8">Exécuter <strong>une seule fois</strong> dans Apps Script pour activer les relances J-30/J-7/J-3.</div>
+    <button class="btn" style="background:var(--gold);color:#000" onclick="setupTriggers()">Activer les triggers</button>
+  </div>`;
+  setTimeout(loadPayLinksForApp,50);
+}
+function handleLogoUpload(input){
+  if(!input.files||!input.files[0])return;
+  const file=input.files[0];
+  if(file.size>2*1024*1024){showToast('Logo trop grand (max 2MB)',false);return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const dataUrl=e.target.result;
+    const hiddenInput=document.getElementById('ci_logo');
+    if(hiddenInput)hiddenInput.value=dataUrl;
+    const preview=document.getElementById('ci_logo_preview');
+    if(preview)preview.innerHTML=`<img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain"/>`;
+    // Also update sidebar logo
+    const ci=getCompanyInfo();ci.logo_url=dataUrl;saveCompanyInfoData(ci);applyCompanyBrand();
+    showToast('Logo importé ✓');
+  };
+  reader.readAsDataURL(file);
+}
+function clearLogo(){
+  const hiddenInput=document.getElementById('ci_logo');if(hiddenInput)hiddenInput.value='';
+  const preview=document.getElementById('ci_logo_preview');if(preview)preview.innerHTML=`<span style="font-size:12px;font-weight:800;color:#fff">BC</span>`;
+  const ci=getCompanyInfo();ci.logo_url='';saveCompanyInfoData(ci);applyCompanyBrand();
+  showToast('Logo supprimé');
+}
+function handleStampUpload(input){
+  if(!input.files||!input.files[0])return;
+  const file=input.files[0];
+  if(file.size>3*1024*1024){showToast('Cachet trop grand (max 3MB)',false);return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const dataUrl=e.target.result;
+    const hiddenInput=document.getElementById('ci_stamp');
+    if(hiddenInput)hiddenInput.value=dataUrl;
+    const preview=document.getElementById('ci_stamp_preview');
+    if(preview)preview.innerHTML=`<img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain"/>`;
+    const ci=getCompanyInfo();ci.stamp_url=dataUrl;saveCompanyInfoData(ci);
+    showToast('Cachet importé ✓');
+  };
+  reader.readAsDataURL(file);
+}
+function clearStamp(){
+  const hiddenInput=document.getElementById('ci_stamp');if(hiddenInput)hiddenInput.value='';
+  const preview=document.getElementById('ci_stamp_preview');
+  if(preview)preview.innerHTML=`<span style="font-size:9px;color:var(--muted);text-align:center;line-height:1.4">Cachet<br>PNG</span>`;
+  const ci=getCompanyInfo();ci.stamp_url='';saveCompanyInfoData(ci);
+  showToast('Cachet supprimé');
+}
+function saveServerConfig(){const url=gv('cfg_srv');const key=gv('cfg_key');S.s('server_url',url);S.s('admin_key',key);showToast('Configuration sauvegardée ✓');if(url)loadAllData().then(ok=>{if(ok){showToast('Données chargées ✓');goTo('dash');}else showToast('Serveur configuré mais pas encore de données',false);});}
+async function testConnection(){const msg=document.getElementById('cfg_test_msg');if(msg)msg.innerHTML='<span style="color:var(--muted)">🔄 Test...</span>';try{const d=await apiCall('ping');if(msg)msg.innerHTML='<span style="color:var(--green)">✅ Connexion OK</span>';}catch(e){if(msg)msg.innerHTML='<span style="color:var(--red)">❌ '+e.message+'</span>';}}
+function saveCompanyInfoFull(){
+  const ci=getCompanyInfo();const sigsCount=(ci.sigs||[]).length;const sigs=Array.from({length:sigsCount},(_,i)=>({nom:gv('sig_nom_'+i)||'',role:gv('sig_role_'+i)||'',signature:gv('sig_signature_'+i)||''})).filter(s=>s.nom);
+  const info={...ci,nom:gv('ci_nom')||'BALANCE CONSULTING',slogan:gv('ci_slogan')||'',email:gv('ci_email')||'',tel:gv('ci_tel')||'',adresse:gv('ci_addr')||'',ville:gv('ci_ville')||'Abidjan',rccm:gv('ci_rccm')||'',ncc:gv('ci_ncc')||'',mentions:gv('ci_mentions')||'Tous droits réservés.',couleur_principale:document.getElementById('ci_color')?.value||'#1A56DB',logo_url:gv('ci_logo')||'',stamp_url:gv('ci_stamp')||'',sigs:sigs.length?sigs:(ci.sigs||[{nom:'Directeur Général',role:'Expert-comptable agréé'}])};
+  saveCompanyInfoData(info);applyCompanyBrand();showToast('Profil BALANCE CONSULTING sauvegardé ✓');}
+function handleSigImgUpload(input,idx){
+  if(!input.files||!input.files[0])return;
+  const file=input.files[0];
+  if(file.size>1*1024*1024){showToast('Image trop grande (max 1MB)',false);return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const dataUrl=e.target.result;
+    const hidden=document.getElementById('sig_signature_'+idx);if(hidden)hidden.value=dataUrl;
+    const prev=document.getElementById('sig_prev_'+idx);if(prev)prev.innerHTML=`<img src="${dataUrl}" style="max-width:100%;max-height:100%;object-fit:contain"/>`;
+    showToast('Signature importée ✓');
+  };
+  reader.readAsDataURL(file);
+}
+function clearSigImg(idx){
+  const hidden=document.getElementById('sig_signature_'+idx);if(hidden)hidden.value='';
+  const prev=document.getElementById('sig_prev_'+idx);if(prev)prev.innerHTML='';
+  showToast('Signature supprimée');
+}
+function savePayLinks(){const appId=gv('paylink_app')||'_global';const all=getAllPayLinks();all[appId]={wave:{MOIS:gv('wl_mois'),TRIM:gv('wl_trim'),ANNU:gv('wl_annu')},om:{MOIS:gv('ol_mois'),TRIM:gv('ol_trim'),ANNU:gv('ol_annu')}};S.s('pay_links',all);showToast('Liens sauvegardés ✓');}
+function loadPayLinksForApp(){const appId=gv('paylink_app')||'_global';const links=getPayLinks(appId==='_global'?null:appId);const setV=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};setV('wl_mois',links.wave?.MOIS);setV('wl_trim',links.wave?.TRIM);setV('wl_annu',links.wave?.ANNU);setV('ol_mois',links.om?.MOIS);setV('ol_trim',links.om?.TRIM);setV('ol_annu',links.om?.ANNU);}
+async function setupTriggers(){if(!getApiUrl()){showToast('Serveur non configuré',false);return;}try{await apiCall('setupTriggers');showToast('✅ Triggers activés');}catch(e){showToast('Erreur: '+e.message,false);}}
+
+// ══ CRÉATION D'ENTREPRISE ════════════════════════════════════════
+const CREA_STEPS=[
+  {id:1,label:'Entretien',desc:'Premier contact et analyse du projet entrepreneur',icon:'🤝',cat:'init'},
+  {id:2,label:'Documentation',desc:'Collecte des pièces justificatives requises',icon:'📂',cat:'init'},
+  {id:3,label:'Constitution du dossier',desc:'Assemblage et vérification du dossier complet',icon:'📋',cat:'init'},
+  {id:4,label:'Signature',desc:'Signature des statuts et documents fondateurs',icon:'✍️',cat:'init'},
+  {id:5,label:'Dépôt au CEPICI',desc:'Dépôt officiel du dossier au guichet CEPICI',icon:'🏛️',cat:'cepici'},
+  {id:6,label:'Retrait du dossier',desc:'Récupération du dossier traité au CEPICI',icon:'📤',cat:'cepici'},
+  {id:7,label:'Mise en ligne',desc:'Publication sur le portail officiel d\'enregistrement',icon:'🌐',cat:'cepici'},
+  {id:8,label:'Validation du dossier',desc:'Confirmation officielle de la validation CEPICI',icon:'✅',cat:'cepici'},
+  {id:9,label:'Réception IDU & Annexe IDU',desc:'Réception de l\'Identifiant Unique & annexe',icon:'🔢',cat:'docs'},
+  {id:10,label:'Retrait RCCM & Procès-verbal',desc:'Retrait du Registre du Commerce et des Sociétés',icon:'📜',cat:'docs'},
+  {id:11,label:'Référence cadastrale & Plan',desc:'Obtention des références cadastrales et plan de localisation',icon:'🗺️',cat:'fiscal'},
+  {id:12,label:'Demande DFE',desc:'Soumission de la Déclaration Fiscale d\'Existence à la DGI',icon:'📝',cat:'fiscal'},
+  {id:13,label:'RDV Agent fiscal',desc:'Rendez-vous avec l\'agent fiscal DGI en charge du dossier',icon:'📅',cat:'fiscal'},
+  {id:14,label:'Retrait DFE',desc:'Retrait de la Déclaration Fiscale d\'Existence validée',icon:'🧾',cat:'fiscal'},
+  {id:15,label:'Ouverture compte bancaire',desc:'Ouverture du compte professionnel en banque',icon:'🏦',cat:'finalisation'},
+  {id:16,label:'Rattachement CNPS',desc:'Affiliation à la Caisse Nationale de Prévoyance Sociale',icon:'🛡️',cat:'finalisation'},
+];
+const CREA_CATS={init:{label:'Initiation',color:'var(--blue)'},cepici:{label:'CEPICI',color:'var(--purple)'},docs:{label:'Documents officiels',color:'var(--gold)'},fiscal:{label:'Fiscalité DGI',color:'var(--orange)'},finalisation:{label:'Finalisation',color:'var(--green)'}};
+const CREA_ST={todo:{label:'En attente',cls:'bc',col:'var(--muted)'},progress:{label:'En cours',cls:'bo',col:'var(--gold)'},done:{label:'Terminé',cls:'bg',col:'var(--green)'},blocked:{label:'Bloqué',cls:'br',col:'var(--red)'}};
+
+function getDossiers(){return S.g('dossiers_creation')||[];}
+function saveDossiers(d){S.s('dossiers_creation',d);if(getApiUrl())apiCall('saveModule',{module:'dossiers_creation',data:d}).catch(()=>{});}
+
+function rCreation(){
+  const dossiers=getDossiers();
+  const total=dossiers.length;
+  const termines=dossiers.filter(d=>{const steps=d.steps||{};return CREA_STEPS.every(s=>(steps[s.id]?.st||'todo')==='done');}).length;
+  const enCours=dossiers.filter(d=>{const steps=d.steps||{};const done=CREA_STEPS.filter(s=>(steps[s.id]?.st||'todo')==='done').length;return done>0&&done<16;}).length;
+
+  const cnt=document.getElementById('cnt-creation');
+  const inProg=dossiers.filter(d=>{const steps=d.steps||{};return CREA_STEPS.some(s=>(steps[s.id]?.st||'todo')==='blocked');}).length;
+  if(cnt){cnt.style.display=inProg?'inline':'none';cnt.textContent=inProg;}
+
+  document.getElementById('pg-creation').innerHTML=`
+  <div class="rh">
+    <div><div class="st">🏗️ Création d'entreprise</div><div class="ss">Suivi du processus CEPICI · DGI · CNPS</div></div>
+    <button class="btn" onclick="openNewDossier()">+ Nouveau dossier</button>
+  </div>
+  <div class="g4" style="margin-bottom:16px">
+    <div class="kpi" style="--kc:var(--acc)"><div class="kl">Total dossiers</div><div class="kv">${total}</div><div class="ks">Tous statuts</div></div>
+    <div class="kpi" style="--kc:var(--gold)"><div class="kl">En cours</div><div class="kv" style="color:var(--gold)">${enCours}</div><div class="ks">Partiellement traités</div></div>
+    <div class="kpi" style="--kc:var(--green)"><div class="kl">Terminés</div><div class="kv" style="color:var(--green)">${termines}</div><div class="ks">16/16 étapes</div></div>
+    <div class="kpi" style="--kc:var(--red)"><div class="kl">Bloqués</div><div class="kv" style="color:var(--red)">${inProg}</div><div class="ks">Avec blocage</div></div>
+  </div>
+  ${dossiers.length===0?`<div class="card" style="text-align:center;padding:44px;color:var(--muted)">
+    <div style="font-size:36px;margin-bottom:11px">🏗️</div>
+    <div style="font-size:13px;font-weight:600;color:var(--text)">Aucun dossier en cours</div>
+    <div style="font-size:11px;margin-top:4px">Créez votre premier dossier de création d'entreprise</div>
+    <button class="btn" style="margin-top:14px" onclick="openNewDossier()">+ Nouveau dossier</button>
+  </div>`:dossiers.map((d,i)=>renderDossierCard(d,i)).join('')}
+  `;
+}
+
+function renderDossierCard(d,i){
+  const steps=d.steps||{};
+  const done=CREA_STEPS.filter(s=>(steps[s.id]?.st||'todo')==='done').length;
+  const blocked=CREA_STEPS.filter(s=>(steps[s.id]?.st||'todo')==='blocked').length;
+  const pct=Math.round(done/16*100);
+  const barCol=pct===100?'var(--green)':blocked?'var(--red)':'var(--acc)';
+  return`<div class="card" style="margin-bottom:13px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;flex-wrap:wrap;gap:7px">
+      <div>
+        <div style="font-size:13.5px;font-weight:700;color:var(--w)">${esc(d.nom)}</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:1px">${esc(d.type||'SARL')} · Créé le ${fmtD(d.created_at||'')} ${d.responsable?'· Resp. '+esc(d.responsable):''}</div>
+      </div>
+      <div style="display:flex;gap:5px;align-items:center">
+        <span style="font-size:11px;font-weight:700;color:${pct===100?'var(--green)':'var(--text)'};">${pct}%</span>
+        ${blocked?`<span class="b br" style="font-size:9px">⚠ ${blocked} bloqué(s)</span>`:''}
+        <button class="btgh btsm" onclick="openDossierDetail(${i})">Ouvrir →</button>
+        <button class="btgh btsm" onclick="deleteDossier(${i})" style="color:var(--red);border-color:var(--red)22">🗑</button>
+      </div>
+    </div>
+    <div class="crea-bar"><div class="crea-bar-fill" style="width:${pct}%;background:${barCol}"></div></div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px">
+    ${CREA_STEPS.map(s=>{
+      const st=(steps[s.id]?.st||'todo');
+      const col=st==='done'?'var(--green)':st==='progress'?'var(--gold)':st==='blocked'?'var(--red)':'var(--border2)';
+      return`<div title="${s.label}" style="width:22px;height:22px;border-radius:5px;background:${col}22;border:1.5px solid ${col};display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer" onclick="openDossierDetail(${i},${s.id})">${s.icon}</div>`;
+    }).join('')}
+    </div>
+    ${d.notes?`<div style="font-size:10.5px;color:var(--muted);margin-top:8px;padding:7px 10px;background:var(--bg2);border-radius:6px">${esc(d.notes)}</div>`:''}
+  </div>`;
+}
+
+function openNewDossier(){
+  openModal('Nouveau dossier de création',`
+    <div class="f"><label>Dénomination sociale *</label><input id="cd_nom" placeholder="Ex: TECH SERVICES CI"/></div>
+    <div class="g2">
+      <div class="f"><label>Forme juridique</label>
+        <select id="cd_type" style="background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 9px;color:var(--text)">
+          <option>SARL</option><option>SA</option><option>SAS</option><option>SARLU</option><option>EI / Auto-entrepreneur</option><option>SNC</option><option>Autre</option>
+        </select>
+      </div>
+      <div class="f"><label>Responsable</label><input id="cd_resp" placeholder="Nom du chargé de dossier"/></div>
+    </div>
+    <div class="f"><label>Notes initiales</label><textarea id="cd_notes" rows="2" placeholder="Informations du promoteur, contexte..."></textarea></div>
+    <button class="btn" style="width:100%;background:var(--gold);color:#000;margin-top:4px" onclick="createDossier()">Créer le dossier →</button>
+  `);
+}
+
+function createDossier(){
+  const nom=gv('cd_nom');if(!nom){showToast('Dénomination obligatoire',false);return;}
+  const d={id:uid(),nom,type:gv('cd_type')||'SARL',responsable:gv('cd_resp')||'',notes:gv('cd_notes')||'',created_at:TODAY,steps:{}};
+  const arr=getDossiers();arr.unshift(d);saveDossiers(arr);closeModal();showToast('Dossier créé ✓');rCreation();
+}
+
+function deleteDossier(i){
+  if(!confirm('Supprimer ce dossier ?'))return;
+  const arr=getDossiers();arr.splice(i,1);saveDossiers(arr);showToast('Dossier supprimé');rCreation();
+}
+
+let _creaDossierIdx=null,_creaFocusStep=null;
+function openDossierDetail(i,focusStep=null){
+  _creaDossierIdx=i;_creaFocusStep=focusStep;
+  const d=getDossiers()[i];if(!d)return;
+  const steps=d.steps||{};
+  const done=CREA_STEPS.filter(s=>(steps[s.id]?.st||'todo')==='done').length;
+  const pct=Math.round(done/16*100);
+
+  const stepsHtml=CREA_STEPS.map(s=>{
+    const sd=steps[s.id]||{st:'todo',date:'',note:''};
+    const catInfo=CREA_CATS[s.cat]||{};
+    const stInfo=CREA_ST[sd.st]||CREA_ST.todo;
+    const highlighted=focusStep===s.id?'border-color:var(--gold)!important;':'';
+    return`<div class="crea-step" style="${highlighted}">
+      <div class="crea-num" style="background:${catInfo.color}20;color:${catInfo.color}">${s.id}</div>
+      <div class="crea-icon">${s.icon}</div>
+      <div class="crea-info">
+        <div class="crea-lbl">${s.label}</div>
+        <div class="crea-desc">${s.desc}</div>
+        ${sd.date?`<div class="crea-date">📅 ${fmtD(sd.date)}</div>`:''}
+        ${sd.note?`<div style="font-size:9.5px;color:var(--acc3);margin-top:2px">💬 ${esc(sd.note)}</div>`:''}
+      </div>
+      <div class="crea-ctrl">
+        <span class="b ${stInfo.cls}" style="font-size:9px;min-width:70px;justify-content:center">${stInfo.label}</span>
+        <button class="btgh btsm" style="font-size:10px" onclick="editStep(${i},${s.id})">✏</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  openModal(`📋 ${esc(d.nom)} — ${pct}% accompli`,`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;flex-wrap:wrap;gap:5px">
+      <span style="font-size:11px;color:var(--muted)">${esc(d.type)} · Resp. ${esc(d.responsable||'—')}</span>
+      <div style="display:flex;gap:5px">
+        <button class="btn btsm" style="background:var(--green)" onclick="markAllDone(${i})">✅ Tout Terminer</button>
+        <button class="btgh btsm" onclick="resetDossier(${i})">🔄 Reset</button>
+      </div>
+    </div>
+    <div class="crea-bar" style="margin-bottom:12px"><div class="crea-bar-fill" style="width:${pct}%;background:var(--acc)"></div></div>
+    ${stepsHtml}
+  `);
+}
+
+function editStep(dIdx,sId){
+  const arr=getDossiers();const d=arr[dIdx];if(!d)return;
+  const sd=(d.steps||{})[sId]||{st:'todo',date:'',note:''};
+  openModal(`Étape ${sId} — ${CREA_STEPS.find(s=>s.id===sId)?.label||''}`,`
+    <div class="f"><label>Statut</label>
+      <select id="es_st" style="background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 9px;color:var(--text)">
+        ${Object.entries(CREA_ST).map(([k,v])=>`<option value="${k}" ${sd.st===k?'selected':''}>${v.label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="f"><label>Date de réalisation</label><input id="es_date" type="date" value="${sd.date||''}"/></div>
+    <div class="f"><label>Notes / Observations</label><textarea id="es_note" rows="2">${esc(sd.note||'')}</textarea></div>
+    <button class="btn" style="width:100%;background:var(--gold);color:#000" onclick="saveStep(${dIdx},${sId})">Sauvegarder</button>
+  `);
+}
+
+function saveStep(dIdx,sId){
+  const arr=getDossiers();const d=arr[dIdx];if(!d)return;
+  if(!d.steps)d.steps={};
+  d.steps[sId]={st:gv('es_st')||'todo',date:gv('es_date')||'',note:gv('es_note')||''};
+  saveDossiers(arr);closeModal();showToast('Étape mise à jour ✓');
+  rCreation();openDossierDetail(dIdx);
+}
+
+function markAllDone(dIdx){
+  const arr=getDossiers();const d=arr[dIdx];if(!d)return;
+  if(!d.steps)d.steps={};
+  CREA_STEPS.forEach(s=>{d.steps[s.id]={...(d.steps[s.id]||{}),st:'done',date:d.steps[s.id]?.date||TODAY};});
+  saveDossiers(arr);showToast('Toutes les étapes marquées terminées ✓');rCreation();openDossierDetail(dIdx);
+}
+
+function resetDossier(dIdx){
+  if(!confirm('Réinitialiser toutes les étapes ?'))return;
+  const arr=getDossiers();const d=arr[dIdx];if(!d)return;
+  d.steps={};saveDossiers(arr);showToast('Dossier réinitialisé');rCreation();openDossierDetail(dIdx);
+}
+
+// ══ GLOBAL SEARCH ════════════════════════════════════════════
+function globalSearch(q){
+  if(!q||q.length<2)return;const apps=getApps();const r=[];
+  getClients().filter(c=>(c.nom||'').toLowerCase().includes(q.toLowerCase())).forEach(c=>r.push({action:`openClient360('${esc(c.nom)}')`}));
+  getCrmClients().filter(c=>(c.nom||'').toLowerCase().includes(q.toLowerCase())).forEach(c=>r.push({action:`goTo('crm-clients')`}));
+  if(r.length>0){try{eval(r[0].action);}catch(e){}}
+}
+
+// ══ INIT ════════════════════════════════════════════════════
+(function init(){
+  checkSignatureRequest();
+  if(checkAuth()){
+    const auth=S.g('auth');
+    document.getElementById('sb-username').textContent=auth?.displayName||auth?.user||'Admin';
+    showApp();
+  }
+  updateCrmBadges();
+  updateSigBadge();
+})();
+</script>
+</body>
+</html>
