@@ -1409,7 +1409,6 @@ async function applySignature(token){
     signatureB64=canvas.toDataURL('image/png');
   }
   const signedAt=new Date().toISOString();
-  const pending=S.g('pending_sigs')||{};const doc=pending[token];if(!doc)return;
   const signedHtml=doc.html.replace(
     /(<div class="dsl"[^>]*><\/div>\s*<div class="dslb">Pour [^<]+ — Signature[^<]*<\/div>)/,
     `$1<img src="${signatureB64}" style="height:50px;max-width:160px;object-fit:contain;margin:4px 0;display:block"/>`
@@ -1940,4 +1939,12 @@ function globalSearch(q){
   checkSignatureRequest();
   if(checkAuth()){
     const auth=S.g('auth');
-    document.getElementById('sb-use
+    document.getElementById('sb-username').textContent=auth?.displayName||auth?.user||'Admin';
+    showApp();
+  }
+  updateCrmBadges();
+  updateSigBadge();
+})();
+</script>
+</body>
+</html>
