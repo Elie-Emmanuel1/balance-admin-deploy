@@ -371,7 +371,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="ptl" id="povTit">Aperçu</div>
     <button id="btnDlPdf" onclick="downloadPDF(false)" class="btn" style="background:var(--green);color:#fff">🖨️ Imprimer / PDF A4</button>
     <button id="btnDlPdfStamp" onclick="downloadPDF(true)" class="btn" style="background:var(--purple);color:#fff">🔏 Imprimer avec cachet</button>
-    <button onclick="sendDocForSignature()" class="btn" style="background:var(--acc);color:#fff">✍️ Envoyer pour signature</button>
     <button onclick="closePov()" class="btgh">✕ Fermer</button>
   </div>
   <div id="povC" style="width:100%;max-width:820px;"></div>
@@ -1367,9 +1366,9 @@ function showSignValidation(token,doc){
   const hasSaved=!!(doc.signerImgB64);
   window._sigMode=hasSaved?'saved':'canvas';
   const savedBlock=hasSaved
-    ?'<div id="svdCard" onclick="window._sigMode=\'saved\';document.getElementById(\'svdCard\').style.borderColor=\'#10B981\';document.getElementById(\'cvsCard\').style.borderColor=\'#2A3E45\';" style="border:2px solid #10B981;border-radius:8px;padding:12px;cursor:pointer;margin-bottom:8px;background:#0A1A1C;display:flex;align-items:center;justify-content:space-between;gap:12px"><div><div style="font-size:12px;font-weight:700;color:#6EE7B7;margin-bottom:3px">✅ Ma signature enregistrée</div><div style="font-size:10px;color:#4A7C8E">Cliquez pour l\'utiliser</div></div><img src="'+doc.signerImgB64+'" style="height:44px;max-width:130px;object-fit:contain;background:#fff;padding:4px;border-radius:5px;flex-shrink:0"/></div><div style="text-align:center;color:#4A7C8E;font-size:11px;margin:8px 0">\u2014\u00a0ou signer manuellement\u00a0\u2014</div><div id="cvsCard" onclick="window._sigMode=\'canvas\';document.getElementById(\'cvsCard\').style.borderColor=\'#10B981\';document.getElementById(\'svdCard\').style.borderColor=\'#2A3E45\';" style="border:2px solid #2A3E45;border-radius:8px;padding:8px 12px;cursor:pointer;margin-bottom:10px;background:#0A1A1C"><div style="font-size:12px;font-weight:600;color:#CAE9F5">✏️ Dessiner ma signature ci-dessous</div></div>'
+    ?'<div style="border:2px solid #10B981;border-radius:8px;padding:12px;margin-bottom:10px;background:#0A1A1C;display:flex;align-items:center;justify-content:space-between;gap:12px"><div><div style="font-size:12px;font-weight:700;color:#6EE7B7;margin-bottom:3px">✅ Signature enregistrée</div><div style="font-size:10px;color:#4A7C8E">Cette signature sera apposée sur le document</div></div><img src="'+doc.signerImgB64+'" style="height:44px;max-width:130px;object-fit:contain;background:#fff;padding:4px;border-radius:5px;flex-shrink:0"/></div>'
     :'';
-  overlay.innerHTML='<div style="max-width:860px;margin:0 auto"><div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #1E2E33"><div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#1A56DB,#3B9EFF);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff">BC</div><div><div style="font-size:16px;font-weight:700;color:#fff">Validation de signature</div><div style="font-size:11px;color:#4A7C8E">BALANCE CONSULTING</div></div></div><div style="background:#0D1517;border:1px solid #1E2E33;border-radius:12px;padding:16px;margin-bottom:16px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px"><div><span style="color:#4A7C8E">Document :</span> <strong style="color:#fff">'+doc.num+'</strong></div><div><span style="color:#4A7C8E">Type :</span> <strong style="color:#fff">'+doc.type+'</strong></div><div><span style="color:#4A7C8E">Client :</span> <strong style="color:#fff">'+doc.client+'</strong></div><div><span style="color:#4A7C8E">Date :</span> <strong style="color:#fff">'+doc.date+'</strong></div><div><span style="color:#4A7C8E">Signataire :</span> <strong style="color:#90E0EF">'+doc.signerName+'</strong></div><div><span style="color:#4A7C8E">Qualit\u00e9 :</span> <strong style="color:#fff">'+(doc.signerRole||'\u2014')+'</strong></div></div></div><div style="background:#fff;border-radius:8px;margin-bottom:16px;overflow:hidden">'+doc.html+'</div><div style="background:#0D1517;border:1px solid #2A3E45;border-radius:12px;padding:20px;margin-bottom:16px"><div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">\u270d\ufe0f Votre signature</div><div style="font-size:12px;color:#4A7C8E;margin-bottom:14px">En validant ce document, vous certifiez l\'avoir lu et approuv\u00e9 dans son int\u00e9gralit\u00e9.</div>'+savedBlock+'<div id="sigValidZone"><div style="position:relative;border:2px solid #2A3E45;border-radius:8px;background:#fff;margin-bottom:12px;touch-action:none"><canvas id="validSigCanvas" width="600" height="160" style="display:block;width:100%;cursor:crosshair;border-radius:6px"></canvas><div style="position:absolute;bottom:6px;right:10px;font-size:10px;color:#ccc;font-style:italic">Signez ici</div></div><div style="display:flex;gap:8px;margin-bottom:14px"><button onclick="clearValidCanvas()" style="background:transparent;border:1px solid #2A3E45;border-radius:7px;padding:7px 12px;color:#CAE9F5;cursor:pointer;font-family:Inter,sans-serif;font-size:12px">\ud83d\uddd1\ufe0f Effacer</button></div></div><div style="background:#10B98118;border:1px solid #10B98144;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:#6EE7B7;line-height:1.7">\u2705 En cliquant "Valider et Signer", vous confirmez :<br>\u2022 Avoir pris connaissance de l\'int\u00e9gralit\u00e9 du document<br>\u2022 Approuver le contenu sans r\u00e9serve<br>\u2022 Date et heure : <strong>'+new Date().toLocaleString('fr-FR')+'</strong></div><button id="signBtn" onclick="applySignature(\''+token+'\')" style="width:100%;background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">\u2705 Valider et Signer le document</button><button onclick="refuseSignature(\''+token+'\')" style="width:100%;background:transparent;border:1px solid #EF4444;color:#FCA5A5;border-radius:10px;padding:10px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;margin-top:8px">\u2715 Refuser de signer</button></div></div>';
+  overlay.innerHTML='<div style="max-width:860px;margin:0 auto"><div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #1E2E33"><div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#1A56DB,#3B9EFF);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff">BC</div><div><div style="font-size:16px;font-weight:700;color:#fff">Validation de signature</div><div style="font-size:11px;color:#4A7C8E">BALANCE CONSULTING</div></div></div><div style="background:#0D1517;border:1px solid #1E2E33;border-radius:12px;padding:16px;margin-bottom:16px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px"><div><span style="color:#4A7C8E">Document :</span> <strong style="color:#fff">'+doc.num+'</strong></div><div><span style="color:#4A7C8E">Type :</span> <strong style="color:#fff">'+doc.type+'</strong></div><div><span style="color:#4A7C8E">Client :</span> <strong style="color:#fff">'+doc.client+'</strong></div><div><span style="color:#4A7C8E">Date :</span> <strong style="color:#fff">'+doc.date+'</strong></div><div><span style="color:#4A7C8E">Signataire :</span> <strong style="color:#90E0EF">'+doc.signerName+'</strong></div><div><span style="color:#4A7C8E">Qualit\u00e9 :</span> <strong style="color:#fff">'+(doc.signerRole||'\u2014')+'</strong></div></div></div><div style="background:#fff;border-radius:8px;margin-bottom:16px;overflow:hidden">'+doc.html+'</div><div style="background:#0D1517;border:1px solid #2A3E45;border-radius:12px;padding:20px;margin-bottom:16px"><div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">\u270d\ufe0f Votre signature</div><div style="font-size:12px;color:#4A7C8E;margin-bottom:14px">En validant ce document, vous certifiez l\'avoir lu et approuv\u00e9 dans son int\u00e9gralit\u00e9.</div>'+savedBlock+'<div id="sigValidZone" style="display:'+(hasSaved?'none':'block')+'"><div style="position:relative;border:2px solid #2A3E45;border-radius:8px;background:#fff;margin-bottom:12px;touch-action:none"><canvas id="validSigCanvas" width="600" height="160" style="display:block;width:100%;cursor:crosshair;border-radius:6px"></canvas><div style="position:absolute;bottom:6px;right:10px;font-size:10px;color:#ccc;font-style:italic">Signez ici</div></div><div style="display:flex;gap:8px;margin-bottom:14px"><button onclick="clearValidCanvas()" style="background:transparent;border:1px solid #2A3E45;border-radius:7px;padding:7px 12px;color:#CAE9F5;cursor:pointer;font-family:Inter,sans-serif;font-size:12px">\ud83d\uddd1\ufe0f Effacer</button></div></div><div style="background:#10B98118;border:1px solid #10B98144;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:#6EE7B7;line-height:1.7">\u2705 En cliquant "Valider et Signer", vous confirmez :<br>\u2022 Avoir pris connaissance de l\'int\u00e9gralit\u00e9 du document<br>\u2022 Approuver le contenu sans r\u00e9serve<br>\u2022 Date et heure : <strong>'+new Date().toLocaleString('fr-FR')+'</strong></div><button id="signBtn" onclick="applySignature(\''+token+'\')" style="width:100%;background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">\u2705 Valider et Signer le document</button><button onclick="refuseSignature(\''+token+'\')" style="width:100%;background:transparent;border:1px solid #EF4444;color:#FCA5A5;border-radius:10px;padding:10px;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;margin-top:8px">\u2715 Refuser de signer</button></div></div>';
   document.body.appendChild(overlay);
   setTimeout(initValidCanvas,200);
   history.replaceState(null,'',location.pathname);
@@ -1392,17 +1391,24 @@ function initValidCanvas(){
 function clearValidCanvas(){const c=document.getElementById('validSigCanvas');if(c)c.getContext('2d').clearRect(0,0,c.width,c.height);}
 
 async function applySignature(token){
-  const canvas=document.getElementById('validSigCanvas');if(!canvas)return;
-  const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
-  const hasContent=data.some((v,i)=>i%4===3&&v>0);
-  if(!hasContent){
-    const zone=document.getElementById('sigValidZone');if(zone)zone.style.border='2px solid #EF4444';
-    const btn=document.getElementById('signBtn');
-    if(btn){btn.style.background='#EF4444';btn.textContent='⚠️ Dessinez d\'abord votre signature';}
-    setTimeout(()=>{if(btn){btn.style.background='';btn.textContent='✅ Valider et Signer le document';}if(zone)zone.style.border='';},2000);
-    return;
+  const pending=S.g('pending_sigs')||{};const doc=pending[token];if(!doc)return;
+  let signatureB64='';
+  if(window._sigMode==='saved'&&doc.signerImgB64){
+    signatureB64=doc.signerImgB64;
+  }else{
+    const canvas=document.getElementById('validSigCanvas');if(!canvas)return;
+    const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+    const hasContent=data.some((v,i)=>i%4===3&&v>0);
+    if(!hasContent){
+      const zone=document.getElementById('sigValidZone');if(zone)zone.style.border='2px solid #EF4444';
+      const btn=document.getElementById('signBtn');
+      if(btn){btn.style.background='#EF4444';btn.textContent='⚠️ Dessinez d\'abord votre signature';}
+      setTimeout(()=>{if(btn){btn.style.background='';btn.textContent='✅ Valider et Signer le document';}if(zone)zone.style.border='';},2000);
+      return;
+    }
+    signatureB64=canvas.toDataURL('image/png');
   }
-  const signatureB64=canvas.toDataURL('image/png');const signedAt=new Date().toISOString();
+  const signedAt=new Date().toISOString();
   const pending=S.g('pending_sigs')||{};const doc=pending[token];if(!doc)return;
   const signedHtml=doc.html.replace(
     /(<div class="dsl"[^>]*><\/div>\s*<div class="dslb">Pour [^<]+ — Signature[^<]*<\/div>)/,
@@ -1580,9 +1586,9 @@ function buildPrintHTML(c,logoHtml,num,couleur,stampUrl){
   +'</div>'
   // Corps
   +'<div>'+bodyContent+'</div>'
-  // Cachet : injecté via DOMContentLoaded — URL encodée proprement avec JSON.stringify
+  // Cachet : script inline en bas de body — DOM déjà prêt à ce stade
   +(stampUrl
-    ? '<script>window.addEventListener("DOMContentLoaded",function(){var url='+JSON.stringify(stampUrl)+';document.querySelectorAll(".dstamp").forEach(function(s){s.style.cssText="border:none;background:transparent;padding:0;border-radius:0;width:100px;height:100px;display:flex;align-items:center;justify-content:center;margin:0 auto;";var img=document.createElement("img");img.src=url;img.style.cssText="width:100px;height:100px;object-fit:contain;display:block;";img.alt="Cachet";s.innerHTML="";s.appendChild(img);});});<\/script>'
+    ? '<script>(function(){var url='+JSON.stringify(stampUrl)+';var injectStamp=function(s,size){s.style.cssText="border:none;background:transparent;padding:0;border-radius:0;width:"+size+"px;height:"+size+"px;display:flex;align-items:center;justify-content:center;margin:4px 0;";var img=document.createElement("img");img.src=url;img.style.cssText="width:"+size+"px;height:"+size+"px;object-fit:contain;display:block;";img.alt="Cachet";s.innerHTML="";s.appendChild(img);};document.querySelectorAll(".dstamp").forEach(function(s){injectStamp(s,90);});document.querySelectorAll(".sig-zone").forEach(function(s){injectStamp(s,65);});})();<\/script>'
     : '')
   +'</body></html>';
 }
@@ -1657,7 +1663,7 @@ function rConfig(){
     <div class="f"><label>Mentions légales (documents)</label><textarea id="ci_mentions" rows="2">${esc(ci.mentions||'Tous droits réservés.')}</textarea></div>
     <div class="sep"></div>
     <div style="font-size:10px;font-weight:700;color:var(--acc3);margin-bottom:7px">SIGNATAIRES DOCUMENTS</div>
-    <div id="sigArea">${(ci.sigs||[]).map((s,i)=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:9px;margin-bottom:7px"><div class="g2"><div class="f" style="margin:0"><label>Nom</label><input id="sig_nom_${i}" value="${esc(s.nom||'')}"/></div><div class="f" style="margin:0"><label>Rôle</label><input id="sig_role_${i}" value="${esc(s.role||'')}"/></div></div><div style="margin-top:8px;display:flex;align-items:center;gap:10px"><div style="width:80px;height:36px;border:1px solid var(--border);border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0" id="sig_prev_${i}">${s.signature?`<img src="${s.signature}" style="max-width:100%;max-height:100%;object-fit:contain"/>`:''}</div><div style="flex:1"><label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px">Signature (image PNG/JPG)</label><input type="file" accept="image/*" onchange="handleSigImgUpload(this,${i})" style="font-size:10.5px;color:var(--text);width:100%"/><input type="hidden" id="sig_signature_${i}" value="${esc(s.signature||'')}"/></div>${s.signature?`<button onclick="clearSigImg(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;flex-shrink:0">×</button>`:''}</div></div>`).join('')||'<div style="font-size:11px;color:var(--muted)">Aucun signataire configuré</div>'}</div>
+    <div id="sigArea">${(ci.sigs||[]).map((s,i)=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:9px;margin-bottom:7px"><div class="g2"><div class="f" style="margin:0"><label>Nom</label><input id="sig_nom_${i}" value="${esc(s.nom||'')}"/></div><div class="f" style="margin:0"><label>Rôle</label><input id="sig_role_${i}" value="${esc(s.role||'')}"/></div></div></div>`).join('')||'<div style="font-size:11px;color:var(--muted)">Aucun signataire configuré</div>'}</div>
     <button class="btn" style="width:100%;background:var(--gold);color:#000;margin-top:4px" onclick="saveCompanyInfoFull()">💾 Sauvegarder le profil</button>
   </div>
   <div class="card" style="margin-bottom:13px"><div class="ct">Liens de paiement par application</div>
@@ -1723,27 +1729,9 @@ function clearStamp(){
 function saveServerConfig(){const url=gv('cfg_srv');const key=gv('cfg_key');S.s('server_url',url);S.s('admin_key',key);showToast('Configuration sauvegardée ✓');if(url)loadAllData().then(ok=>{if(ok){showToast('Données chargées ✓');goTo('dash');}else showToast('Serveur configuré mais pas encore de données',false);});}
 async function testConnection(){const msg=document.getElementById('cfg_test_msg');if(msg)msg.innerHTML='<span style="color:var(--muted)">🔄 Test...</span>';try{const d=await apiCall('ping');if(msg)msg.innerHTML='<span style="color:var(--green)">✅ Connexion OK</span>';}catch(e){if(msg)msg.innerHTML='<span style="color:var(--red)">❌ '+e.message+'</span>';}}
 function saveCompanyInfoFull(){
-  const ci=getCompanyInfo();const sigsCount=(ci.sigs||[]).length;const sigs=Array.from({length:sigsCount},(_,i)=>({nom:gv('sig_nom_'+i)||'',role:gv('sig_role_'+i)||'',signature:gv('sig_signature_'+i)||''})).filter(s=>s.nom);
+  const ci=getCompanyInfo();const sigsCount=(ci.sigs||[]).length;const sigs=Array.from({length:sigsCount},(_,i)=>({nom:gv('sig_nom_'+i)||'',role:gv('sig_role_'+i)||''})).filter(s=>s.nom);
   const info={...ci,nom:gv('ci_nom')||'BALANCE CONSULTING',slogan:gv('ci_slogan')||'',email:gv('ci_email')||'',tel:gv('ci_tel')||'',adresse:gv('ci_addr')||'',ville:gv('ci_ville')||'Abidjan',rccm:gv('ci_rccm')||'',ncc:gv('ci_ncc')||'',mentions:gv('ci_mentions')||'Tous droits réservés.',couleur_principale:document.getElementById('ci_color')?.value||'#1A56DB',logo_url:gv('ci_logo')||'',stamp_url:gv('ci_stamp')||'',sigs:sigs.length?sigs:(ci.sigs||[{nom:'Directeur Général',role:'Expert-comptable agréé'}])};
   saveCompanyInfoData(info);applyCompanyBrand();showToast('Profil BALANCE CONSULTING sauvegardé ✓');}
-function handleSigImgUpload(input,idx){
-  if(!input.files||!input.files[0])return;
-  const file=input.files[0];
-  if(file.size>1*1024*1024){showToast('Image trop grande (max 1MB)',false);return;}
-  const reader=new FileReader();
-  reader.onload=function(e){
-    const dataUrl=e.target.result;
-    const hidden=document.getElementById('sig_signature_'+idx);if(hidden)hidden.value=dataUrl;
-    const prev=document.getElementById('sig_prev_'+idx);if(prev)prev.innerHTML=`<img src="${dataUrl}" style="max-width:100%;max-height:100%;object-fit:contain"/>`;
-    showToast('Signature importée ✓');
-  };
-  reader.readAsDataURL(file);
-}
-function clearSigImg(idx){
-  const hidden=document.getElementById('sig_signature_'+idx);if(hidden)hidden.value='';
-  const prev=document.getElementById('sig_prev_'+idx);if(prev)prev.innerHTML='';
-  showToast('Signature supprimée');
-}
 function savePayLinks(){const appId=gv('paylink_app')||'_global';const all=getAllPayLinks();all[appId]={wave:{MOIS:gv('wl_mois'),TRIM:gv('wl_trim'),ANNU:gv('wl_annu')},om:{MOIS:gv('ol_mois'),TRIM:gv('ol_trim'),ANNU:gv('ol_annu')}};S.s('pay_links',all);showToast('Liens sauvegardés ✓');}
 function loadPayLinksForApp(){const appId=gv('paylink_app')||'_global';const links=getPayLinks(appId==='_global'?null:appId);const setV=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};setV('wl_mois',links.wave?.MOIS);setV('wl_trim',links.wave?.TRIM);setV('wl_annu',links.wave?.ANNU);setV('ol_mois',links.om?.MOIS);setV('ol_trim',links.om?.TRIM);setV('ol_annu',links.om?.ANNU);}
 async function setupTriggers(){if(!getApiUrl()){showToast('Serveur non configuré',false);return;}try{await apiCall('setupTriggers');showToast('✅ Triggers activés');}catch(e){showToast('Erreur: '+e.message,false);}}
@@ -1952,12 +1940,4 @@ function globalSearch(q){
   checkSignatureRequest();
   if(checkAuth()){
     const auth=S.g('auth');
-    document.getElementById('sb-username').textContent=auth?.displayName||auth?.user||'Admin';
-    showApp();
-  }
-  updateCrmBadges();
-  updateSigBadge();
-})();
-</script>
-</body>
-</html>
+    document.getElementById('sb-use
