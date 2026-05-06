@@ -300,13 +300,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <button class="nb" id="nb-crm-dash" onclick="goTo('crm-dash')"><span class="ni">🧮</span>CRM Tableau de bord</button>
     <button class="nb" id="nb-crm-clients" onclick="goTo('crm-clients')"><span class="ni">🏢</span>Dossiers clients</button>
     <button class="nb" id="nb-crm-ech" onclick="goTo('crm-ech')"><span class="ni">📅</span>Échéances fiscales<span id="cnt-ech" class="cnt" style="display:none"></span></button>
-    <button class="nb" id="nb-crm-fac" onclick="goTo('crm-fac')"><span class="ni">🧾</span>Factures honoraires</button>
     <button class="nb" id="nb-crm-acti" onclick="goTo('crm-acti')"><span class="ni">✅</span>Suivi activités</button>
     <button class="nb" id="nb-crm-equipe" onclick="goTo('crm-equipe')"><span class="ni">👤</span>Équipe</button>
 
-    <div class="sb-section">Documents</div>
-    <button class="nb" id="nb-docs" onclick="goTo('docs')"><span class="ni">📄</span>Générateur docs</button>
+    <div class="sb-section">Trésorerie</div>
+    <button class="nb" id="nb-tresorerie" onclick="goTo('tresorerie')"><span class="ni">💳</span>Trésorerie</button>
+
+    <div class="sb-section">Création d'entreprise</div>
     <button class="nb" id="nb-creation" onclick="goTo('creation')"><span class="ni">🏗️</span>Création d'entreprise<span id="cnt-creation" class="cnt" style="display:none"></span></button>
+
+    <div class="sb-section">Autres documents</div>
+    <button class="nb" id="nb-autres-docs" onclick="goTo('autres-docs')"><span class="ni">📄</span>Autres documents</button>
 
     <div class="sb-section">Système</div>
     <button class="nb" id="nb-logs" onclick="goTo('logs')"><span class="ni">📋</span>Activité</button>
@@ -341,12 +345,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="pg" id="pg-crm-dash"></div>
     <div class="pg" id="pg-crm-clients"></div>
     <div class="pg" id="pg-crm-ech"></div>
-    <div class="pg" id="pg-crm-fac"></div>
     <div class="pg" id="pg-crm-acti"></div>
     <div class="pg" id="pg-crm-equipe"></div>
-    <!-- Docs -->
-    <div class="pg" id="pg-docs"></div>
+    <!-- Trésorerie -->
+    <div class="pg" id="pg-tresorerie"></div>
+    <!-- Création d'entreprise -->
     <div class="pg" id="pg-creation"></div>
+    <!-- Autres documents -->
+    <div class="pg" id="pg-autres-docs"></div>
     <!-- System -->
     <div class="pg" id="pg-logs"></div>
     <div class="pg" id="pg-users"></div>
@@ -596,9 +602,9 @@ function applyCompanyBrand(){
   var col=ci.couleur_principale||'#1A56DB';
   var colEnc=col.replace('#','%23');
   var sbL=document.getElementById('sidebar-logo');
-  if(sbL){if(ci.logo_url){sbL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain"/>';}else{sbL.textContent=abbr;sbL.style.background='linear-gradient(135deg,'+col+','+col+'99)';}}
+  if(sbL){if(ci.logo_url){sbL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain;border-radius:8px"/>';sbL.style.background='transparent';sbL.style.borderRadius='8px';}else{sbL.innerHTML='';sbL.textContent=abbr;sbL.style.background='linear-gradient(135deg,'+col+','+col+'99)';}}
   var lgL=document.getElementById('login-logo');
-  if(lgL){if(ci.logo_url){lgL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain"/>';}else{lgL.textContent=abbr;}}
+  if(lgL){if(ci.logo_url){lgL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain;border-radius:8px"/>';lgL.style.background='transparent';}else{lgL.innerHTML='';lgL.textContent=abbr;lgL.style.background='linear-gradient(135deg,'+col+','+col+'99)';}}
   document.documentElement.style.setProperty('--acc',col);
   document.documentElement.style.setProperty('--acc2',col);
   document.title=(ci.nom||'BALANCE CONSULTING')+' — Platform';
@@ -612,8 +618,9 @@ const PAGES={
   dash:rDash,apps:rApps,clients:rClients,licences:rLicences,
   payments:rPayments,facturation:rFacturation,emails:rEmails,
   'crm-dash':rCrmDash,'crm-clients':rCrmClients,'crm-ech':rCrmEch,
-  'crm-fac':rCrmFac,'crm-acti':rCrmActi,'crm-equipe':rCrmEquipe,
-  docs:rDocs,logs:rLogs,users:rUsers,config:rConfig,creation:rCreation
+  'crm-acti':rCrmActi,'crm-equipe':rCrmEquipe,
+  tresorerie:rTresorerie,'autres-docs':rAutresDocs,
+  logs:rLogs,users:rUsers,config:rConfig,creation:rCreation
 };
 function goTo(p){
   document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('active',b.id==='nb-'+p));
@@ -893,18 +900,17 @@ function rEmails(){
 
 // ══ CRM — DASHBOARD ══════════════════════════════════════════
 function rCrmDash(){
-  const clients=getCrmClients(),echeances=getCrmEcheances(),factures=getCrmFactures();
+  const clients=getCrmClients(),echeances=getCrmEcheances();
   const tH=clients.filter(c=>c.statut==='Actif').reduce((s,c)=>s+(+c.honoraires||0),0);
-  const tP=factures.filter(f=>f.statut==='Payée').reduce((s,f)=>s+(+f.mt||0),0);
-  const tA=factures.filter(f=>['Envoyée','En retard'].includes(f.statut)).reduce((s,f)=>s+(+f.mt||0),0);
-  const ret=factures.filter(f=>f.statut==='En retard').length;
+  const urgCount=echeances.filter(e=>!['Validé','Transmis'].includes(e.statut)&&jrCrm(e.dateLimit)!==null&&jrCrm(e.dateLimit)<=10).length;
+  const echTotal=echeances.filter(e=>e.statut==='À faire'||e.statut==='En cours').length;
   document.getElementById('pg-crm-dash').innerHTML=`
-  <div class="rh"><div><div class="st">CRM Comptable — Tableau de bord</div><div class="ss">Gestion clients, échéances et honoraires</div></div><button class="btn" onclick="openCrmClientForm(0)">+ Nouveau dossier</button></div>
+  <div class="rh"><div><div class="st">CRM Comptable — Tableau de bord</div><div class="ss">Gestion clients, échéances et suivi activités</div></div><button class="btn" onclick="openCrmClientForm(0)">+ Nouveau dossier</button></div>
   <div class="g4" style="margin-bottom:16px">
     <div class="kpi" style="--kc:var(--green)"><div class="kl">Clients actifs</div><div class="kv">${clients.filter(c=>c.statut==='Actif').length}</div><div class="ks">${clients.length} total</div></div>
     <div class="kpi" style="--kc:var(--blue)"><div class="kl">Honoraires /mois</div><div class="kv" style="font-size:14px">${fmCrm(tH)}</div><div class="ks">Récurrent mensuel</div></div>
-    <div class="kpi" style="--kc:var(--green)"><div class="kl">Encaissé</div><div class="kv" style="font-size:14px">${fmCrm(tP)}</div><div class="ks" style="color:var(--green)">Factures payées</div></div>
-    <div class="kpi" style="--kc:${ret>0?'var(--red)':'var(--gold)'}"><div class="kl">En attente</div><div class="kv" style="font-size:14px">${fmCrm(tA)}</div><div class="ks" style="color:${ret>0?'var(--red)':'var(--gold)'}">${ret>0?ret+' retard(s)':'À encaisser'}</div></div>
+    <div class="kpi" style="--kc:var(--gold)"><div class="kl">Échéances actives</div><div class="kv">${echTotal}</div><div class="ks">À faire / En cours</div></div>
+    <div class="kpi" style="--kc:${urgCount>0?'var(--red)':'var(--green)'}"><div class="kl">Urgences ≤ 10j</div><div class="kv" style="color:${urgCount>0?'var(--red)':'var(--green)'}">${urgCount}</div><div class="ks">${urgCount>0?'À traiter en priorité':'Aucune urgence'}</div></div>
   </div>
   <div class="g2">
     <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px"><div class="ct" style="margin:0">⏰ Urgences 10 jours</div><span id="ubadge"></span></div><div id="urgDiv"></div></div>
@@ -1003,35 +1009,6 @@ function saveCrmEch(id){
 }
 function updateCrmBadges(){const urg=getCrmEcheances().filter(e=>!['Validé','Transmis'].includes(e.statut)&&jrCrm(e.dateLimit)!==null&&jrCrm(e.dateLimit)<=10).length;const cntEch=document.getElementById('cnt-ech');if(cntEch){cntEch.style.display=urg?'inline':'none';cntEch.textContent=urg;}}
 
-// ══ CRM — FACTURES ═══════════════════════════════════════════
-function rCrmFac(){
-  const factures=getCrmFactures();const tP=factures.filter(f=>f.statut==='Payée').reduce((s,f)=>s+(+f.mt||0),0);const tA=factures.filter(f=>['Envoyée','En retard'].includes(f.statut)).reduce((s,f)=>s+(+f.mt||0),0);
-  document.getElementById('pg-crm-fac').innerHTML=`
-  <div class="rh"><div><div class="st">Factures d'honoraires</div><div class="ss">Encaissé : <strong style="color:var(--green)">${fmCrm(tP)}</strong> &nbsp;·&nbsp; En attente : <strong style="color:var(--gold)">${fmCrm(tA)}</strong></div></div><button class="btn" onclick="openCrmFacForm(null)">+ Nouvelle facture</button></div>
-  <div id="fList">${renderCrmFacList(factures)}</div>`;
-}
-function renderCrmFacList(factures){
-  if(!factures.length)return'<div style="text-align:center;color:var(--muted);padding:40px">Aucune facture</div>';
-  return factures.sort((a,b)=>new Date(b.dateEmission)-new Date(a.dateEmission)).map(f=>{const cl=gcCrm(f.clientId);const mc=f.statut==='Payée'?'var(--green)':f.statut==='En retard'?'var(--red)':'var(--text)';return`<div class="item"><div class="il"><div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:2px"><span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--green)">${f.num}</span>${bstCrm(f.statut)}<span style="font-size:11px;color:var(--muted)">${cl?.nom||'—'}</span></div><div style="font-size:11px;color:var(--muted)">${f.desc}</div><div style="font-size:10px;color:var(--muted)">Émise ${fdCrm(f.dateEmission)} · Éch. ${fdCrm(f.dateEcheance)}</div></div><div class="ir"><div style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:${mc}">${fmCrm(f.mt)}</div><select style="background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:10.5px;padding:2px 5px" onchange="changeCrmFacStatus(${f.id},this.value)">${STF.map(s=>`<option${s===f.statut?' selected':''}>${s}</option>`).join('')}</select><button class="btgh btsm" onclick="openCrmFacForm(${f.id})">✏️</button><button class="btgh btsm" onclick="delCrmFac(${f.id})">🗑️</button></div></div>`;}).join('');
-}
-function changeCrmFacStatus(id,val){saveCrmFactures(getCrmFactures().map(f=>f.id===id?{...f,statut:val}:f));rCrmFac();}
-function delCrmFac(id){saveCrmFactures(getCrmFactures().filter(f=>f.id!==id));rCrmFac();showToast('🗑️ Supprimé');}
-function openCrmFacForm(id){
-  const factures=getCrmFactures();const f=id?factures.find(x=>x.id===id):null;const clients=getCrmClients();const cl=clients.map(c=>`<option value="${c.id}"${f&&f.clientId==c.id?' selected':''}>${c.nom}</option>`).join('');
-  openModal(id?'Modifier la facture':'Nouvelle facture',`
-    <div class="f"><label>Client *</label><select id="fcl"><option value="">Choisir...</option>${cl}</select></div>
-    <div class="f"><label>Description</label><input id="fde" value="${f?.desc||''}"/></div>
-    <div class="g2"><div class="f"><label>Montant FCFA *</label><input id="fmt2" type="number" value="${f?.mt||''}"/></div><div class="f"><label>Statut</label><select id="fst">${STF.map(s=>`<option${s===(f?.statut||'Brouillon')?' selected':''}>${s}</option>`).join('')}</select></div></div>
-    <div class="g2"><div class="f"><label>Date d'émission</label><input id="femi" type="date" value="${f?.dateEmission||tdCrm()}"/></div><div class="f"><label>Date d'échéance</label><input id="fec" type="date" value="${f?.dateEcheance||''}"/></div></div>
-    <button class="btn" style="width:100%;padding:11px;background:var(--green);color:#060C06" onclick="saveCrmFac(${id||0})">Enregistrer</button>`);
-}
-function saveCrmFac(id){
-  const cId=+document.getElementById('fcl').value,mt=+gv('fmt2');if(!cId||!mt){alert('Client et montant obligatoires');return;}
-  const num=id?(getCrmFactures().find(f=>f.id===id)?.num||''):('FAC-'+new Date().getFullYear()+'-'+String(getCrmFactures().length+1).padStart(3,'0'));
-  const o={id:id||crmUid(),clientId:cId,num,mt,desc:gv('fde'),statut:gv('fst'),dateEmission:gv('femi'),dateEcheance:gv('fec')};
-  const facs=getCrmFactures();saveCrmFactures(id?facs.map(f=>f.id===id?o:f):[...facs,o]);
-  closeModal();rCrmFac();showToast(id?'✅ Mis à jour':'✅ Facture créée !');
-}
 
 // ══ CRM — ACTIVITÉS ══════════════════════════════════════════
 function rCrmActi(){
@@ -1100,26 +1077,6 @@ const DOC_TYPES=[
 ];
 let curDT='devis',dlIds=[],curDoc=null;
 
-function rDocs(){
-  document.getElementById('pg-docs').innerHTML=`
-  <div class="rh"><div><div class="st">Générateur de documents</div><div class="ss">Devis, factures, contrats, attestations…</div></div></div>
-  <div style="display:grid;grid-template-columns:1fr 220px;gap:15px;align-items:start">
-    <div class="card">
-      <div style="font-size:14px;font-weight:700;color:var(--w);margin-bottom:13px;padding-bottom:11px;border-bottom:1px solid var(--border)" id="dFormTit">🎬 Devis</div>
-      <div id="dFormCnt"></div>
-    </div>
-    <div>
-      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">Types de documents</div>
-      <div id="dtypeList"></div>
-      <div class="sep"></div>
-      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">Historique</div>
-      <input placeholder="🔍 Rechercher..." id="docSearch" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:10.5px;padding:5px 8px;outline:none;margin-bottom:6px" oninput="filterDocHist()"/>
-      <div id="dHistList"></div>
-    </div>
-  </div>`;
-  document.getElementById('dtypeList').innerHTML=DOC_TYPES.map(d=>`<div id="dt_${d.id}" onclick="setDT('${d.id}')" style="background:var(--card);border:1px solid ${curDT===d.id?'var(--acc)':'var(--border)'};border-radius:8px;padding:9px 11px;cursor:pointer;margin-bottom:5px"><div style="font-size:11.5px;font-weight:700;color:${curDT===d.id?'var(--acc3)':'var(--w)'};">${d.ico} ${d.lbl}</div></div>`).join('');
-  setDT(curDT);rDocHist();
-}
 function setDT(t){
   curDT=t;dlIds=[];
   DOC_TYPES.forEach(d=>{const e=document.getElementById('dt_'+d.id);if(e){e.style.borderColor=d.id===t?'var(--acc)':'var(--border)';e.querySelector('div').style.color=d.id===t?'var(--acc3)':'var(--w)';}});
@@ -1598,6 +1555,249 @@ function buildDocHTML(c,logoHtml,num,couleur){return '';}
 function buildPrintDocument(c,logoHtml,abbr2,num){return document.createElement('div');}
 
 
+
+// ══ TRÉSORERIE ═══════════════════════════════════════════════
+function getTxTreso(){return S.g('tresorerie_tx')||[];}
+function saveTxTreso(d){S.s('tresorerie_tx',d);}
+
+function rTresorerie(){
+  const txs=getTxTreso();
+  const moisKey=TODAY.slice(0,7);
+  const totE=txs.filter(t=>t.type==='entrée').reduce((s,t)=>s+(+t.montant||0),0);
+  const totS=txs.filter(t=>t.type==='sortie').reduce((s,t)=>s+(+t.montant||0),0);
+  const solde=totE-totS;
+  const entMois=txs.filter(t=>t.type==='entrée'&&(t.date||'').startsWith(moisKey)).reduce((s,t)=>s+(+t.montant||0),0);
+  const sorMois=txs.filter(t=>t.type==='sortie'&&(t.date||'').startsWith(moisKey)).reduce((s,t)=>s+(+t.montant||0),0);
+  document.getElementById('pg-tresorerie').innerHTML=`
+  <div class="rh">
+    <div><div class="st">💳 Trésorerie</div><div class="ss">Suivi des flux financiers</div></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="btn btsm" style="background:var(--green)22;color:var(--green);border:1px solid var(--green)44" onclick="openTxForm('entrée')">+ Entrée</button>
+      <button class="btn btsm" style="background:var(--red)22;color:var(--red);border:1px solid var(--red)44" onclick="openTxForm('sortie')">+ Sortie</button>
+      <button class="btn btsm" onclick="genTresoDoc()">📄 Relevé PDF</button>
+    </div>
+  </div>
+  <div class="g4" style="margin-bottom:16px">
+    <div class="kpi" style="--kc:${solde>=0?'var(--green)':'var(--red)'}"><div class="kl">Solde global</div><div class="kv" style="font-size:14px;color:${solde>=0?'var(--green)':'var(--red)'}">${fmCrm(solde)}</div><div class="ks">${txs.length} transaction(s)</div></div>
+    <div class="kpi" style="--kc:var(--green)"><div class="kl">Entrées totales</div><div class="kv" style="font-size:14px;color:var(--green)">${fmCrm(totE)}</div><div class="ks">Cumul</div></div>
+    <div class="kpi" style="--kc:var(--red)"><div class="kl">Sorties totales</div><div class="kv" style="font-size:14px;color:var(--red)">${fmCrm(totS)}</div><div class="ks">Cumul</div></div>
+    <div class="kpi" style="--kc:var(--gold)"><div class="kl">Solde ce mois</div><div class="kv" style="font-size:13px;color:var(--gold)">${fmCrm(entMois-sorMois)}</div><div class="ks">+${fmCrm(entMois)} / -${fmCrm(sorMois)}</div></div>
+  </div>
+  <div class="g2" style="align-items:start">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+        <div class="ct" style="margin:0">Transactions</div>
+        <select id="treso_filter" onchange="rTresoList()" style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:11px">
+          <option value="">Toutes</option><option value="entrée">Entrées</option><option value="sortie">Sorties</option>
+        </select>
+      </div>
+      <div id="treso_list">${renderTxList(txs)}</div>
+    </div>
+    <div class="card">
+      <div class="ct">Documents trésorerie</div>
+      ${[
+        {ico:'📊',lbl:'Relevé de trésorerie',desc:'Export des flux entrées/sorties',fn:"genTresoDoc()"},
+        {ico:'📈',lbl:'Prévisions de trésorerie',desc:'Budget prévisionnel personnalisable',fn:"genPrevTreso()"},
+        {ico:'📋',lbl:'Rapport de gestion',desc:'Synthèse globale avec solde et tendances',fn:"genRapportTreso()"},
+      ].map(d=>`<div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="${d.fn}"><div style="font-size:22px">${d.ico}</div><div style="flex:1"><div style="font-size:12.5px;font-weight:600;color:var(--w)">${d.lbl}</div><div style="font-size:10.5px;color:var(--muted)">${d.desc}</div></div><button class="btgh btsm">Générer →</button></div>`).join('')}
+    </div>
+  </div>`;
+  rTresoList();
+}
+
+function renderTxList(txs){
+  if(!txs.length)return'<div style="text-align:center;color:var(--muted);padding:30px">Aucune transaction<br><button class="btn btsm" style="margin-top:9px" onclick="openTxForm(\'entrée\')">+ Première entrée</button></div>';
+  return txs.slice().reverse().slice(0,40).map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:12px;font-weight:600;color:var(--w)">${esc(t.libelle||'—')}</div><div style="font-size:10px;color:var(--muted)">${fmtD(t.date)} · ${esc(t.categorie||'—')}${t.ref?' · '+esc(t.ref):''}</div></div><div style="display:flex;align-items:center;gap:7px"><span style="font-family:'Space Mono',monospace;font-weight:700;color:${t.type==='entrée'?'var(--green)':'var(--red)'}">${t.type==='entrée'?'+':'-'}${fmCrm(t.montant)}</span><button class="btgh btsm" onclick="deleteTx('${t.id}')">✕</button></div></div>`).join('');
+}
+
+function rTresoList(){const f=gv('treso_filter');let txs=getTxTreso();if(f)txs=txs.filter(t=>t.type===f);const el=document.getElementById('treso_list');if(el)el.innerHTML=renderTxList(txs);}
+
+function openTxForm(type){
+  const cats=type==='entrée'?['Honoraires','Règlement client','Subvention','Remboursement','Autre recette']:['Loyer','Salaires','Fournitures','Impôts & taxes','Prestataires','Assurances','Autre dépense'];
+  openModal(type==='entrée'?'➕ Nouvelle entrée':'➖ Nouvelle sortie',`
+    <div class="f"><label>Libellé *</label><input id="tx_lib" placeholder="Ex: Règlement client ABC"/></div>
+    <div class="g2"><div class="f"><label>Montant FCFA *</label><input id="tx_mt" type="number" placeholder="0"/></div><div class="f"><label>Date</label><input id="tx_date" type="date" value="${TODAY}"/></div></div>
+    <div class="g2"><div class="f"><label>Catégorie</label><select id="tx_cat">${cats.map(c=>`<option>${c}</option>`).join('')}</select></div><div class="f"><label>Référence</label><input id="tx_ref" placeholder="Ex: VIR-001"/></div></div>
+    <button class="btn" style="width:100%;background:${type==='entrée'?'var(--green)':'var(--red)'};color:#fff;margin-top:4px" onclick="saveTx('${type}')">Enregistrer</button>`);
+}
+
+function saveTx(type){
+  const lib=gv('tx_lib'),mt=+gv('tx_mt');if(!lib||!mt){showToast('Libellé et montant obligatoires',false);return;}
+  const tx={id:uid(),type,libelle:lib,montant:mt,date:gv('tx_date')||TODAY,categorie:gv('tx_cat'),ref:gv('tx_ref')};
+  const txs=getTxTreso();txs.push(tx);saveTxTreso(txs);closeModal();showToast(type==='entrée'?'✅ Entrée enregistrée':'✅ Sortie enregistrée');rTresorerie();
+}
+
+function deleteTx(id){saveTxTreso(getTxTreso().filter(t=>t.id!==id));showToast('Transaction supprimée');rTresorerie();}
+
+function genTresoDoc(){
+  const txs=getTxTreso();const c=getDocCfg();
+  const mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  const entrees=txs.filter(t=>t.type==='entrée');const sorties=txs.filter(t=>t.type==='sortie');
+  const totE=entrees.reduce((s,t)=>s+(+t.montant||0),0);const totS=sorties.reduce((s,t)=>s+(+t.montant||0),0);const solde=totE-totS;
+  const abbr2=(c.nom||'BC').replace(/[^A-Za-z]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
+  const logoBox=c.logo?'<div class="dh-logo-wrap"><img src="'+c.logo+'" alt="logo" crossorigin="anonymous"/></div>':'<div class="dh-logo-wrap"><span class="dh-logo-initials">'+abbr2+'</span></div>';
+  const lignesE=entrees.map(t=>`<tr><td>${fmtD(t.date)}</td><td>${esc(t.libelle)}</td><td>${esc(t.categorie||'—')}</td><td style="text-align:right;color:#059669;font-weight:600">+${fmCrm(t.montant)}</td></tr>`).join('');
+  const lignesS=sorties.map(t=>`<tr><td>${fmtD(t.date)}</td><td>${esc(t.libelle)}</td><td>${esc(t.categorie||'—')}</td><td style="text-align:right;color:#b91c1c;font-weight:600">-${fmCrm(t.montant)}</td></tr>`).join('');
+  const html=`<div class="docpg"><div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||'Expert-comptable · Conseil fiscal'}</div><div class="din">${c.adresse||''} · ${c.tel||''}</div></div></div><div style="text-align:right"><div class="dbd">RELEVÉ DE TRÉSORERIE</div><div class="dnum">Période : ${mois}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Édité le : ${fmtD(TODAY)}</div></div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">
+    <div style="background:#f0fff7;border:2px solid #059669;border-radius:7px;padding:11px;text-align:center"><div style="font-size:9px;color:#065f46;font-weight:700;text-transform:uppercase;margin-bottom:3px">Total Entrées</div><div style="font-size:16px;font-weight:800;color:#065f46">${fmCrm(totE)}</div></div>
+    <div style="background:#fff1f2;border:2px solid #e11d48;border-radius:7px;padding:11px;text-align:center"><div style="font-size:9px;color:#9f1239;font-weight:700;text-transform:uppercase;margin-bottom:3px">Total Sorties</div><div style="font-size:16px;font-weight:800;color:#9f1239">${fmCrm(totS)}</div></div>
+    <div style="background:${solde>=0?'#f0fff7':'#fff1f2'};border:2px solid ${solde>=0?'#059669':'#e11d48'};border-radius:7px;padding:11px;text-align:center"><div style="font-size:9px;color:${solde>=0?'#065f46':'#9f1239'};font-weight:700;text-transform:uppercase;margin-bottom:3px">Solde Net</div><div style="font-size:16px;font-weight:800;color:${solde>=0?'#065f46':'#9f1239'}">${fmCrm(solde)}</div></div>
+  </div>
+  ${entrees.length?`<div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:6px;text-transform:uppercase">Entrées (${entrees.length})</div><table class="dtbl"><thead><tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th style="text-align:right">Montant</th></tr></thead><tbody>${lignesE}</tbody></table>`:''}
+  ${sorties.length?`<div style="font-size:11px;font-weight:700;color:#b91c1c;margin:12px 0 6px;text-transform:uppercase">Sorties (${sorties.length})</div><table class="dtbl"><thead><tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th style="text-align:right">Montant</th></tr></thead><tbody>${lignesS}</tbody></table>`:''}
+  <div class="dments">${c.mentions||'Tous droits réservés.'} · ${c.nom} · ${c.tel||''}</div></div>`;
+  const num='TRE-'+new Date().getFullYear()+'-'+String(Date.now()).slice(-4);
+  curDoc={num,type:'Relevé trésorerie',date:fmtD(TODAY),client:c.nom,html,montant:fmCrm(solde),signerName:'',signerRole:''};
+  showPov(html,num);showToast('Relevé généré ✓');
+}
+function genPrevTreso(){showToast('Fonctionnalité disponible après saisie des transactions');genTresoDoc();}
+function genRapportTreso(){genTresoDoc();}
+
+// ══ AUTRES DOCUMENTS ═════════════════════════════════════════
+const AUTRES_DOC_TYPES=[
+  {id:'note_frais',lbl:'Note de frais',ico:'🧮',desc:'Remboursement de dépenses professionnelles'},
+  {id:'ordre_mission',lbl:'Ordre de mission',ico:'✈️',desc:'Autorisation de déplacement professionnel'},
+  {id:'compte_rendu',lbl:'Compte rendu de réunion',ico:'📝',desc:'Procès-verbal de réunion ou assemblée'},
+  {id:'procuration',lbl:'Procuration',ico:'✍️',desc:'Délégation de pouvoir ou mandat'},
+  {id:'relance',lbl:'Lettre de relance',ico:'📮',desc:'Relance de paiement amiable ou mise en demeure'},
+  {id:'contrat_client',lbl:'Contrat de prestation',ico:'📋',desc:'Contrat de mission avec un client'},
+];
+let autresDTcur='note_frais';
+
+function rAutresDocs(){
+  document.getElementById('pg-autres-docs').innerHTML=`
+  <div class="rh"><div><div class="st">📄 Autres documents</div><div class="ss">Notes de frais, ordres de mission, comptes rendus…</div></div></div>
+  <div style="display:grid;grid-template-columns:200px 1fr;gap:15px;align-items:start">
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">Type de document</div>
+      <div id="adtypeList"></div>
+      <div class="sep"></div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">Historique</div>
+      <input placeholder="🔍 Rechercher..." id="docSearch" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:10.5px;padding:5px 8px;outline:none;margin-bottom:6px" oninput="filterDocHist()"/>
+      <div id="dHistList"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;color:var(--w);margin-bottom:13px;padding-bottom:11px;border-bottom:1px solid var(--border)" id="dFormTit">🧮 Note de frais</div>
+      <div id="dFormCnt"></div>
+    </div>
+  </div>`;
+  document.getElementById('adtypeList').innerHTML=AUTRES_DOC_TYPES.map(d=>`<div onclick="setAutresDT('${d.id}')" style="background:var(--card);border:1px solid ${autresDTcur===d.id?'var(--acc)':'var(--border)'};border-radius:8px;padding:9px 11px;cursor:pointer;margin-bottom:5px;transition:border-color .15s" id="adt_${d.id}"><div style="font-size:11.5px;font-weight:700;color:${autresDTcur===d.id?'var(--acc3)':'var(--w)'};">${d.ico} ${d.lbl}</div><div style="font-size:9.5px;color:var(--muted);margin-top:2px">${d.desc}</div></div>`).join('');
+  setAutresDT(autresDTcur);rDocHist();
+}
+
+function setAutresDT(t){
+  autresDTcur=t;curDT=t;dlIds=[];
+  AUTRES_DOC_TYPES.forEach(d=>{const e=document.getElementById('adt_'+d.id);if(e){e.style.borderColor=d.id===t?'var(--acc)':'var(--border)';e.querySelector('div').style.color=d.id===t?'var(--acc3)':'var(--w)';}});
+  const doc=AUTRES_DOC_TYPES.find(d=>d.id===t);
+  if(document.getElementById('dFormTit'))document.getElementById('dFormTit').textContent=(doc?.ico||'')+' '+(doc?.lbl||t);
+  if(t==='ordre_mission'){renderOrdreMission();}
+  else if(t==='compte_rendu'){renderCompteRendu();}
+  else if(t==='procuration'){renderProcuration();}
+  else{rDocForm(t);}
+}
+
+function renderOrdreMission(){
+  if(!document.getElementById('dFormCnt'))return;
+  const c=getDocCfg();const numD=`<div class="g2"><div class="f"><label>Numéro</label><input id="dc_num" value="${pvNum('OM')}"/></div><div class="f"><label>Date</label><input id="dc_date" type="date" value="${TODAY}"/></div></div>`;
+  document.getElementById('dFormCnt').innerHTML=`
+    <div class="g2"><div class="f"><label>Agent en mission *</label><input id="om_agent" placeholder="Nom Prénom"/></div><div class="f"><label>Fonction</label><input id="om_fct" placeholder="Ex: Expert-comptable"/></div></div>
+    ${numD}
+    <div class="f"><label>Objet de la mission *</label><input id="om_obj" placeholder="Ex: Audit comptable chez client"/></div>
+    <div class="g2"><div class="f"><label>Destination</label><input id="om_dest" placeholder="Ex: Bouaké"/></div><div class="f"><label>Mode de transport</label><select id="om_tsp"><option>Véhicule de service</option><option>Véhicule personnel</option><option>Transport en commun</option><option>Vol intérieur</option></select></div></div>
+    <div class="g2"><div class="f"><label>Date départ</label><input id="om_dep" type="date" value="${TODAY}"/></div><div class="f"><label>Date retour</label><input id="om_ret" type="date"/></div></div>
+    <div class="g2"><div class="f"><label>Per diem journalier (FCFA)</label><input id="om_pd" type="number" placeholder="0"/></div><div class="f"><label>Avance accordée (FCFA)</label><input id="om_av" type="number" placeholder="0"/></div></div>
+    ${signFld()}
+    <button class="btn" style="width:100%;padding:10px;margin-top:4px" onclick="genOrdreMission()">Générer l'ordre de mission →</button>`;
+}
+
+function genOrdreMission(){
+  const c=getDocCfg();const agent=gv('om_agent');if(!agent){showToast('Agent obligatoire',false);return;}
+  const num=gv('dc_num')||nDoc('OM');const date=gv('dc_date')||TODAY;
+  const nbJ=Math.max(1,Math.ceil((new Date(gv('om_ret'))-new Date(gv('om_dep')))/86400000)+1)||1;
+  const pd=+gv('om_pd')||0;const av=+gv('om_av')||0;const totPD=pd*nbJ;
+  const sign=gv('dc_sign')?.split('|')[0]||c.sigs?.[0]?.nom||'—';const qual=gv('dc_qual')||'';
+  const abbr2=(c.nom||'BC').replace(/[^A-Za-z]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
+  const logoBox=c.logo?'<div class="dh-logo-wrap"><img src="'+c.logo+'" alt="logo" crossorigin="anonymous"/></div>':'<div class="dh-logo-wrap"><span class="dh-logo-initials">'+abbr2+'</span></div>';
+  const html=`<div class="docpg"><div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||''}</div><div class="din">${c.adresse||''} · ${c.tel||''}</div></div></div><div style="text-align:right"><div class="dbd">ORDRE DE MISSION</div><div class="dnum">N° ${num}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Date : ${fmtD(date)}</div></div></div>
+  <div class="dp"><div class="dpa"><div class="dpl">Agent en mission</div><div class="dpn">${esc(agent)}</div><div class="dpi">Fonction : ${esc(gv('om_fct')||'—')}</div></div><div class="dpa"><div class="dpl">Émis par</div><div class="dpn">${c.nom}</div><div class="dpi">${c.adresse||''}</div></div></div>
+  <div class="dart">Objet de la mission</div><div class="darb">${esc(gv('om_obj')||'—')}</div>
+  <div class="dart">Détails du déplacement</div><div class="darb">Destination : <b>${esc(gv('om_dest')||'—')}</b> · Mode : <b>${esc(gv('om_tsp')||'—')}</b><br>Du <b>${fmtD(gv('om_dep'))}</b> au <b>${fmtD(gv('om_ret'))}</b> (${nbJ} jour(s))</div>
+  ${pd?`<div class="dart">Indemnités</div><div class="darb">Per diem : <b>${fmCrm(pd)}/jour × ${nbJ} jour(s) = ${fmCrm(totPD)}</b>${av?`<br>Avance accordée : <b>${fmCrm(av)}</b>`:''}</div>`:''}
+  <div class="dfooter"><div><div class="dsl"></div><div class="dslb">Signature de l'agent</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${esc(agent)}</div></div><div><div class="dsl"></div><div class="dslb">Visa hiérarchique — ${c.nom}</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${esc(sign)}</div><div style="font-size:10px;color:#888">${esc(qual)}</div></div></div>
+  <div class="dments">${c.mentions||''} · ${c.nom}</div></div>`;
+  curDoc={num,type:'Ordre de mission',date:fmtD(date),client:esc(agent),html,montant:'',signerName:sign,signerRole:qual};
+  const h=S.g('doc_hist')||[];h.unshift(curDoc);if(h.length>100)h.pop();S.s('doc_hist',h);
+  nDoc('OM');showPov(html,num);rDocHist();showToast('Ordre de mission généré ✓');
+}
+
+function renderCompteRendu(){
+  if(!document.getElementById('dFormCnt'))return;
+  const numD=`<div class="g2"><div class="f"><label>Numéro</label><input id="dc_num" value="${pvNum('CR')}"/></div><div class="f"><label>Date de réunion</label><input id="dc_date" type="date" value="${TODAY}"/></div></div>`;
+  document.getElementById('dFormCnt').innerHTML=`
+    <div class="f"><label>Intitulé de la réunion *</label><input id="cr_titre" placeholder="Ex: Réunion de direction Q1 2026"/></div>
+    ${numD}
+    <div class="g2"><div class="f"><label>Lieu</label><input id="cr_lieu" placeholder="Ex: Siège BALANCE CONSULTING"/></div><div class="f"><label>Heure de début</label><input id="cr_heure" type="time" value="09:00"/></div></div>
+    <div class="f"><label>Participants (un par ligne)</label><textarea id="cr_part" rows="3" placeholder="M. KONAN Jean — DG\nMme DIALLO Fatou — Comptable"></textarea></div>
+    <div class="f"><label>Ordre du jour</label><textarea id="cr_odj" rows="3" placeholder="1. Point sur les échéances\n2. Bilan mensuel\n3. Questions diverses"></textarea></div>
+    <div class="f"><label>Points abordés / Résumé</label><textarea id="cr_pts" rows="4" placeholder="Résumé des discussions et décisions prises..."></textarea></div>
+    <div class="f"><label>Décisions / Actions</label><textarea id="cr_dec" rows="3" placeholder="Action 1 — Responsable — Délai\nAction 2 — Responsable — Délai"></textarea></div>
+    ${signFld()}
+    <button class="btn" style="width:100%;padding:10px;margin-top:4px" onclick="genCompteRendu()">Générer le compte rendu →</button>`;
+}
+
+function genCompteRendu(){
+  const titre=gv('cr_titre');if(!titre){showToast('Intitulé obligatoire',false);return;}
+  const c=getDocCfg();const num=gv('dc_num')||nDoc('CR');const date=gv('dc_date')||TODAY;
+  const sign=gv('dc_sign')?.split('|')[0]||c.sigs?.[0]?.nom||'—';const qual=gv('dc_qual')||'';
+  const abbr2=(c.nom||'BC').replace(/[^A-Za-z]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
+  const logoBox=c.logo?'<div class="dh-logo-wrap"><img src="'+c.logo+'" alt="logo" crossorigin="anonymous"/></div>':'<div class="dh-logo-wrap"><span class="dh-logo-initials">'+abbr2+'</span></div>';
+  const parts=(gv('cr_part')||'').split('\n').filter(Boolean).map(p=>`<li style="font-size:11.5px;padding:2px 0">${esc(p)}</li>`).join('');
+  const odj=(gv('cr_odj')||'').split('\n').filter(Boolean).map(p=>`<li style="font-size:11.5px;padding:2px 0">${esc(p)}</li>`).join('');
+  const dec=(gv('cr_dec')||'').split('\n').filter(Boolean).map(p=>`<li style="font-size:11.5px;padding:2px 0">${esc(p)}</li>`).join('');
+  const html=`<div class="docpg"><div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||''}</div></div></div><div style="text-align:right"><div class="dbd">COMPTE RENDU</div><div class="dnum">N° ${num}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Date : ${fmtD(date)}</div></div></div>
+  <div style="text-align:center;margin-bottom:16px"><div style="font-size:15px;font-weight:800;color:#08080F">${esc(titre)}</div><div style="font-size:11px;color:#666">📍 ${esc(gv('cr_lieu')||'—')} · ⏰ ${gv('cr_heure')||'—'}</div></div>
+  <div class="dart">Participants</div><div class="darb"><ul style="margin-left:16px">${parts||'<li>—</li>'}</ul></div>
+  <div class="dart">Ordre du jour</div><div class="darb"><ul style="margin-left:16px">${odj||'<li>—</li>'}</ul></div>
+  <div class="dart">Points abordés</div><div class="darb">${esc(gv('cr_pts')||'—').replace(/\n/g,'<br>')}</div>
+  ${dec?`<div class="dart">Décisions et actions</div><div class="darb"><ul style="margin-left:16px">${dec}</ul></div>`:''}
+  <div class="dfooter"><div><div class="dsl"></div><div class="dslb">Secrétaire de séance</div></div><div><div class="dsl"></div><div class="dslb">Approuvé par — ${esc(sign)}</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${esc(sign)}</div><div style="font-size:10px;color:#888">${esc(qual)}</div></div></div>
+  <div class="dments">${c.mentions||''} · ${c.nom}</div></div>`;
+  curDoc={num,type:'Compte rendu',date:fmtD(date),client:titre,html,montant:'',signerName:sign,signerRole:qual};
+  const h=S.g('doc_hist')||[];h.unshift(curDoc);if(h.length>100)h.pop();S.s('doc_hist',h);
+  nDoc('CR');showPov(html,num);rDocHist();showToast('Compte rendu généré ✓');
+}
+
+function renderProcuration(){
+  if(!document.getElementById('dFormCnt'))return;
+  const numD=`<div class="g2"><div class="f"><label>Numéro</label><input id="dc_num" value="${pvNum('PRO')}"/></div><div class="f"><label>Date</label><input id="dc_date" type="date" value="${TODAY}"/></div></div>`;
+  document.getElementById('dFormCnt').innerHTML=`
+    <div class="f"><label>Mandant (qui donne procuration) *</label><input id="pr_mand" placeholder="Nom complet"/></div>
+    <div class="f"><label>Qualité du mandant</label><input id="pr_qmand" placeholder="Ex: Directeur Général"/></div>
+    ${numD}
+    <div class="f"><label>Mandataire (qui reçoit procuration) *</label><input id="pr_matar" placeholder="Nom complet"/></div>
+    <div class="f"><label>Qualité du mandataire</label><input id="pr_qmatar" placeholder="Ex: Expert-comptable"/></div>
+    <div class="f"><label>Objet de la procuration *</label><textarea id="pr_obj" rows="2" placeholder="Ex: Représenter la société lors de l'assemblée générale du 15/06/2026"></textarea></div>
+    <div class="g2"><div class="f"><label>Durée / Date d'expiration</label><input id="pr_dur" placeholder="Ex: Valable jusqu'au 31/12/2026"/></div><div class="f"><label>Lieu</label><input id="pr_lieu" placeholder="Ex: Abidjan"/></div></div>
+    <button class="btn" style="width:100%;padding:10px;margin-top:4px" onclick="genProcuration()">Générer la procuration →</button>`;
+}
+
+function genProcuration(){
+  const mand=gv('pr_mand'),matar=gv('pr_matar');if(!mand||!matar){showToast('Mandant et mandataire obligatoires',false);return;}
+  const c=getDocCfg();const num=gv('dc_num')||nDoc('PRO');const date=gv('dc_date')||TODAY;
+  const abbr2=(c.nom||'BC').replace(/[^A-Za-z]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
+  const logoBox=c.logo?'<div class="dh-logo-wrap"><img src="'+c.logo+'" alt="logo" crossorigin="anonymous"/></div>':'<div class="dh-logo-wrap"><span class="dh-logo-initials">'+abbr2+'</span></div>';
+  const html=`<div class="docpg"><div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||''}</div><div class="din">${c.adresse||''} · ${c.tel||''}</div></div></div><div style="text-align:right"><div class="dbd">PROCURATION</div><div class="dnum">N° ${num}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Date : ${fmtD(date)}</div></div></div>
+  <div class="dp"><div class="dpa"><div class="dpl">Le mandant</div><div class="dpn">${esc(mand)}</div><div class="dpi">${esc(gv('pr_qmand')||'—')}</div></div><div class="dpa"><div class="dpl">Le mandataire</div><div class="dpn">${esc(matar)}</div><div class="dpi">${esc(gv('pr_qmatar')||'—')}</div></div></div>
+  <div class="dart">Objet de la procuration</div><div class="darb" style="font-size:12.5px;line-height:2">Je soussigné(e), <b>${esc(mand)}</b>, ${gv('pr_qmand')?`<em>${esc(gv('pr_qmand'))}</em>, `:''} donne par la présente plein pouvoir à <b>${esc(matar)}</b> pour :<br><br>${esc(gv('pr_obj')||'—').replace(/\n/g,'<br>')}</div>
+  ${gv('pr_dur')?`<div class="dart">Durée</div><div class="darb">${esc(gv('pr_dur'))}</div>`:''}
+  <div style="font-size:12.5px;color:#555;margin:18px 0">Fait à <b>${esc(gv('pr_lieu')||c.ville||'Abidjan')}</b>, le ${fmtD(date)}.</div>
+  <div class="dfooter"><div><div class="dsl"></div><div class="dslb">Signature du mandant</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${esc(mand)}</div></div><div><div class="dsl"></div><div class="dslb">Signature du mandataire</div><div style="margin-top:4px;font-size:11.5px;font-weight:600">${esc(matar)}</div></div></div>
+  <div class="dments">${c.mentions||''} · ${c.nom}</div></div>`;
+  curDoc={num,type:'Procuration',date:fmtD(date),client:mand,html,montant:'',signerName:mand,signerRole:gv('pr_qmand')};
+  const h=S.g('doc_hist')||[];h.unshift(curDoc);if(h.length>100)h.pop();S.s('doc_hist',h);
+  nDoc('PRO');showPov(html,num);rDocHist();showToast('Procuration générée ✓');
+}
 
 // ══ LOGS / USERS / CONFIG ════════════════════════════════════
 function rLogs(){document.getElementById('pg-logs').innerHTML=`<div class="rh"><div><div class="st">Journal d'activité</div></div></div><div class="card"><div style="text-align:center;color:var(--muted);padding:40px;line-height:2">Les logs détaillés sont dans Google Sheets → onglet <strong style="color:var(--acc3)">audit_log</strong><br>après configuration du Apps Script.<br><br><button class="btn btsm" onclick="goTo('config')">⚙️ Configurer le serveur</button></div></div>`;}
