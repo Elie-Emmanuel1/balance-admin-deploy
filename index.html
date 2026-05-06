@@ -580,14 +580,17 @@ async function showApp(){
 function applyCompanyBrand(){
   var ci=getCompanyInfo();
   var abbr=(ci.nom||'BC').replace(/[^A-Za-z]/g,' ').trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'BC';
-  var col=ci.couleur_principale||'#1A56DB';
+  var col=ci.couleur_principale||'#E63946';
+  var col2=ci.couleur_principale?col:'#C1121F';
   var colEnc=col.replace('#','%23');
   var sbL=document.getElementById('sidebar-logo');
-  if(sbL){if(ci.logo_url){sbL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain;border-radius:8px"/>';sbL.style.background='transparent';sbL.style.borderRadius='8px';}else{sbL.innerHTML='';sbL.textContent=abbr;sbL.style.background='linear-gradient(135deg,'+col+','+col+'99)';}}
+  if(sbL){if(ci.logo_url){sbL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain;border-radius:8px"/>';sbL.style.background='transparent';sbL.style.borderRadius='8px';}else{sbL.innerHTML='';sbL.textContent=abbr;sbL.style.background=col;}}
   var lgL=document.getElementById('login-logo');
-  if(lgL){if(ci.logo_url){lgL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain;border-radius:8px"/>';lgL.style.background='transparent';}else{lgL.innerHTML='';lgL.textContent=abbr;lgL.style.background='linear-gradient(135deg,'+col+','+col+'99)';}}
+  if(lgL){if(ci.logo_url){lgL.innerHTML='<img src="'+ci.logo_url+'" style="width:100%;height:100%;object-fit:contain;border-radius:8px"/>';lgL.style.background='transparent';}else{lgL.innerHTML='';lgL.textContent=abbr;lgL.style.background=col;}}
   document.documentElement.style.setProperty('--acc',col);
-  document.documentElement.style.setProperty('--acc2',col);
+  document.documentElement.style.setProperty('--acc2',col2);
+  document.documentElement.style.setProperty('--acc3',col);
+  document.documentElement.style.setProperty('--blue-light',col);
   document.title=(ci.nom||'BALANCE CONSULTING')+' — Platform';
   var fs=abbr.length===1?52:38;
   var svgF='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22'+colEnc+'%22/%3E%3Ctext x=%2250%22 y=%2266%22 font-family=%22Arial%22 font-weight=%22800%22 font-size=%22'+fs+'%22 fill=%22white%22 text-anchor=%22middle%22%3E'+abbr+'%3C/text%3E%3C/svg%3E';
@@ -634,9 +637,7 @@ function rDash(){
     <div><div class="st">Dashboard Platform</div><div class="ss">${new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div>
     <div style="display:flex;gap:7px"><button class="btgh btsm" onclick="syncAll()">🔄 Actualiser</button><button class="btn btsm" onclick="goTo('clients')">+ Client</button></div>
   </div>
-  ${!getApiUrl()?`<div style="background:var(--gold)10;border:1px solid var(--gold)30;border-radius:9px;padding:10px 14px;margin-bottom:13px;font-size:12px;color:var(--gold2)">
-    ⚙️ Serveur non configuré — allez dans <strong>Config</strong> pour connecter votre Apps Script.
-  </div>`:''}
+
   ${expired.length?`<div style="background:var(--red)10;border:1px solid var(--red)30;border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--red);display:flex;justify-content:space-between;align-items:center">
     <span>🚨 <strong>${expired.length} licence(s) expirée(s)</strong></span>
     <button class="btn btsm" style="background:var(--red);color:#fff" onclick="sendBulkRenewal('expired')">📧 Relancer</button>
@@ -1997,13 +1998,7 @@ function toggleUser(id){const users=getUsers();const idx=users.findIndex(u=>u.id
 function rConfig(){
   const ci=getCompanyInfo();const srvUrl=S.g('server_url')||'';const adminKey=S.g('admin_key')||'';const appOpts=getApps().map(function(a){return'<option value="'+a.id+'">'+a.emoji+' '+a.nom+'</option>';}).join('');
   document.getElementById('pg-config').innerHTML=`
-  <div class="rh"><div><div class="st">Configuration</div><div class="ss">Serveur · Profil · Documents · Paiements</div></div></div>
-  <div class="card" style="margin-bottom:13px"><div class="ct">🔗 Connexion serveur Apps Script</div>
-    <div class="f"><label>URL Apps Script</label><input id="cfg_srv" value="${esc(srvUrl)}" placeholder="https://script.google.com/macros/s/.../exec"/></div>
-    <div class="f"><label>Clé admin</label><input id="cfg_key" type="password" value="${esc(adminKey)}" placeholder="Clé secrète"/></div>
-    <div style="display:flex;gap:7px"><button class="btn" style="flex:1;background:var(--gold);color:#000" onclick="saveServerConfig()">Sauvegarder + Charger</button><button class="btgh btsm" onclick="testConnection()">🔗 Tester</button></div>
-    <div id="cfg_test_msg" style="font-size:11.5px;margin-top:7px"></div>
-  </div>
+  <div class="rh"><div><div class="st">Configuration</div><div class="ss">Profil · Documents · Paiements · Utilisateurs</div></div></div>
   <div class="card" style="margin-bottom:13px"><div class="ct">🏢 Profil BALANCE CONSULTING</div>
     <div class="f"><label>Logo (fichier image)</label>
       <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
