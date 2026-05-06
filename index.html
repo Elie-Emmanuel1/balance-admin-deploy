@@ -1557,88 +1557,253 @@ function buildPrintDocument(c,logoHtml,abbr2,num){return document.createElement(
 
 
 // ══ TRÉSORERIE ═══════════════════════════════════════════════
-function getTxTreso(){return S.g('tresorerie_tx')||[];}
-function saveTxTreso(d){S.s('tresorerie_tx',d);}
+// Modèle : { id, compte ('caisse'|'banque'|'mobile'), type ('entrée'|'sortie'),
+//            libelle, montant, date, categorie, ref, moyen ('Wave'|'OM'|'MTN'|'...' ) }
+const TRESO_COMPTES={
+  caisse:  {lbl:'Caisse',     ico:'💵', col:'var(--gold)',   key:'treso_caisse'},
+  banque:  {lbl:'Banque',     ico:'🏦', col:'var(--blue)',   key:'treso_banque'},
+  mobile:  {lbl:'Mobile Money',ico:'📱',col:'var(--orange)', key:'treso_mobile'},
+};
+const MOBILE_MOYENS=['Wave','Orange Money','MTN MoMo','Moov Money','Autre'];
+
+function getTxCompte(compte){return S.g(TRESO_COMPTES[compte].key)||[];}
+function saveTxCompte(compte,d){S.s(TRESO_COMPTES[compte].key,d);}
+function getAllTx(){return['caisse','banque','mobile'].flatMap(c=>getTxCompte(c).map(t=>({...t,compte:c})));}
+
+let tresoTab='caisse'; // onglet actif
 
 function rTresorerie(){
-  const txs=getTxTreso();
+  // KPI globaux
+  const all=getAllTx();
+  const soldeC=_solde('caisse'),soldeB=_solde('banque'),soldeM=_solde('mobile');
+  const soldeGlobal=soldeC+soldeB+soldeM;
   const moisKey=TODAY.slice(0,7);
-  const totE=txs.filter(t=>t.type==='entrée').reduce((s,t)=>s+(+t.montant||0),0);
-  const totS=txs.filter(t=>t.type==='sortie').reduce((s,t)=>s+(+t.montant||0),0);
-  const solde=totE-totS;
-  const entMois=txs.filter(t=>t.type==='entrée'&&(t.date||'').startsWith(moisKey)).reduce((s,t)=>s+(+t.montant||0),0);
-  const sorMois=txs.filter(t=>t.type==='sortie'&&(t.date||'').startsWith(moisKey)).reduce((s,t)=>s+(+t.montant||0),0);
+  const entMois=all.filter(t=>t.type==='entrée'&&(t.date||'').startsWith(moisKey)).reduce((s,t)=>s+(+t.montant||0),0);
+  const sorMois=all.filter(t=>t.type==='sortie'&&(t.date||'').startsWith(moisKey)).reduce((s,t)=>s+(+t.montant||0),0);
+
   document.getElementById('pg-tresorerie').innerHTML=`
   <div class="rh">
-    <div><div class="st">💳 Trésorerie</div><div class="ss">Suivi des flux financiers</div></div>
+    <div><div class="st">💳 Trésorerie</div><div class="ss">Caisse · Banque · Mobile Money</div></div>
     <div style="display:flex;gap:7px;flex-wrap:wrap">
-      <button class="btn btsm" style="background:var(--green)22;color:var(--green);border:1px solid var(--green)44" onclick="openTxForm('entrée')">+ Entrée</button>
-      <button class="btn btsm" style="background:var(--red)22;color:var(--red);border:1px solid var(--red)44" onclick="openTxForm('sortie')">+ Sortie</button>
       <button class="btn btsm" onclick="genTresoDoc()">📄 Relevé PDF</button>
+      <button class="btn btsm" onclick="genRapportTreso()">📋 Rapport global</button>
     </div>
   </div>
-  <div class="g4" style="margin-bottom:16px">
-    <div class="kpi" style="--kc:${solde>=0?'var(--green)':'var(--red)'}"><div class="kl">Solde global</div><div class="kv" style="font-size:14px;color:${solde>=0?'var(--green)':'var(--red)'}">${fmCrm(solde)}</div><div class="ks">${txs.length} transaction(s)</div></div>
-    <div class="kpi" style="--kc:var(--green)"><div class="kl">Entrées totales</div><div class="kv" style="font-size:14px;color:var(--green)">${fmCrm(totE)}</div><div class="ks">Cumul</div></div>
-    <div class="kpi" style="--kc:var(--red)"><div class="kl">Sorties totales</div><div class="kv" style="font-size:14px;color:var(--red)">${fmCrm(totS)}</div><div class="ks">Cumul</div></div>
-    <div class="kpi" style="--kc:var(--gold)"><div class="kl">Solde ce mois</div><div class="kv" style="font-size:13px;color:var(--gold)">${fmCrm(entMois-sorMois)}</div><div class="ks">+${fmCrm(entMois)} / -${fmCrm(sorMois)}</div></div>
+
+  <!-- KPI globaux -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:18px">
+    <div class="kpi" style="--kc:${soldeGlobal>=0?'var(--green)':'var(--red)'}">
+      <div class="kl">Solde global</div>
+      <div class="kv" style="font-size:13px;color:${soldeGlobal>=0?'var(--green)':'var(--red)'}">${fmCrm(soldeGlobal)}</div>
+      <div class="ks">Tous comptes</div>
+    </div>
+    <div class="kpi" style="--kc:var(--gold)">
+      <div class="kl">💵 Caisse</div>
+      <div class="kv" style="font-size:13px;color:var(--gold)">${fmCrm(soldeC)}</div>
+      <div class="ks">${getTxCompte('caisse').length} tx</div>
+    </div>
+    <div class="kpi" style="--kc:var(--blue)">
+      <div class="kl">🏦 Banque</div>
+      <div class="kv" style="font-size:13px;color:var(--blue)">${fmCrm(soldeB)}</div>
+      <div class="ks">${getTxCompte('banque').length} tx</div>
+    </div>
+    <div class="kpi" style="--kc:var(--orange)">
+      <div class="kl">📱 Mobile Money</div>
+      <div class="kv" style="font-size:13px;color:var(--orange)">${fmCrm(soldeM)}</div>
+      <div class="ks">${getTxCompte('mobile').length} tx</div>
+    </div>
+    <div class="kpi" style="--kc:var(--green)">
+      <div class="kl">Flux ce mois</div>
+      <div class="kv" style="font-size:11px;color:var(--green)">+${fmCrm(entMois)}</div>
+      <div class="ks" style="color:var(--red)">-${fmCrm(sorMois)}</div>
+    </div>
   </div>
+
+  <!-- Onglets comptes -->
+  <div style="display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:0">
+    ${['caisse','banque','mobile'].map(c=>`
+      <button id="tab-treso-${c}" onclick="switchTresoTab('${c}')"
+        style="padding:8px 16px;border:none;border-bottom:2px solid ${tresoTab===c?TRESO_COMPTES[c].col:'transparent'};
+               background:transparent;color:${tresoTab===c?TRESO_COMPTES[c].col:'var(--muted)'};
+               font-size:12px;font-weight:${tresoTab===c?'700':'400'};cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s">
+        ${TRESO_COMPTES[c].ico} ${TRESO_COMPTES[c].lbl}
+      </button>`).join('')}
+  </div>
+
+  <!-- Contenu onglet actif -->
+  <div id="treso-tab-content"></div>`;
+
+  renderTresoTab();
+}
+
+function _solde(compte){
+  const txs=getTxCompte(compte);
+  return txs.reduce((s,t)=>s+(t.type==='entrée'?1:-1)*(+t.montant||0),0);
+}
+
+function switchTresoTab(c){
+  tresoTab=c;
+  // Mettre à jour styles onglets
+  ['caisse','banque','mobile'].forEach(k=>{
+    const btn=document.getElementById('tab-treso-'+k);
+    if(!btn)return;
+    const active=k===c;
+    btn.style.borderBottom='2px solid '+(active?TRESO_COMPTES[k].col:'transparent');
+    btn.style.color=active?TRESO_COMPTES[k].col:'var(--muted)';
+    btn.style.fontWeight=active?'700':'400';
+  });
+  renderTresoTab();
+}
+
+function renderTresoTab(){
+  const c=tresoTab;const cfg=TRESO_COMPTES[c];
+  const txs=getTxCompte(c);
+  const solde=_solde(c);
+  const moyensOpts=c==='mobile'?MOBILE_MOYENS.map(m=>`<option>${m}</option>`).join(''):'';
+  const el=document.getElementById('treso-tab-content');
+  if(!el)return;
+  el.innerHTML=`
   <div class="g2" style="align-items:start">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
-        <div class="ct" style="margin:0">Transactions</div>
-        <select id="treso_filter" onchange="rTresoList()" style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:11px">
+        <div>
+          <div class="ct" style="margin:0;color:${cfg.col}">${cfg.ico} ${cfg.lbl}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Solde : <span style="color:${solde>=0?'var(--green)':'var(--red)'};font-weight:700">${fmCrm(solde)}</span></div>
+        </div>
+        <div style="display:flex;gap:5px">
+          <button class="btn btsm" style="background:var(--green)22;color:var(--green);border:1px solid var(--green)44" onclick="openTxForm('entrée','${c}')">+ Entrée</button>
+          <button class="btn btsm" style="background:var(--red)22;color:var(--red);border:1px solid var(--red)44" onclick="openTxForm('sortie','${c}')">- Sortie</button>
+          ${c==='mobile'?`<button class="btn btsm" style="background:var(--purple)22;color:var(--purple);border:1px solid var(--purple)44" onclick="openVirementForm()">⇄ Virement</button>`:''}
+        </div>
+      </div>
+      <div style="margin-bottom:8px">
+        <select id="treso_filter" onchange="rTresoList()" style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:10.5px">
           <option value="">Toutes</option><option value="entrée">Entrées</option><option value="sortie">Sorties</option>
         </select>
       </div>
       <div id="treso_list">${renderTxList(txs)}</div>
     </div>
-    <div class="card">
-      <div class="ct">Documents trésorerie</div>
-      ${[
-        {ico:'📊',lbl:'Relevé de trésorerie',desc:'Export des flux entrées/sorties',fn:"genTresoDoc()"},
-        {ico:'📈',lbl:'Prévisions de trésorerie',desc:'Budget prévisionnel personnalisable',fn:"genPrevTreso()"},
-        {ico:'📋',lbl:'Rapport de gestion',desc:'Synthèse globale avec solde et tendances',fn:"genRapportTreso()"},
-      ].map(d=>`<div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="${d.fn}"><div style="font-size:22px">${d.ico}</div><div style="flex:1"><div style="font-size:12.5px;font-weight:600;color:var(--w)">${d.lbl}</div><div style="font-size:10.5px;color:var(--muted)">${d.desc}</div></div><button class="btgh btsm">Générer →</button></div>`).join('')}
+    <div>
+      <!-- Soldes rapides si compte mobile -->
+      ${c==='mobile'?`<div class="card" style="margin-bottom:12px">
+        <div class="ct">Soldes par opérateur</div>
+        ${MOBILE_MOYENS.filter(m=>m!=='Autre').map(m=>{
+          const txsM=txs.filter(t=>t.moyen===m);
+          const s=txsM.reduce((acc,t)=>acc+(t.type==='entrée'?1:-1)*(+t.montant||0),0);
+          return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text)">${m}</span><span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:${s>=0?'var(--green)':'var(--red)'}">${fmCrm(s)}</span></div>`;
+        }).join('')}
+      </div>`:''}
+      <div class="card">
+        <div class="ct">Documents ${cfg.lbl}</div>
+        ${[
+          {ico:'📊',lbl:'Relevé '+cfg.lbl,desc:'Export des flux de ce compte',fn:`genTresoDoc('${c}')`},
+          {ico:'📋',lbl:'Rapport de gestion',desc:'Synthèse globale tous comptes',fn:'genRapportTreso()'},
+          {ico:'📈',lbl:'Prévisions trésorerie',desc:'Budget prévisionnel mensuel',fn:'genPrevTreso()'},
+        ].map(d=>`<div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="${d.fn}"><div style="font-size:20px">${d.ico}</div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--w)">${d.lbl}</div><div style="font-size:10.5px;color:var(--muted)">${d.desc}</div></div><button class="btgh btsm">Générer →</button></div>`).join('')}
+      </div>
     </div>
   </div>`;
   rTresoList();
 }
 
 function renderTxList(txs){
-  if(!txs.length)return'<div style="text-align:center;color:var(--muted);padding:30px">Aucune transaction<br><button class="btn btsm" style="margin-top:9px" onclick="openTxForm(\'entrée\')">+ Première entrée</button></div>';
-  return txs.slice().reverse().slice(0,40).map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:12px;font-weight:600;color:var(--w)">${esc(t.libelle||'—')}</div><div style="font-size:10px;color:var(--muted)">${fmtD(t.date)} · ${esc(t.categorie||'—')}${t.ref?' · '+esc(t.ref):''}</div></div><div style="display:flex;align-items:center;gap:7px"><span style="font-family:'Space Mono',monospace;font-weight:700;color:${t.type==='entrée'?'var(--green)':'var(--red)'}">${t.type==='entrée'?'+':'-'}${fmCrm(t.montant)}</span><button class="btgh btsm" onclick="deleteTx('${t.id}')">✕</button></div></div>`).join('');
+  if(!txs.length)return`<div style="text-align:center;color:var(--muted);padding:30px">Aucune transaction<br>
+    <button class="btn btsm" style="margin-top:9px" onclick="openTxForm('entrée','${tresoTab}')">+ Première entrée</button></div>`;
+  return txs.slice().reverse().slice(0,50).map(t=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--w)">${esc(t.libelle||'—')}</div>
+        <div style="font-size:10px;color:var(--muted)">${fmtD(t.date)} · ${esc(t.categorie||'—')}${t.moyen?' · '+esc(t.moyen):''}${t.ref?' · '+esc(t.ref):''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="font-family:'Space Mono',monospace;font-weight:700;color:${t.type==='entrée'?'var(--green)':'var(--red)'}">${t.type==='entrée'?'+':'-'}${fmCrm(t.montant)}</span>
+        <button class="btgh btsm" onclick="deleteTx('${t.id}','${t.compte||tresoTab}')">✕</button>
+      </div>
+    </div>`).join('');
 }
 
-function rTresoList(){const f=gv('treso_filter');let txs=getTxTreso();if(f)txs=txs.filter(t=>t.type===f);const el=document.getElementById('treso_list');if(el)el.innerHTML=renderTxList(txs);}
+function rTresoList(){
+  const f=gv('treso_filter');
+  let txs=getTxCompte(tresoTab);
+  if(f)txs=txs.filter(t=>t.type===f);
+  const el=document.getElementById('treso_list');
+  if(el)el.innerHTML=renderTxList(txs);
+}
 
-function openTxForm(type){
-  const cats=type==='entrée'?['Honoraires','Règlement client','Subvention','Remboursement','Autre recette']:['Loyer','Salaires','Fournitures','Impôts & taxes','Prestataires','Assurances','Autre dépense'];
-  openModal(type==='entrée'?'➕ Nouvelle entrée':'➖ Nouvelle sortie',`
+function openTxForm(type,compte){
+  compte=compte||tresoTab;
+  const cfg=TRESO_COMPTES[compte];
+  const catsE=['Règlement client','Honoraires','Subvention','Remboursement','Dépôt espèces','Virement reçu','Autre recette'];
+  const catsS=['Loyer','Salaires','Fournitures','Impôts & taxes','Prestataires','Assurances','Retrait espèces','Virement émis','Autre dépense'];
+  const cats=type==='entrée'?catsE:catsS;
+  const moyenField=compte==='mobile'?`<div class="f"><label>Opérateur</label><select id="tx_moyen">${MOBILE_MOYENS.map(m=>`<option>${m}</option>`).join('')}</select></div>`:'<div class="f"><label>Référence</label><input id="tx_ref" placeholder="Ex: VIR-2026-001"/></div>';
+  openModal(`${type==='entrée'?'➕':'➖'} ${type==='entrée'?'Entrée':'Sortie'} — ${cfg.ico} ${cfg.lbl}`,`
     <div class="f"><label>Libellé *</label><input id="tx_lib" placeholder="Ex: Règlement client ABC"/></div>
-    <div class="g2"><div class="f"><label>Montant FCFA *</label><input id="tx_mt" type="number" placeholder="0"/></div><div class="f"><label>Date</label><input id="tx_date" type="date" value="${TODAY}"/></div></div>
-    <div class="g2"><div class="f"><label>Catégorie</label><select id="tx_cat">${cats.map(c=>`<option>${c}</option>`).join('')}</select></div><div class="f"><label>Référence</label><input id="tx_ref" placeholder="Ex: VIR-001"/></div></div>
-    <button class="btn" style="width:100%;background:${type==='entrée'?'var(--green)':'var(--red)'};color:#fff;margin-top:4px" onclick="saveTx('${type}')">Enregistrer</button>`);
+    <div class="g2">
+      <div class="f"><label>Montant FCFA *</label><input id="tx_mt" type="number" placeholder="0" min="0"/></div>
+      <div class="f"><label>Date</label><input id="tx_date" type="date" value="${TODAY}"/></div>
+    </div>
+    <div class="g2">
+      <div class="f"><label>Catégorie</label><select id="tx_cat">${cats.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      ${moyenField}
+    </div>
+    <button class="btn" style="width:100%;background:${type==='entrée'?'var(--green)':'var(--red)'};color:#fff;margin-top:4px" onclick="saveTx('${type}','${compte}')">Enregistrer</button>`);
 }
 
-function saveTx(type){
-  const lib=gv('tx_lib'),mt=+gv('tx_mt');if(!lib||!mt){showToast('Libellé et montant obligatoires',false);return;}
-  const tx={id:uid(),type,libelle:lib,montant:mt,date:gv('tx_date')||TODAY,categorie:gv('tx_cat'),ref:gv('tx_ref')};
-  const txs=getTxTreso();txs.push(tx);saveTxTreso(txs);closeModal();showToast(type==='entrée'?'✅ Entrée enregistrée':'✅ Sortie enregistrée');rTresorerie();
+function openVirementForm(){
+  openModal('⇄ Virement entre comptes',`
+    <div class="g2">
+      <div class="f"><label>Compte source</label><select id="vir_from">${['caisse','banque','mobile'].map(c=>`<option value="${c}">${TRESO_COMPTES[c].ico} ${TRESO_COMPTES[c].lbl}</option>`).join('')}</select></div>
+      <div class="f"><label>Compte destination</label><select id="vir_to">${['caisse','banque','mobile'].map(c=>`<option value="${c}">${TRESO_COMPTES[c].ico} ${TRESO_COMPTES[c].lbl}</option>`).join('')}</select></div>
+    </div>
+    <div class="g2">
+      <div class="f"><label>Montant FCFA *</label><input id="vir_mt" type="number" placeholder="0" min="1"/></div>
+      <div class="f"><label>Date</label><input id="vir_date" type="date" value="${TODAY}"/></div>
+    </div>
+    <div class="f"><label>Libellé</label><input id="vir_lib" placeholder="Ex: Approvisionnement caisse"/></div>
+    <button class="btn" style="width:100%;background:var(--purple);color:#fff;margin-top:4px" onclick="saveVirement()">Valider le virement</button>`);
 }
 
-function deleteTx(id){saveTxTreso(getTxTreso().filter(t=>t.id!==id));showToast('Transaction supprimée');rTresorerie();}
+function saveVirement(){
+  const from=gv('vir_from'),to=gv('vir_to'),mt=+gv('vir_mt'),date=gv('vir_date')||TODAY,lib=gv('vir_lib')||'Virement';
+  if(!mt||mt<=0){showToast('Montant invalide',false);return;}
+  if(from===to){showToast('Comptes source et destination identiques',false);return;}
+  const ref='VIR-'+Date.now().toString(36).toUpperCase();
+  const txOut={id:uid(),type:'sortie',libelle:lib+' → '+TRESO_COMPTES[to].lbl,montant:mt,date,categorie:'Virement émis',ref};
+  const txIn ={id:uid(),type:'entrée',libelle:lib+' ← '+TRESO_COMPTES[from].lbl,montant:mt,date,categorie:'Virement reçu',ref};
+  const txsF=getTxCompte(from);txsF.push(txOut);saveTxCompte(from,txsF);
+  const txsT=getTxCompte(to);txsT.push(txIn);saveTxCompte(to,txsT);
+  closeModal();showToast('✅ Virement enregistré ('+ref+')');rTresorerie();
+}
 
-function genTresoDoc(){
-  const txs=getTxTreso();const c=getDocCfg();
+function saveTx(type,compte){
+  compte=compte||tresoTab;
+  const lib=gv('tx_lib'),mt=+gv('tx_mt');
+  if(!lib||!mt){showToast('Libellé et montant obligatoires',false);return;}
+  const tx={id:uid(),type,libelle:lib,montant:mt,date:gv('tx_date')||TODAY,categorie:gv('tx_cat'),
+            ref:gv('tx_ref')||'',moyen:gv('tx_moyen')||''};
+  const txs=getTxCompte(compte);txs.push(tx);saveTxCompte(compte,txs);
+  closeModal();showToast(type==='entrée'?'✅ Entrée enregistrée':'✅ Sortie enregistrée');rTresorerie();
+}
+
+function deleteTx(id,compte){
+  compte=compte||tresoTab;
+  saveTxCompte(compte,getTxCompte(compte).filter(t=>t.id!==id));
+  showToast('Transaction supprimée');rTresorerie();
+}
+
+function genTresoDoc(compte){
+  compte=compte||tresoTab;
+  const cfg=TRESO_COMPTES[compte];
+  const txs=getTxCompte(compte);const c=getDocCfg();
   const mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
   const entrees=txs.filter(t=>t.type==='entrée');const sorties=txs.filter(t=>t.type==='sortie');
   const totE=entrees.reduce((s,t)=>s+(+t.montant||0),0);const totS=sorties.reduce((s,t)=>s+(+t.montant||0),0);const solde=totE-totS;
   const abbr2=(c.nom||'BC').replace(/[^A-Za-z]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
   const logoBox=c.logo?'<div class="dh-logo-wrap"><img src="'+c.logo+'" alt="logo" crossorigin="anonymous"/></div>':'<div class="dh-logo-wrap"><span class="dh-logo-initials">'+abbr2+'</span></div>';
-  const lignesE=entrees.map(t=>`<tr><td>${fmtD(t.date)}</td><td>${esc(t.libelle)}</td><td>${esc(t.categorie||'—')}</td><td style="text-align:right;color:#059669;font-weight:600">+${fmCrm(t.montant)}</td></tr>`).join('');
-  const lignesS=sorties.map(t=>`<tr><td>${fmtD(t.date)}</td><td>${esc(t.libelle)}</td><td>${esc(t.categorie||'—')}</td><td style="text-align:right;color:#b91c1c;font-weight:600">-${fmCrm(t.montant)}</td></tr>`).join('');
-  const html=`<div class="docpg"><div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||'Expert-comptable · Conseil fiscal'}</div><div class="din">${c.adresse||''} · ${c.tel||''}</div></div></div><div style="text-align:right"><div class="dbd">RELEVÉ DE TRÉSORERIE</div><div class="dnum">Période : ${mois}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Édité le : ${fmtD(TODAY)}</div></div></div>
+  const lignesE=entrees.map(t=>`<tr><td>${fmtD(t.date)}</td><td>${esc(t.libelle)}</td><td>${esc(t.categorie||'—')}${t.moyen?' / '+esc(t.moyen):''}</td><td style="text-align:right;color:#059669;font-weight:600">+${fmCrm(t.montant)}</td></tr>`).join('');
+  const lignesS=sorties.map(t=>`<tr><td>${fmtD(t.date)}</td><td>${esc(t.libelle)}</td><td>${esc(t.categorie||'—')}${t.moyen?' / '+esc(t.moyen):''}</td><td style="text-align:right;color:#b91c1c;font-weight:600">-${fmCrm(t.montant)}</td></tr>`).join('');
+  const html=`<div class="docpg"><div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||'Expert-comptable · Conseil fiscal'}</div><div class="din">${c.adresse||''} · ${c.tel||''}</div></div></div><div style="text-align:right"><div class="dbd">RELEVÉ ${cfg.lbl.toUpperCase()}</div><div class="dnum">Période : ${mois}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Édité le : ${fmtD(TODAY)}</div></div></div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">
     <div style="background:#f0fff7;border:2px solid #059669;border-radius:7px;padding:11px;text-align:center"><div style="font-size:9px;color:#065f46;font-weight:700;text-transform:uppercase;margin-bottom:3px">Total Entrées</div><div style="font-size:16px;font-weight:800;color:#065f46">${fmCrm(totE)}</div></div>
     <div style="background:#fff1f2;border:2px solid #e11d48;border-radius:7px;padding:11px;text-align:center"><div style="font-size:9px;color:#9f1239;font-weight:700;text-transform:uppercase;margin-bottom:3px">Total Sorties</div><div style="font-size:16px;font-weight:800;color:#9f1239">${fmCrm(totS)}</div></div>
@@ -1648,11 +1813,33 @@ function genTresoDoc(){
   ${sorties.length?`<div style="font-size:11px;font-weight:700;color:#b91c1c;margin:12px 0 6px;text-transform:uppercase">Sorties (${sorties.length})</div><table class="dtbl"><thead><tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th style="text-align:right">Montant</th></tr></thead><tbody>${lignesS}</tbody></table>`:''}
   <div class="dments">${c.mentions||'Tous droits réservés.'} · ${c.nom} · ${c.tel||''}</div></div>`;
   const num='TRE-'+new Date().getFullYear()+'-'+String(Date.now()).slice(-4);
-  curDoc={num,type:'Relevé trésorerie',date:fmtD(TODAY),client:c.nom,html,montant:fmCrm(solde),signerName:'',signerRole:''};
-  showPov(html,num);showToast('Relevé généré ✓');
+  curDoc={num,type:'Relevé '+cfg.lbl,date:fmtD(TODAY),client:c.nom,html,montant:fmCrm(solde),signerName:'',signerRole:''};
+  showPov(html,num);showToast('Relevé '+cfg.lbl+' généré ✓');
 }
-function genPrevTreso(){showToast('Fonctionnalité disponible après saisie des transactions');genTresoDoc();}
-function genRapportTreso(){genTresoDoc();}
+
+function genRapportTreso(){
+  const c=getDocCfg();
+  const mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  const abbr2=(c.nom||'BC').replace(/[^A-Za-z]/g,' ').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'BC';
+  const logoBox=c.logo?'<div class="dh-logo-wrap"><img src="'+c.logo+'" alt="logo" crossorigin="anonymous"/></div>':'<div class="dh-logo-wrap"><span class="dh-logo-initials">'+abbr2+'</span></div>';
+  const lignesComptes=['caisse','banque','mobile'].map(cp=>{
+    const cfg=TRESO_COMPTES[cp];const txs=getTxCompte(cp);
+    const totE=txs.filter(t=>t.type==='entrée').reduce((s,t)=>s+(+t.montant||0),0);
+    const totS=txs.filter(t=>t.type==='sortie').reduce((s,t)=>s+(+t.montant||0),0);
+    const s=totE-totS;
+    return`<tr><td>${cfg.ico} ${cfg.lbl}</td><td style="text-align:right;color:#059669">+${fmCrm(totE)}</td><td style="text-align:right;color:#b91c1c">-${fmCrm(totS)}</td><td style="text-align:right;font-weight:700;color:${s>=0?'#059669':'#b91c1c'}">${fmCrm(s)}</td></tr>`;
+  }).join('');
+  const global=_solde('caisse')+_solde('banque')+_solde('mobile');
+  const html=`<div class="docpg"><div class="dh"><div class="dh-left">${logoBox}<div><div class="dfn">${c.nom}</div><div class="dsb">${c.slogan||'Expert-comptable · Conseil fiscal'}</div><div class="din">${c.adresse||''} · ${c.tel||''}</div></div></div><div style="text-align:right"><div class="dbd">RAPPORT DE TRÉSORERIE</div><div class="dnum">Période : ${mois}</div><div style="font-size:9.5px;color:#666;margin-top:2px">Édité le : ${fmtD(TODAY)}</div></div></div>
+  <table class="dtbl"><thead><tr><th>Compte</th><th style="text-align:right">Entrées</th><th style="text-align:right">Sorties</th><th style="text-align:right">Solde</th></tr></thead><tbody>${lignesComptes}</tbody></table>
+  <div style="text-align:right;margin-top:12px;padding:10px;background:#f0fff7;border-radius:7px;border:2px solid #059669"><span style="font-size:12px;font-weight:700;color:#065f46">SOLDE GLOBAL : ${fmCrm(global)}</span></div>
+  <div class="dments">${c.mentions||'Tous droits réservés.'} · ${c.nom} · ${c.tel||''}</div></div>`;
+  const num='RPT-'+new Date().getFullYear()+'-'+String(Date.now()).slice(-4);
+  curDoc={num,type:'Rapport trésorerie',date:fmtD(TODAY),client:c.nom,html,montant:fmCrm(global),signerName:'',signerRole:''};
+  showPov(html,num);showToast('Rapport global généré ✓');
+}
+
+function genPrevTreso(){showToast('Saisissez vos transactions pour générer les prévisions');}
 
 // ══ AUTRES DOCUMENTS ═════════════════════════════════════════
 const AUTRES_DOC_TYPES=[
