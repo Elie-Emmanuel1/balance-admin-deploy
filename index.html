@@ -387,11 +387,11 @@ function gb(id){const e=document.getElementById(id);return e?e.checked:false;}
 
 // ══ PLATFORM DATA ═════════════════════════════════════════════
 const CACHE={};
-const SERVER_URL='';
+const SERVER_URL='/api/proxy'; // Proxy Vercel — URL Apps Script jamais exposée
 const DEFAULT_ADMIN_KEY='BC2026Platform';
 
-function getApiUrl(){return S.g('server_url')||SERVER_URL||'';}
-function getAdminKey(){return S.g('admin_key')||DEFAULT_ADMIN_KEY||'';}
+function getApiUrl(){return SERVER_URL;} // toujours connecté via proxy
+function getAdminKey(){return DEFAULT_ADMIN_KEY;}
 function getCompanyInfo(){return S.g('company_info')||{};}
 function saveCompanyInfoData(d){S.s('company_info',d);}
 
@@ -2088,8 +2088,8 @@ function clearStamp(){
   const ci=getCompanyInfo();ci.stamp_url='';saveCompanyInfoData(ci);
   showToast('Cachet supprimé');
 }
-function saveServerConfig(){const url=gv('cfg_srv');const key=gv('cfg_key');S.s('server_url',url);S.s('admin_key',key);showToast('Configuration sauvegardée ✓');if(url)loadAllData().then(ok=>{if(ok){showToast('Données chargées ✓');goTo('dash');}else showToast('Serveur configuré mais pas encore de données',false);});}
-async function testConnection(){const msg=document.getElementById('cfg_test_msg');if(msg)msg.innerHTML='<span style="color:var(--muted)">🔄 Test...</span>';try{const d=await apiCall('ping');if(msg)msg.innerHTML='<span style="color:var(--green)">✅ Connexion OK</span>';}catch(e){if(msg)msg.innerHTML='<span style="color:var(--red)">❌ '+e.message+'</span>';}}
+function saveServerConfig(){showToast('Serveur géré via proxy Vercel ✓');}
+async function testConnection(){try{const d=await apiCall('ping');showToast('✅ Proxy OK — '+JSON.stringify(d).slice(0,60));}catch(e){showToast('❌ '+e.message,false);}}
 function saveCompanyInfoFull(){
   const ci=getCompanyInfo();const sigsCount=(ci.sigs||[]).length;const sigs=Array.from({length:sigsCount},(_,i)=>({nom:gv('sig_nom_'+i)||'',role:gv('sig_role_'+i)||''})).filter(s=>s.nom);
   const info={...ci,nom:gv('ci_nom')||'BALANCE CONSULTING',slogan:gv('ci_slogan')||'',email:gv('ci_email')||'',tel:gv('ci_tel')||'',adresse:gv('ci_addr')||'',ville:gv('ci_ville')||'Abidjan',rccm:gv('ci_rccm')||'',ncc:gv('ci_ncc')||'',mentions:gv('ci_mentions')||'Tous droits réservés.',couleur_principale:document.getElementById('ci_color')?.value||'#1A56DB',logo_url:gv('ci_logo')||'',stamp_url:gv('ci_stamp')||'',sigs:sigs.length?sigs:(ci.sigs||[{nom:'Directeur Général',role:'Expert-comptable agréé'}])};
