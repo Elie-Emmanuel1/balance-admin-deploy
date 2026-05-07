@@ -1,7 +1,8 @@
 // Vercel Serverless Function — proxy vers Google Apps Script
 // L'URL Apps Script est dans la variable d'environnement APPS_SCRIPT_URL (jamais exposée au client)
 
-const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || '';
+const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL
+  || 'https://script.google.com/macros/s/AKfycbxoBBS5TMXMmCE2oUo2Sk2l5wwFcjBruDQemYO-z2_HZpIp1zKNdHRCIcZhSrslt0G0iQ/exec';
 
 module.exports = async (req, res) => {
   // CORS
